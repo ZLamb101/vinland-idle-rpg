@@ -39,7 +39,7 @@ public class TalentPanel : MonoBehaviour
     public TalentData[] allTalents; // Assign all talent assets here
     
     [Header("Tooltip Settings")]
-    public Vector2 tooltipOffset = new Vector2(10f, -10f); // Offset from cursor
+    public Vector2 tooltipOffset = new Vector2(30f, -40f); // Offset from cursor
     
     private Dictionary<TalentData, TalentButton> talentButtons = new Dictionary<TalentData, TalentButton>();
     private RectTransform tooltipRect;

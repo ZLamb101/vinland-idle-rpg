@@ -1,33 +1,31 @@
 using UnityEngine;
 
 /// <summary>
-/// Simple script to toggle between quest panel and inventory panel.
-/// Attach to your Bag Button.
+/// Simple script to toggle the inventory panel on/off.
+/// Attach to your Bag/Inventory Button.
 /// </summary>
 public class InventoryToggle : MonoBehaviour
 {
     [Header("UI Panels")]
-    public GameObject questPanel;
     public GameObject inventoryPanel;
     
     [Header("Settings")]
-    public bool startWithQuestPanel = true;
+    public bool startInventoryOpen = false;
     
     void Start()
     {
-        // Initialize panel states
-        if (questPanel != null) questPanel.SetActive(startWithQuestPanel);
-        if (inventoryPanel != null) inventoryPanel.SetActive(!startWithQuestPanel);
+        if (inventoryPanel != null)
+        {
+            inventoryPanel.SetActive(startInventoryOpen);
+        }
     }
     
     public void ToggleInventory()
     {
-        if (questPanel != null && inventoryPanel != null)
+        if (inventoryPanel != null)
         {
             bool currentlyShowingInventory = inventoryPanel.activeSelf;
             
-            // Toggle the panels
-            questPanel.SetActive(currentlyShowingInventory);
             inventoryPanel.SetActive(!currentlyShowingInventory);
             
             // Refresh inventory UI when opening inventory
@@ -45,26 +43,24 @@ public class InventoryToggle : MonoBehaviour
                 }
             }
             
-            Debug.Log($"Switched to {(!currentlyShowingInventory ? "Inventory" : "Quest")} panel");
-            Debug.Log($"Quest Panel Active: {questPanel.activeSelf}, Inventory Panel Active: {inventoryPanel.activeSelf}");
+            Debug.Log($"Inventory panel is now {(!currentlyShowingInventory ? "open" : "closed")}");
         }
         else
         {
-            Debug.LogWarning($"Quest Panel: {questPanel != null}, Inventory Panel: {inventoryPanel != null}");
+            Debug.LogWarning("Inventory panel reference is missing!");
         }
     }
     
     public void ShowInventoryQuick()
     {
-        if (questPanel != null) questPanel.SetActive(false);
         if (inventoryPanel != null) inventoryPanel.SetActive(true);
         Debug.Log("Showing inventory panel");
     }
     
     public void ShowQuestPanel()
     {
+        // Method kept for backwards compatibility so existing button bindings don't break.
         if (inventoryPanel != null) inventoryPanel.SetActive(false);
-        if (questPanel != null) questPanel.SetActive(true);
-        Debug.Log("Showing quest panel");
+        Debug.Log("Hiding inventory panel (quest panel handling removed)");
     }
 }

@@ -22,11 +22,13 @@ public class InventoryUI : MonoBehaviour
     public GameObject tooltipPanel;
     public TextMeshProUGUI tooltipNameText;
     public TextMeshProUGUI tooltipDescriptionText;
-    public Vector2 tooltipOffset = new Vector2(10f, -10f);
+    public Vector2 tooltipOffset = new Vector2(30f, -30f);
     
     private InventoryData inventoryData;
     private int selectedSlot = -1;
     private RectTransform tooltipRect;
+    private Canvas tooltipCanvas;
+    private RectTransform canvasRect;
     
     void Start()
     {
@@ -39,6 +41,19 @@ public class InventoryUI : MonoBehaviour
         {
             tooltipPanel.SetActive(false);
             tooltipRect = tooltipPanel.GetComponent<RectTransform>();
+            if (tooltipRect != null)
+            {
+                tooltipRect.pivot = new Vector2(0f, 1f); // top-left pivot so offset behaves intuitively
+            }
+            tooltipCanvas = tooltipPanel.GetComponentInParent<Canvas>();
+            if (tooltipCanvas != null)
+            {
+                canvasRect = tooltipCanvas.GetComponent<RectTransform>();
+            }
+            else
+            {
+                canvasRect = tooltipPanel.transform.parent as RectTransform;
+            }
             
             // Disable raycast blocking on tooltip
             CanvasGroup tooltipCanvasGroup = tooltipPanel.GetComponent<CanvasGroup>();
@@ -64,10 +79,25 @@ public class InventoryUI : MonoBehaviour
         {
             Vector2 mousePos = GetMousePosition();
             Vector2 localPoint;
+            RectTransform targetRect = tooltipRect.parent as RectTransform;
+            if (targetRect == null)
+            {
+                targetRect = canvasRect;
+            }
+            if (targetRect == null)
+            {
+                return;
+            }
+            Camera uiCamera = null;
+            if (tooltipCanvas != null && tooltipCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            {
+                uiCamera = tooltipCanvas.worldCamera;
+            }
+
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                transform.parent.GetComponent<RectTransform>(),
+                targetRect,
                 mousePos,
-                null,
+                uiCamera,
                 out localPoint
             );
             
