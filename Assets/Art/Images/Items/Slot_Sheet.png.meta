@@ -1,0 +1,559 @@
+fileFormatVersion: 2
+guid: 0d4c90a2aa9e8854faa57a510edb97c3
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6760334275031198534
+    second: Slot_Sheet_0
+  - first:
+      213: 4689932332303806340
+    second: Slot_Sheet_1
+  - first:
+      213: -8177481390956918264
+    second: Slot_Sheet_2
+  - first:
+      213: 4461767506297411835
+    second: Slot_Sheet_3
+  - first:
+      213: 7359903687974779087
+    second: Slot_Sheet_4
+  - first:
+      213: -1845360893965539327
+    second: Slot_Sheet_5
+  - first:
+      213: 130264378843362465
+    second: Slot_Sheet_6
+  - first:
+      213: -3532233281662833689
+    second: Slot_Sheet_7
+  - first:
+      213: 7811152445450667013
+    second: Slot_Sheet_8
+  - first:
+      213: -5646071594863833367
+    second: Slot_Sheet_9
+  - first:
+      213: -3244868861049492449
+    second: Slot_Sheet_10
+  - first:
+      213: 4355015951745831686
+    second: Slot_Sheet_11
+  - first:
+      213: -5409524546643567668
+    second: Slot_Sheet_12
+  - first:
+      213: 2619218085295661708
+    second: Slot_Sheet_13
+  - first:
+      213: 7361725021822802123
+    second: Slot_Sheet_14
+  - first:
+      213: -3642529779782337076
+    second: Slot_Sheet_15
+  - first:
+      213: 8933183651462978255
+    second: Slot_Sheet_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Slot_Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 784
+        width: 184
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64be122943881dd50800000000000000
+      internalID: 6760334275031198534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 331
+        y: 776
+        width: 143
+        height: 185
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48f669f9b9cf51140800000000000000
+      internalID: 4689932332303806340
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 530
+        y: 775
+        width: 191
+        height: 184
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80a45a64000c38e80800000000000000
+      internalID: -8177481390956918264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 776
+        y: 775
+        width: 169
+        height: 181
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf8dc3358e16bed30800000000000000
+      internalID: 4461767506297411835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 559
+        width: 208
+        height: 185
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc8f2d6e861a32660800000000000000
+      internalID: 7359903687974779087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 559
+        width: 142
+        height: 182
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10869c84b06f366e0800000000000000
+      internalID: -1845360893965539327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 551
+        y: 559
+        width: 135
+        height: 182
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a478db23cacec100800000000000000
+      internalID: 130264378843362465
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 775
+        y: 607
+        width: 171
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ebacae7b8cfafec0800000000000000
+      internalID: -3532233281662833689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 367
+        width: 107
+        height: 145
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 504c28d83c9c66c60800000000000000
+      internalID: 7811152445450667013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 168
+        y: 352
+        width: 89
+        height: 159
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9eec7b37ccf15a1b0800000000000000
+      internalID: -5646071594863833367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 360
+        width: 139
+        height: 143
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1c2b6286f8e7f2d0800000000000000
+      internalID: -3244868861049492449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 559
+        y: 359
+        width: 144
+        height: 156
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60358fa2fef107c30800000000000000
+      internalID: 4355015951745831686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 775
+        y: 344
+        width: 162
+        height: 185
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccbdd81f5128de4b0800000000000000
+      internalID: -5409524546643567668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 119
+        width: 170
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c82a35ba8f4595420800000000000000
+      internalID: 2619218085295661708
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 307
+        y: 88
+        width: 158
+        height: 217
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc85adb37e91a2660800000000000000
+      internalID: 7361725021822802123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 583
+        y: 120
+        width: 91
+        height: 190
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccdba48d672237dc0800000000000000
+      internalID: -3642529779782337076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slot_Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 815
+        y: 121
+        width: 90
+        height: 187
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fca17c2733b09fb70800000000000000
+      internalID: 8933183651462978255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Slot_Sheet_0: 6760334275031198534
+      Slot_Sheet_1: 4689932332303806340
+      Slot_Sheet_10: -3244868861049492449
+      Slot_Sheet_11: 4355015951745831686
+      Slot_Sheet_12: -5409524546643567668
+      Slot_Sheet_13: 2619218085295661708
+      Slot_Sheet_14: 7361725021822802123
+      Slot_Sheet_15: -3642529779782337076
+      Slot_Sheet_16: 8933183651462978255
+      Slot_Sheet_2: -8177481390956918264
+      Slot_Sheet_3: 4461767506297411835
+      Slot_Sheet_4: 7359903687974779087
+      Slot_Sheet_5: -1845360893965539327
+      Slot_Sheet_6: 130264378843362465
+      Slot_Sheet_7: -3532233281662833689
+      Slot_Sheet_8: 7811152445450667013
+      Slot_Sheet_9: -5646071594863833367
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,300 @@
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+/// <summary>
+/// UI panel that displays current zone information and handles navigation.
+/// </summary>
+public class ZonePanel : MonoBehaviour
+{
+    [Header("Zone Display")]
+    public TextMeshProUGUI zoneNameText;
+    
+    [Header("Navigation")]
+    public Button previousZoneButton;
+    public Button nextZoneButton;
+    public TextMeshProUGUI previousZoneText;
+    public TextMeshProUGUI nextZoneText;
+    
+    [Header("Quest Display")]
+    public Button questIconButton; // Button to toggle quest action panel
+    public GameObject questActionPanel; // The existing quest board container
+    public GameObject questPanelPrefab; // Prefab for creating quest panels dynamically
+    
+    [Header("Combat")]
+    public Button fightButton; // Button to start combat
+    
+    void Start()
+    {
+        // Subscribe to zone changes
+        if (ZoneManager.Instance != null)
+        {
+            ZoneManager.Instance.OnZoneChanged += OnZoneChanged;
+            ZoneManager.Instance.OnQuestsChanged += OnQuestsChanged;
+        }
+        
+        // Setup navigation buttons
+        if (previousZoneButton != null)
+            previousZoneButton.onClick.AddListener(GoToPreviousZone);
+        
+        if (nextZoneButton != null)
+            nextZoneButton.onClick.AddListener(GoToNextZone);
+        
+        // Setup quest icon button
+        if (questIconButton != null)
+            questIconButton.onClick.AddListener(ToggleQuestZone);
+        
+        // Setup fight button
+        if (fightButton != null)
+            fightButton.onClick.AddListener(ToggleCombat);
+        
+        // Initialize display
+        UpdateZoneDisplay();
+        UpdateNavigationButtons();
+        InitializeQuestPanel();
+    }
+    
+    void OnDestroy()
+    {
+        // Unsubscribe from events
+        if (ZoneManager.Instance != null)
+        {
+            ZoneManager.Instance.OnZoneChanged -= OnZoneChanged;
+            ZoneManager.Instance.OnQuestsChanged -= OnQuestsChanged;
+        }
+    }
+    
+    void OnZoneChanged(ZoneData zone)
+    {
+        UpdateZoneDisplay();
+        UpdateNavigationButtons();
+        InitializeQuestsForZone(zone);
+    }
+    
+    void OnQuestsChanged(QuestData[] quests)
+    {
+        // Quest loading is handled by the existing questActionPanel
+        // No need to duplicate quest display logic here
+    }
+    
+    void UpdateZoneDisplay()
+    {
+        if (ZoneManager.Instance == null) return;
+        
+        ZoneData currentZone = ZoneManager.Instance.GetCurrentZone();
+        if (currentZone == null) return;
+        
+        // Update zone info
+        if (zoneNameText != null)
+            zoneNameText.text = currentZone.zoneName;
+    }
+    
+    void UpdateNavigationButtons()
+    {
+        if (ZoneManager.Instance == null) return;
+        
+        // Update previous zone button
+        bool canGoPrevious = ZoneManager.Instance.CanGoToPreviousZone();
+        if (previousZoneButton != null)
+        {
+            previousZoneButton.gameObject.SetActive(canGoPrevious);
+        }
+        
+        if (previousZoneText != null)
+        {
+            previousZoneText.gameObject.SetActive(canGoPrevious);
+            if (canGoPrevious)
+            {
+                ZoneData previousZone = ZoneManager.Instance.GetPreviousZone();
+                previousZoneText.text = $"← {previousZone.zoneName}";
+            }
+        }
+        
+        // Update next zone button
+        bool canGoNext = ZoneManager.Instance.CanGoToNextZone();
+        if (nextZoneButton != null)
+        {
+            nextZoneButton.interactable = canGoNext;
+        }
+        
+        if (nextZoneText != null)
+        {
+            if (canGoNext)
+            {
+                ZoneData nextZone = ZoneManager.Instance.GetNextZone();
+                nextZoneText.text = $"{nextZone.zoneName} →";
+            }
+            else
+            {
+                nextZoneText.text = "Next →";
+            }
+        }
+    }
+    
+    
+    void GoToPreviousZone()
+    {
+        if (ZoneManager.Instance != null)
+        {
+            ZoneManager.Instance.GoToPreviousZone();
+        }
+    }
+    
+    void GoToNextZone()
+    {
+        if (ZoneManager.Instance != null)
+        {
+            ZoneManager.Instance.GoToNextZone();
+        }
+    }
+    
+    void InitializeQuestPanel()
+    {
+        // Hide quest action panel initially
+        if (questActionPanel != null)
+        {
+            questActionPanel.SetActive(false);
+        }
+    }
+    
+    void ToggleQuestZone()
+    {
+        if (questActionPanel != null)
+        {
+            bool isShowing = questActionPanel.activeSelf;
+            questActionPanel.SetActive(!isShowing);
+        }
+    }
+    
+    void InitializeQuestsForZone(ZoneData zone)
+    {
+        if (zone == null || questActionPanel == null) return;
+        
+        int playerLevel = CharacterManager.Instance != null ? CharacterManager.Instance.GetLevel() : 1;
+        QuestData[] availableQuests = zone.GetAllQuests(); // Get all quests, including locked ones
+        
+        // Find QuestPanel components in the questActionPanel and update them
+        QuestPanel[] questPanels = questActionPanel.GetComponentsInChildren<QuestPanel>(true); // Include inactive
+        
+        // If no QuestPanel components found, create them dynamically
+        if (questPanels.Length == 0 && availableQuests.Length > 0)
+        {
+            CreateQuestPanels(availableQuests);
+            questPanels = questActionPanel.GetComponentsInChildren<QuestPanel>(true);
+        }
+        
+        // Update existing quest panels with new quest data
+        for (int i = 0; i < questPanels.Length && i < availableQuests.Length; i++)
+        {
+            if (questPanels[i] != null && availableQuests[i] != null)
+            {
+                questPanels[i].SetQuest(availableQuests[i]);
+            }
+        }
+        
+        // Hide extra quest panels if we have more panels than quests
+        for (int i = availableQuests.Length; i < questPanels.Length; i++)
+        {
+            if (questPanels[i] != null)
+            {
+                questPanels[i].gameObject.SetActive(false);
+            }
+        }
+        
+        // Show quest panels that have quests
+        for (int i = 0; i < availableQuests.Length && i < questPanels.Length; i++)
+        {
+            if (questPanels[i] != null)
+            {
+                questPanels[i].gameObject.SetActive(true);
+            }
+        }
+        
+        // Hide the quest action panel after initializing quests
+        if (questActionPanel != null)
+        {
+            questActionPanel.SetActive(false);
+        }
+    }
+    
+    void CreateQuestPanels(QuestData[] quests)
+    {
+        for (int i = 0; i < quests.Length; i++)
+        {
+            GameObject questPanelObj;
+            
+            if (questPanelPrefab != null)
+            {
+                questPanelObj = Instantiate(questPanelPrefab, questActionPanel.transform);
+                questPanelObj.name = $"QuestPanel_{i}";
+                
+                // Set the quest data
+                QuestPanel questPanel = questPanelObj.GetComponent<QuestPanel>();
+                if (questPanel != null)
+                {
+                    questPanel.SetQuest(quests[i]);
+                }
+                else
+                {
+                    Debug.LogError($"QuestPanel component not found on prefab!");
+                }
+            }
+            else
+            {
+                // Fallback: create simple quest panel
+                questPanelObj = new GameObject($"QuestPanel_{i}");
+                questPanelObj.transform.SetParent(questActionPanel.transform);
+                
+                // Add QuestPanel component
+                QuestPanel questPanel = questPanelObj.AddComponent<QuestPanel>();
+                questPanel.SetQuest(quests[i]);
+            }
+        }
+    }
+    
+    void ToggleCombat()
+    {
+        Debug.Log("ToggleCombat called!");
+        
+        if (CombatManager.Instance == null)
+        {
+            Debug.LogError("CombatManager.Instance is NULL! Make sure CombatManager GameObject exists in scene!");
+            return;
+        }
+        
+        // Check if combat is already active
+        if (CombatManager.Instance.GetCombatState() != CombatManager.CombatState.Idle)
+        {
+            // Combat is active - end it
+            Debug.Log("Ending combat and hiding panel");
+            CombatManager.Instance.EndCombat();
+            return;
+        }
+        
+        // Combat is not active - start it
+        if (ZoneManager.Instance == null)
+        {
+            Debug.LogError("ZoneManager.Instance is NULL!");
+            return;
+        }
+        
+        ZoneData currentZone = ZoneManager.Instance.GetCurrentZone();
+        if (currentZone == null)
+        {
+            Debug.LogWarning("No zone selected for combat!");
+            return;
+        }
+        
+        MonsterData[] monsters = currentZone.GetMonsters();
+        if (monsters == null || monsters.Length == 0)
+        {
+            Debug.LogWarning($"Zone {currentZone.zoneName} has no monsters to fight!");
+            return;
+        }
+        
+        Debug.Log($"Starting combat with {monsters.Length} monsters from {currentZone.zoneName}");
+        
+        // Start combat with this zone's monsters
+        CombatManager.Instance.StartCombat(monsters);
+    }
+}

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4af77f169e332f640803607577a586cc, type: 3}
+  m_Name: TestTalent
+  m_EditorClassIdentifier: Assembly-CSharp::TalentData
+  talentName: Test Talent
+  description: Test this description hi hi
+  icon: {fileID: 21300000, guid: f8a0997c30b33fd42998800317e977d3, type: 3}
+  talentTree: 0
+  tier: 1
+  position: 0
+  pointsRequiredInTree: 0
+  prerequisiteTalent: {fileID: 0}
+  maxRanks: 5
+  attackDamageBonus: 5
+  maxHealthBonus: 0
+  attackSpeedBonus: 0
+  damageMultiplier: 0
+  healthMultiplier: 0
+  criticalChanceBonus: 0
+  criticalDamageBonus: 0
+  lifestealBonus: 0
+  dodgeBonus: 0
+  armorBonus: 0
+  xpBonus: 0
+  goldBonus: 0
+  tierColor: {r: 1, g: 1, b: 1, a: 1}

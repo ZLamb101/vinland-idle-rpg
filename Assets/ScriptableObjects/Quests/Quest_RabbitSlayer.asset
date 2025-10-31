@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5, type: 3}
+  m_Name: Quest_RabbitSlayer
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questName: Rabbit Slayer
+  description: 3 Seconds
+  levelRequired: 3
+  duration: 3
+  xpReward: 100
+  goldReward: 3
+  itemReward: {fileID: 11400000, guid: f573099df85a12d40ac0bc6a68dade01, type: 2}
+  itemRewardQuantity: 2
+  questIcon: {fileID: 0}
+  questColor: {r: 1, g: 1, b: 1, a: 1}

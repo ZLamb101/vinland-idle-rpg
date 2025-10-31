@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eeb0d3b627b76544d9807389ea7bed22, type: 3}
+  m_Name: Equipment_IronSword
+  m_EditorClassIdentifier: Assembly-CSharp::EquipmentData
+  equipmentName: Iron Sword
+  description: A basic iron sword
+  icon: {fileID: 130387172301959114, guid: 5415a3f0094f35748a310fe07e534937, type: 3}
+  slot: 11
+  tier: 0
+  levelRequired: 1
+  attackDamage: 15
+  attackSpeed: 0
+  maxHealth: 0
+  healthRegen: 0
+  armor: 0
+  dodge: 0
+  criticalChance: 0
+  lifesteal: 0
+  xpBonus: 0
+  goldBonus: 0
+  rarityColor: {r: 1, g: 1, b: 1, a: 1}

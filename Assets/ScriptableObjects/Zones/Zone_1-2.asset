@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ad1d7dcec5629245b6436474bf29744, type: 3}
+  m_Name: Zone_1-2
+  m_EditorClassIdentifier: Assembly-CSharp::ZoneData
+  zoneName: Zone 1-2
+  levelRequired: 1
+  prerequisiteZone: {fileID: 0}
+  availableQuests:
+  - {fileID: 11400000, guid: d0078617fa747e34ca16c078c8d21d8e, type: 2}
+  nextZone: {fileID: 11400000, guid: 995e1db24a5e2a1409a384a4452d8824, type: 2}
+  isUnlocked: 0
+  zoneColor: {r: 1, g: 1, b: 1, a: 1}
+  zoneTheme: Forest
