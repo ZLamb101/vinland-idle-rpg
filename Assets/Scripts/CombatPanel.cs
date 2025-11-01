@@ -30,7 +30,6 @@ public class CombatPanel : MonoBehaviour
     
     [Header("Buttons")]
     public Button retreatButton;
-    public Button continueButton; // Shows after victory/defeat
     
     [Header("Damage Display")]
     public TextMeshProUGUI playerDamageText; // Floating damage numbers
@@ -54,12 +53,6 @@ public class CombatPanel : MonoBehaviour
         // Setup buttons
         if (retreatButton != null)
             retreatButton.onClick.AddListener(OnRetreatClicked);
-        
-        if (continueButton != null)
-        {
-            continueButton.onClick.AddListener(OnContinueClicked);
-            continueButton.gameObject.SetActive(false);
-        }
         
         // Hide panel initially
         if (combatPanel != null)
@@ -100,25 +93,21 @@ public class CombatPanel : MonoBehaviour
                 ShowCombatPanel();
                 if (retreatButton != null)
                     retreatButton.gameObject.SetActive(true);
-                if (continueButton != null)
-                    continueButton.gameObject.SetActive(false);
                 UpdateCombatLog("Battle started!");
                 break;
                 
             case CombatManager.CombatState.Victory:
+                // Victory state should not occur anymore, but keep for safety
                 if (retreatButton != null)
-                    retreatButton.gameObject.SetActive(false);
-                if (continueButton != null)
-                    continueButton.gameObject.SetActive(true);
-                UpdateCombatLog("Victory! All monsters defeated!");
+                    retreatButton.gameObject.SetActive(true);
+                UpdateCombatLog("Victory! Fighting continues...");
                 break;
                 
             case CombatManager.CombatState.Defeat:
+                // After respawn, combat continues automatically
                 if (retreatButton != null)
-                    retreatButton.gameObject.SetActive(false);
-                if (continueButton != null)
-                    continueButton.gameObject.SetActive(true);
-                UpdateCombatLog("Defeat! You have been respawned.");
+                    retreatButton.gameObject.SetActive(true);
+                UpdateCombatLog("Defeat! You have been respawned. Combat continues...");
                 break;
         }
     }
@@ -232,17 +221,6 @@ public class CombatPanel : MonoBehaviour
     void OnRetreatClicked()
     {
         // End combat and return to zone
-        if (CombatManager.Instance != null)
-        {
-            CombatManager.Instance.EndCombat();
-        }
-        
-        HideCombatPanel();
-    }
-    
-    void OnContinueClicked()
-    {
-        // Return to zone after victory/defeat
         if (CombatManager.Instance != null)
         {
             CombatManager.Instance.EndCombat();
