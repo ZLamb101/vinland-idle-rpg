@@ -13,7 +13,6 @@ public class CombatManager : MonoBehaviour
     private CombatState currentState = CombatState.Idle;
     private MonsterData currentMonster;
     private MonsterData[] zoneMonsters;
-    private int currentMonsterIndex = 0;
     
     [Header("Combat Stats")]
     private float playerCurrentHealth;
@@ -84,15 +83,14 @@ public class CombatManager : MonoBehaviour
         }
         
         zoneMonsters = monsters;
-        currentMonsterIndex = 0;
         
         // Initialize player stats with equipment bonuses
         CalculatePlayerStats();
         
         Debug.Log($"Starting combat - player health: {playerCurrentHealth}/{playerMaxHealth}, attack: {playerAttackDamage}");
         
-        // Load first monster
-        LoadNextMonster();
+        // Load first random monster
+        LoadRandomMonster();
     }
     
     /// <summary>
@@ -146,16 +144,17 @@ public class CombatManager : MonoBehaviour
         }
     }
     
-    void LoadNextMonster()
+    void LoadRandomMonster()
     {
-        if (currentMonsterIndex >= zoneMonsters.Length)
+        if (zoneMonsters == null || zoneMonsters.Length == 0)
         {
-            // All monsters defeated - zone complete!
-            OnCombatVictory();
+            Debug.LogWarning("No monsters available in zone!");
             return;
         }
         
-        currentMonster = zoneMonsters[currentMonsterIndex];
+        // Randomly select a monster from the zone's available monsters
+        int randomIndex = UnityEngine.Random.Range(0, zoneMonsters.Length);
+        currentMonster = zoneMonsters[randomIndex];
         
         // Get player level for scaling
         int playerLevel = CharacterManager.Instance != null ? CharacterManager.Instance.GetLevel() : 1;
@@ -349,17 +348,8 @@ public class CombatManager : MonoBehaviour
             }
         }
         
-        // Move to next monster
-        currentMonsterIndex++;
-        
-        // Small delay before next monster
-        Invoke(nameof(LoadNextMonster), 0.5f);
-    }
-    
-    void OnCombatVictory()
-    {
-        currentState = CombatState.Victory;
-        OnCombatStateChanged?.Invoke(currentState);
+        // Load a new random monster immediately (combat continues forever)
+        Invoke(nameof(LoadRandomMonster), 0.5f);
     }
     
     void OnPlayerDefeated()
@@ -372,7 +362,13 @@ public class CombatManager : MonoBehaviour
         {
             CharacterManager.Instance.HealToFull();
             playerCurrentHealth = CharacterManager.Instance.GetCurrentHealth();
+            
+            // Recalculate stats in case player leveled up
+            CalculatePlayerStats();
         }
+        
+        // After respawn, continue combat with a new random monster
+        Invoke(nameof(LoadRandomMonster), 0.5f);
     }
     
     /// <summary>
