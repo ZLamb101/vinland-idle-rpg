@@ -26,6 +26,12 @@ public class ZonePanel : MonoBehaviour
     [Header("Combat")]
     public Button fightButton; // Button to start combat
     
+    [Header("NPC Display")]
+    public Image npcImage; // Image showing the NPC sprite
+    public TextMeshProUGUI npcNameText; // Text showing NPC name
+    public Button talkButton; // Button to talk to NPC
+    public Button shopButton; // Button to open shop (only shown if NPC has shop)
+    
     [Header("Resource Gathering")]
     public Image resourceIconImage; // Image showing the resource icon
     public Button resourceGatherButton; // Button to start/stop gathering
@@ -65,6 +71,15 @@ public class ZonePanel : MonoBehaviour
         if (fightButton != null)
             fightButton.onClick.AddListener(ToggleCombat);
         
+        // Setup NPC buttons
+        if (talkButton != null)
+            talkButton.onClick.AddListener(OnTalkClicked);
+        
+        if (shopButton != null)
+            shopButton.onClick.AddListener(OnShopClicked);
+        
+        // Initialize display
+        UpdateZoneDisplay();
         // Setup resource gather button
         if (resourceGatherButton != null)
             resourceGatherButton.onClick.AddListener(ToggleResourceGathering);
@@ -167,6 +182,47 @@ public class ZonePanel : MonoBehaviour
         if (zoneNameText != null)
             zoneNameText.text = currentZone.zoneName;
         
+        // Update NPC display
+        NPCData npc = currentZone.GetNPC();
+        bool hasNPC = npc != null;
+        
+        // Show/hide NPC image
+        if (npcImage != null)
+        {
+            npcImage.gameObject.SetActive(hasNPC);
+            
+            if (hasNPC && npc.npcSprite != null)
+            {
+                npcImage.sprite = npc.npcSprite;
+            }
+        }
+        
+        // Update NPC name text
+        if (npcNameText != null)
+        {
+            if (hasNPC)
+            {
+                npcNameText.text = npc.npcName;
+                npcNameText.gameObject.SetActive(true);
+            }
+            else
+            {
+                npcNameText.gameObject.SetActive(false);
+            }
+        }
+        
+        // Show/hide talk button
+        if (talkButton != null)
+        {
+            talkButton.gameObject.SetActive(hasNPC);
+        }
+        
+        // Show/hide shop button (only if NPC has shop)
+        if (shopButton != null)
+        {
+            bool showShop = hasNPC && npc.hasShop;
+            shopButton.gameObject.SetActive(showShop);
+        }
         // Update monster icon and fight button visibility
         MonsterData[] monsters = currentZone.GetMonsters();
         
@@ -473,6 +529,11 @@ public class ZonePanel : MonoBehaviour
         CombatManager.Instance.StartCombat(monsters);
     }
     
+    void OnTalkClicked()
+    {
+        if (DialogueManager.Instance == null)
+        {
+            Debug.LogError("DialogueManager.Instance is NULL! Make sure DialogueManager exists in scene!");
     void ToggleResourceGathering()
     {
         if (ResourceManager.Instance == null)
@@ -484,6 +545,38 @@ public class ZonePanel : MonoBehaviour
         ZoneData currentZone = ZoneManager.Instance?.GetCurrentZone();
         if (currentZone == null)
         {
+            Debug.LogWarning("No zone selected for talking!");
+            return;
+        }
+        
+        NPCData npc = currentZone.GetNPC();
+        if (npc == null)
+        {
+            Debug.LogWarning("No NPC in this zone!");
+            return;
+        }
+        
+        DialogueManager.Instance.StartDialogue(npc);
+    }
+    
+    void OnShopClicked()
+    {
+        ZoneData currentZone = ZoneManager.Instance?.GetCurrentZone();
+        if (currentZone == null)
+        {
+            Debug.LogWarning("No zone selected!");
+            return;
+        }
+        
+        NPCData npc = currentZone.GetNPC();
+        if (npc == null || !npc.hasShop)
+        {
+            Debug.LogWarning("NPC does not have a shop!");
+            return;
+        }
+        
+        // TODO: Open shop UI when shop system is implemented
+        Debug.Log($"Opening shop for {npc.npcName}");
             Debug.LogWarning("No zone selected for gathering!");
             return;
         }

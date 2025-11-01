@@ -13,9 +13,11 @@ MonoBehaviour:
   m_Name: Zone_1-3
   m_EditorClassIdentifier: Assembly-CSharp::ZoneData
   zoneName: Zone 1-3
-  levelRequired: 1
+  levelRequired: 3
   prerequisiteZone: {fileID: 0}
   availableQuests: []
+  monsters: []
+  npc: {fileID: 0}
   nextZone: {fileID: 0}
   isUnlocked: 0
   zoneColor: {r: 1, g: 1, b: 1, a: 1}

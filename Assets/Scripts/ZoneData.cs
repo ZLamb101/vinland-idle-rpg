@@ -23,6 +23,9 @@ public class ZoneData : ScriptableObject
     [Header("Resources in this Zone")]
     public ResourceData resource; // Resource that can be gathered in this zone (optional)
     
+    [Header("NPCs in this Zone")]
+    public NPCData npc; // NPC present in this zone (optional)
+    
     [Header("Navigation")]
     public ZoneData nextZone; // Next zone to unlock
     public bool isUnlocked = false;
@@ -95,5 +98,13 @@ public class ZoneData : ScriptableObject
     public ResourceData GetResource()
     {
         return resource;
+    }
+    
+    /// <summary>
+    /// Get the NPC in this zone (if any)
+    /// </summary>
+    public NPCData GetNPC()
+    {
+        return npc;
     }
 }
