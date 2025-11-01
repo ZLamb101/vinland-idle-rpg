@@ -21,6 +21,7 @@ MonoBehaviour:
   monsters:
   - {fileID: 11400000, guid: 920424bbd5910a744b3187c0ab7f4160, type: 2}
   - {fileID: 11400000, guid: e52708aa64dca984b9f897c2c27a85de, type: 2}
+  npc: {fileID: 11400000, guid: d621a9889936ab7419bed89b4695c249, type: 2}
   nextZone: {fileID: 11400000, guid: 8aa0f8ef764cae54fb54e737325108b1, type: 2}
   isUnlocked: 0
   zoneColor: {r: 1, g: 1, b: 1, a: 1}

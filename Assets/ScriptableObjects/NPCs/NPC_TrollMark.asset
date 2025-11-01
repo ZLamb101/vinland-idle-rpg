@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1230dd25aac341943834e5b8bde7142a, type: 3}
+  m_Name: NPC_TrollMark
+  m_EditorClassIdentifier: Assembly-CSharp::NPCData
+  npcName: Mark
+  npcSprite: {fileID: 1406004857870835685, guid: a810761661b60af489e14c4172c66c46, type: 3}
+  dialogueLines:
+  - text: Hello Mon
+  hasShop: 0
