@@ -20,6 +20,9 @@ public class ZoneData : ScriptableObject
     [Header("Monsters in this Zone")]
     public MonsterData[] monsters; // Monsters that can be fought in this zone
     
+    [Header("Resources in this Zone")]
+    public ResourceData resource; // Resource that can be gathered in this zone (optional)
+    
     [Header("NPCs in this Zone")]
     public NPCData npc; // NPC present in this zone (optional)
     
@@ -87,6 +90,14 @@ public class ZoneData : ScriptableObject
     public MonsterData[] GetMonsters()
     {
         return monsters;
+    }
+    
+    /// <summary>
+    /// Get the resource in this zone (if any)
+    /// </summary>
+    public ResourceData GetResource()
+    {
+        return resource;
     }
     
     /// <summary>
