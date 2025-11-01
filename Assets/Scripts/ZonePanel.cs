@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 /// <summary>
 /// UI panel that displays current zone information and handles navigation.
@@ -9,6 +10,7 @@ public class ZonePanel : MonoBehaviour
 {
     [Header("Zone Display")]
     public TextMeshProUGUI zoneNameText;
+    public Image monsterIconImage; // Image showing the first monster's icon
     
     [Header("Navigation")]
     public Button previousZoneButton;
@@ -24,6 +26,13 @@ public class ZonePanel : MonoBehaviour
     [Header("Combat")]
     public Button fightButton; // Button to start combat
     
+    [Header("Resource Gathering")]
+    public Image resourceIconImage; // Image showing the resource icon
+    public Button resourceGatherButton; // Button to start/stop gathering
+    public TextMeshProUGUI resourceGatherButtonText; // Text on the gather button
+    public Slider resourceProgressSlider; // Progress bar for gathering
+    public TextMeshProUGUI resourceDetailsText; // Shows resource name and gather rate
+    
     void Start()
     {
         // Subscribe to zone changes
@@ -31,6 +40,14 @@ public class ZonePanel : MonoBehaviour
         {
             ZoneManager.Instance.OnZoneChanged += OnZoneChanged;
             ZoneManager.Instance.OnQuestsChanged += OnQuestsChanged;
+            // Initialize display if ZoneManager is ready
+            UpdateZoneDisplay();
+        }
+        else
+        {
+            Debug.LogWarning("ZonePanel: ZoneManager.Instance is null in Start! Ensure ZoneManager is initialized before ZonePanel.");
+            // Try to initialize display anyway (ZoneManager might set currentZone in its Start)
+            StartCoroutine(WaitForZoneManager());
         }
         
         // Setup navigation buttons
@@ -48,10 +65,51 @@ public class ZonePanel : MonoBehaviour
         if (fightButton != null)
             fightButton.onClick.AddListener(ToggleCombat);
         
-        // Initialize display
-        UpdateZoneDisplay();
+        // Setup resource gather button
+        if (resourceGatherButton != null)
+            resourceGatherButton.onClick.AddListener(ToggleResourceGathering);
+        
+        // Subscribe to ResourceManager events
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.OnGatheringStateChanged += OnGatheringStateChanged;
+            ResourceManager.Instance.OnResourceChanged += OnResourceChanged;
+            ResourceManager.Instance.OnGatherProgressChanged += OnGatherProgressChanged;
+        }
+        else
+        {
+            Debug.LogWarning("ZonePanel: ResourceManager.Instance is null! Make sure ResourceManager exists in scene.");
+            StartCoroutine(WaitForResourceManager());
+        }
+        
         UpdateNavigationButtons();
         InitializeQuestPanel();
+    }
+    
+    System.Collections.IEnumerator WaitForZoneManager()
+    {
+        // Wait a frame for ZoneManager to initialize
+        yield return null;
+        
+        if (ZoneManager.Instance != null)
+        {
+            ZoneManager.Instance.OnZoneChanged += OnZoneChanged;
+            ZoneManager.Instance.OnQuestsChanged += OnQuestsChanged;
+            UpdateZoneDisplay();
+        }
+    }
+    
+    System.Collections.IEnumerator WaitForResourceManager()
+    {
+        // Wait a frame for ResourceManager to initialize
+        yield return null;
+        
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.OnGatheringStateChanged += OnGatheringStateChanged;
+            ResourceManager.Instance.OnResourceChanged += OnResourceChanged;
+            ResourceManager.Instance.OnGatherProgressChanged += OnGatherProgressChanged;
+        }
     }
     
     void OnDestroy()
@@ -62,10 +120,23 @@ public class ZonePanel : MonoBehaviour
             ZoneManager.Instance.OnZoneChanged -= OnZoneChanged;
             ZoneManager.Instance.OnQuestsChanged -= OnQuestsChanged;
         }
+        
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.OnGatheringStateChanged -= OnGatheringStateChanged;
+            ResourceManager.Instance.OnResourceChanged -= OnResourceChanged;
+            ResourceManager.Instance.OnGatherProgressChanged -= OnGatherProgressChanged;
+        }
     }
     
     void OnZoneChanged(ZoneData zone)
     {
+        // Stop gathering when switching zones
+        if (ResourceManager.Instance != null && ResourceManager.Instance.IsGathering())
+        {
+            ResourceManager.Instance.StopGathering();
+        }
+        
         UpdateZoneDisplay();
         UpdateNavigationButtons();
         InitializeQuestsForZone(zone);
@@ -79,14 +150,118 @@ public class ZonePanel : MonoBehaviour
     
     void UpdateZoneDisplay()
     {
-        if (ZoneManager.Instance == null) return;
+        if (ZoneManager.Instance == null)
+        {
+            Debug.LogWarning("ZonePanel: ZoneManager.Instance is null!");
+            return;
+        }
         
         ZoneData currentZone = ZoneManager.Instance.GetCurrentZone();
-        if (currentZone == null) return;
+        if (currentZone == null)
+        {
+            Debug.LogWarning("ZonePanel: Current zone is null!");
+            return;
+        }
         
         // Update zone info
         if (zoneNameText != null)
             zoneNameText.text = currentZone.zoneName;
+        
+        // Update monster icon and fight button visibility
+        MonsterData[] monsters = currentZone.GetMonsters();
+        
+        // Filter out null entries from the array
+        System.Collections.Generic.List<MonsterData> validMonsters = new System.Collections.Generic.List<MonsterData>();
+        if (monsters != null)
+        {
+            foreach (MonsterData monster in monsters)
+            {
+                if (monster != null)
+                {
+                    validMonsters.Add(monster);
+                }
+            }
+        }
+        
+        bool hasMonsters = validMonsters.Count > 0;
+        
+        Debug.Log($"ZonePanel: Zone {currentZone.zoneName} has {validMonsters.Count} valid monsters (total array length: {monsters?.Length ?? 0})");
+        
+        // Show/hide monster icon
+        if (monsterIconImage != null)
+        {
+            monsterIconImage.gameObject.SetActive(hasMonsters);
+            
+            // Set the icon to the first monster's sprite if available
+            if (hasMonsters && validMonsters[0] != null && validMonsters[0].monsterSprite != null)
+            {
+                monsterIconImage.sprite = validMonsters[0].monsterSprite;
+                Debug.Log($"ZonePanel: Set monster icon to {validMonsters[0].monsterName}");
+            }
+            else if (hasMonsters)
+            {
+                Debug.LogWarning($"ZonePanel: First monster exists but has no sprite!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("ZonePanel: monsterIconImage is not assigned!");
+        }
+        
+        // Show/hide fight button
+        if (fightButton != null)
+        {
+            fightButton.gameObject.SetActive(hasMonsters);
+        }
+        else
+        {
+            Debug.LogWarning("ZonePanel: fightButton is not assigned!");
+        }
+        
+        // Update resource display
+        ResourceData resource = currentZone.GetResource();
+        bool hasResource = resource != null;
+        
+        // Show/hide resource icon
+        if (resourceIconImage != null)
+        {
+            resourceIconImage.gameObject.SetActive(hasResource);
+            
+            if (hasResource && resource.resourceIcon != null)
+            {
+                resourceIconImage.sprite = resource.resourceIcon;
+            }
+        }
+        
+        // Show/hide resource gather button
+        if (resourceGatherButton != null)
+        {
+            resourceGatherButton.gameObject.SetActive(hasResource);
+        }
+        
+        // Show/hide resource progress slider
+        if (resourceProgressSlider != null)
+        {
+            resourceProgressSlider.gameObject.SetActive(hasResource);
+            resourceProgressSlider.value = 0f;
+        }
+        
+        // Update resource details text
+        if (resourceDetailsText != null)
+        {
+            if (hasResource)
+            {
+                resourceDetailsText.text = $"{resource.resourceName}\n{resource.gatherRate:F1}/sec";
+                resourceDetailsText.gameObject.SetActive(true);
+            }
+            else
+            {
+                resourceDetailsText.gameObject.SetActive(false);
+            }
+        }
+        
+        // Update gather button state
+        UpdateGatherButtonState();
     }
     
     void UpdateNavigationButtons()
@@ -296,5 +471,70 @@ public class ZonePanel : MonoBehaviour
         
         // Start combat with this zone's monsters
         CombatManager.Instance.StartCombat(monsters);
+    }
+    
+    void ToggleResourceGathering()
+    {
+        if (ResourceManager.Instance == null)
+        {
+            Debug.LogError("ResourceManager.Instance is NULL! Make sure ResourceManager exists in scene!");
+            return;
+        }
+        
+        ZoneData currentZone = ZoneManager.Instance?.GetCurrentZone();
+        if (currentZone == null)
+        {
+            Debug.LogWarning("No zone selected for gathering!");
+            return;
+        }
+        
+        if (ResourceManager.Instance.IsGathering())
+        {
+            // Stop gathering
+            ResourceManager.Instance.StopGathering();
+        }
+        else
+        {
+            // Start gathering
+            ResourceManager.Instance.StartGathering(currentZone);
+        }
+    }
+    
+    void OnGatheringStateChanged(bool isGathering)
+    {
+        UpdateGatherButtonState();
+    }
+    
+    void OnResourceChanged(ResourceData resource)
+    {
+        // Resource changed, update display
+        if (resource != null && resourceIconImage != null && resource.resourceIcon != null)
+        {
+            resourceIconImage.sprite = resource.resourceIcon;
+        }
+    }
+    
+    void OnGatherProgressChanged(float progress)
+    {
+        if (resourceProgressSlider != null)
+        {
+            resourceProgressSlider.value = progress;
+        }
+    }
+    
+    void UpdateGatherButtonState()
+    {
+        if (resourceGatherButton == null || resourceGatherButtonText == null) return;
+        
+        bool isGathering = ResourceManager.Instance != null && ResourceManager.Instance.IsGathering();
+        
+        if (isGathering)
+        {
+            resourceGatherButtonText.text = "Stop Gather";
+        }
+        else
+        {
+            resourceGatherButtonText.text = "Gather";
+        }
     }
 }

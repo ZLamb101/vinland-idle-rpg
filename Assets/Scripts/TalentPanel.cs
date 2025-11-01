@@ -220,6 +220,13 @@ public class TalentPanel : MonoBehaviour
         
         if (success)
         {
+            // Immediately refresh the specific button that was clicked
+            if (talentButtons.ContainsKey(talent))
+            {
+                talentButtons[talent].Refresh();
+            }
+            
+            // Refresh all buttons to ensure everything is in sync
             RefreshAllButtons();
         }
     }
@@ -253,6 +260,13 @@ public class TalentPanel : MonoBehaviour
     
     void OnTalentUnlocked(TalentData talent, int newRank)
     {
+        // Specifically refresh the button for the unlocked talent
+        if (talent != null && talentButtons.ContainsKey(talent))
+        {
+            talentButtons[talent].Refresh();
+        }
+        
+        // Also refresh all buttons to ensure everything is in sync
         RefreshAllButtons();
     }
     
@@ -359,6 +373,22 @@ public class TalentButton : MonoBehaviour
     {
         if (talent == null) return;
         
+        // Find rankText if not assigned (try common names)
+        if (rankText == null)
+        {
+            rankText = GetComponentInChildren<TextMeshProUGUI>();
+            // Try to find by name if there are multiple TextMeshProUGUI components
+            TextMeshProUGUI[] texts = GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (TextMeshProUGUI text in texts)
+            {
+                if (text.name.Contains("Rank") || text.name.Contains("rank"))
+                {
+                    rankText = text;
+                    break;
+                }
+            }
+        }
+        
         // Update icon
         if (icon != null && talent.icon != null)
             icon.sprite = talent.icon;
@@ -377,6 +407,10 @@ public class TalentButton : MonoBehaviour
                 rankText.gameObject.SetActive(currentRank > 0);
                 rankText.text = "✓";
             }
+        }
+        else
+        {
+            Debug.LogWarning($"TalentButton: rankText is null for talent {talent.talentName}. Make sure RankText is assigned in the Inspector.");
         }
         
         // Update border color and button state
