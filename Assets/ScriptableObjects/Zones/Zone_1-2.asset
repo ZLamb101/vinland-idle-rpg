@@ -18,7 +18,8 @@ MonoBehaviour:
   availableQuests:
   - {fileID: 11400000, guid: d0078617fa747e34ca16c078c8d21d8e, type: 2}
   monsters:
-  - {fileID: 11400000, guid: e52708aa64dca984b9f897c2c27a85de, type: 2}
+  - {fileID: 11400000, guid: 920424bbd5910a744b3187c0ab7f4160, type: 2}
+  resource: {fileID: 11400000, guid: da170d8b2017fa242b035d40b43ca95a, type: 2}
   npc: {fileID: 0}
   nextZone: {fileID: 11400000, guid: 995e1db24a5e2a1409a384a4452d8824, type: 2}
   isUnlocked: 0

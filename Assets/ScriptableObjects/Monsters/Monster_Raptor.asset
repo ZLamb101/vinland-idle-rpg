@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3c1fdc907f8cc04b8e19aabcf3fba18, type: 3}
-  m_Name: Monster_Scorpion
+  m_Name: Monster_Raptor
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
-  monsterName: Scorpion
-  monsterSprite: {fileID: 8398120645025914946, guid: a98edff239d27614fbece23589da8bc6, type: 3}
-  baseHealth: 70
-  attackDamage: 7
+  monsterName: Raptor
+  monsterSprite: {fileID: -7970112860141335647, guid: 0ec0351421f858a49baaee38138ea721, type: 3}
+  baseHealth: 110
+  attackDamage: 12
   attackSpeed: 2
   healthScaling: 1.05
   damageScaling: 1.05
-  xpReward: 10
+  xpReward: 30
   goldReward: 5
-  itemDrop: {fileID: 11400000, guid: a73a2b52c2370b5488286a8ad9d378de, type: 2}
-  dropChance: 0.5
+  itemDrop: {fileID: 0}
+  dropChance: 0.25

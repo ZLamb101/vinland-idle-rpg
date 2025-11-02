@@ -1,0 +1,819 @@
+fileFormatVersion: 2
+guid: 78fbce3ae94a78c409a81d7cc0bdfd61
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -9014470285445359223
+    second: Item_BoarTusk_0
+  - first:
+      213: -464973358093377192
+    second: Item_BoarTusk_1
+  - first:
+      213: 3030030379993411579
+    second: Item_BoarTusk_2
+  - first:
+      213: -7519073246488248415
+    second: Item_BoarTusk_3
+  - first:
+      213: -8845753689138354390
+    second: Item_BoarTusk_4
+  - first:
+      213: -8839160792002977127
+    second: Item_BoarTusk_5
+  - first:
+      213: -3566886233529077287
+    second: Item_BoarTusk_6
+  - first:
+      213: -1691566853505768217
+    second: Item_BoarTusk_7
+  - first:
+      213: 3308265824262165649
+    second: Item_BoarTusk_8
+  - first:
+      213: 6802730801318853697
+    second: Item_BoarTusk_9
+  - first:
+      213: 9091569521420193919
+    second: Item_BoarTusk_10
+  - first:
+      213: -5800649444006825667
+    second: Item_BoarTusk_11
+  - first:
+      213: 1831031237486834832
+    second: Item_BoarTusk_12
+  - first:
+      213: 8078377597240150563
+    second: Item_BoarTusk_13
+  - first:
+      213: 3792611520942042814
+    second: Item_BoarTusk_14
+  - first:
+      213: -4945287713292839142
+    second: Item_BoarTusk_15
+  - first:
+      213: 7970631246166075298
+    second: Item_BoarTusk_16
+  - first:
+      213: 3458554506791961351
+    second: Item_BoarTusk_17
+  - first:
+      213: -8116296233602990214
+    second: Item_BoarTusk_18
+  - first:
+      213: 3227712703155881439
+    second: Item_BoarTusk_19
+  - first:
+      213: 6807424030424307953
+    second: Item_BoarTusk_20
+  - first:
+      213: -4602455328256546886
+    second: Item_BoarTusk_21
+  - first:
+      213: 2101645870670160385
+    second: Item_BoarTusk_22
+  - first:
+      213: 9067919342233905666
+    second: Item_BoarTusk_23
+  - first:
+      213: 2170785777745996982
+    second: Item_BoarTusk_24
+  - first:
+      213: 8114915494311937336
+    second: Item_BoarTusk_25
+  - first:
+      213: 8425927791156973496
+    second: Item_BoarTusk_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Item_BoarTusk_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1024
+        height: 1532
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98917bd390b26e280800000000000000
+      internalID: -9014470285445359223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_1
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 1353
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 851e2d0c1351c89f0800000000000000
+      internalID: -464973358093377192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_2
+      rect:
+        serializedVersion: 2
+        x: 86
+        y: 1353
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bff262aa394dc0a20800000000000000
+      internalID: 3030030379993411579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_3
+      rect:
+        serializedVersion: 2
+        x: 998
+        y: 1353
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1afbce658b2e6a790800000000000000
+      internalID: -7519073246488248415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_4
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 1211
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a27ae44f2e19d3580800000000000000
+      internalID: -8845753689138354390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_5
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 416
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9922a10771ef45580800000000000000
+      internalID: -8839160792002977127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_6
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 415
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d1b4486edfdf7ec0800000000000000
+      internalID: -3566886233529077287
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_7
+      rect:
+        serializedVersion: 2
+        x: 968
+        y: 415
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e4a6f6b8e85688e0800000000000000
+      internalID: -1691566853505768217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_8
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 415
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19416bd3d3259ed20800000000000000
+      internalID: 3308265824262165649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_9
+      rect:
+        serializedVersion: 2
+        x: 994
+        y: 415
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14cf7331f97286e50800000000000000
+      internalID: 6802730801318853697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_10
+      rect:
+        serializedVersion: 2
+        x: 1001
+        y: 415
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f70d40f7f4ebb2e70800000000000000
+      internalID: 9091569521420193919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_11
+      rect:
+        serializedVersion: 2
+        x: 377
+        y: 104
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d31f7675014ff7fa0800000000000000
+      internalID: -5800649444006825667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_12
+      rect:
+        serializedVersion: 2
+        x: 467
+        y: 107
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 094fb039531296910800000000000000
+      internalID: 1831031237486834832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_13
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 102
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32a09f4af992c1070800000000000000
+      internalID: 8078377597240150563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_14
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 80
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebeedcc851012a430800000000000000
+      internalID: 3792611520942042814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_15
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 82
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a179319a60fce5bb0800000000000000
+      internalID: -4945287713292839142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_16
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 82
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a7ab5f53ee5d9e60800000000000000
+      internalID: 7970631246166075298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_17
+      rect:
+        serializedVersion: 2
+        x: 722
+        y: 80
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70349adeff04fff20800000000000000
+      internalID: 3458554506791961351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_18
+      rect:
+        serializedVersion: 2
+        x: 778
+        y: 80
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7fb048d39f1d5f80800000000000000
+      internalID: -8116296233602990214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_19
+      rect:
+        serializedVersion: 2
+        x: 787
+        y: 80
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd54f943a932bcc20800000000000000
+      internalID: 3227712703155881439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_20
+      rect:
+        serializedVersion: 2
+        x: 844
+        y: 82
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f816e0a614d87e50800000000000000
+      internalID: 6807424030424307953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_21
+      rect:
+        serializedVersion: 2
+        x: 905
+        y: 80
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab72aa8834bc020c0800000000000000
+      internalID: -4602455328256546886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_22
+      rect:
+        serializedVersion: 2
+        x: 940
+        y: 82
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10226fcc8cb8a2d10800000000000000
+      internalID: 2101645870670160385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_23
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 31
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20aeebd0998b7dd70800000000000000
+      internalID: 9067919342233905666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_24
+      rect:
+        serializedVersion: 2
+        x: 881
+        y: 31
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6bc250ed92e202e10800000000000000
+      internalID: 2170785777745996982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_25
+      rect:
+        serializedVersion: 2
+        x: 890
+        y: 31
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 835c6ccb5a8fd9070800000000000000
+      internalID: 8114915494311937336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_BoarTusk_26
+      rect:
+        serializedVersion: 2
+        x: 945
+        y: 31
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bfc00ffea8eee470800000000000000
+      internalID: 8425927791156973496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Item_BoarTusk_0: -9014470285445359223
+      Item_BoarTusk_1: -464973358093377192
+      Item_BoarTusk_10: 9091569521420193919
+      Item_BoarTusk_11: -5800649444006825667
+      Item_BoarTusk_12: 1831031237486834832
+      Item_BoarTusk_13: 8078377597240150563
+      Item_BoarTusk_14: 3792611520942042814
+      Item_BoarTusk_15: -4945287713292839142
+      Item_BoarTusk_16: 7970631246166075298
+      Item_BoarTusk_17: 3458554506791961351
+      Item_BoarTusk_18: -8116296233602990214
+      Item_BoarTusk_19: 3227712703155881439
+      Item_BoarTusk_2: 3030030379993411579
+      Item_BoarTusk_20: 6807424030424307953
+      Item_BoarTusk_21: -4602455328256546886
+      Item_BoarTusk_22: 2101645870670160385
+      Item_BoarTusk_23: 9067919342233905666
+      Item_BoarTusk_24: 2170785777745996982
+      Item_BoarTusk_25: 8114915494311937336
+      Item_BoarTusk_26: 8425927791156973496
+      Item_BoarTusk_3: -7519073246488248415
+      Item_BoarTusk_4: -8845753689138354390
+      Item_BoarTusk_5: -8839160792002977127
+      Item_BoarTusk_6: -3566886233529077287
+      Item_BoarTusk_7: -1691566853505768217
+      Item_BoarTusk_8: 3308265824262165649
+      Item_BoarTusk_9: 6802730801318853697
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

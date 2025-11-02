@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ResourceData
   resourceName: Copper Ore
   resourceType: 0
-  resourceIcon: {fileID: 0}
+  resourceIcon: {fileID: -2535253782401239343, guid: 936752552fec32d46a482a4876bd5cb6, type: 3}
   gatherRate: 1
-  gatheredItem: {fileID: 0}
+  gatheredItem: {fileID: 11400000, guid: d06585f91f3182d41913aae49c3d67d6, type: 2}
   itemsPerGather: 1

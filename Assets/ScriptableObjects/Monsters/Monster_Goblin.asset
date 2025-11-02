@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterName: Gnoblin
   monsterSprite: {fileID: 4593146670773059579, guid: 0c15d247ab74d7d4da06c0a8ab22d4de, type: 3}
-  baseHealth: 50
-  attackDamage: 5
+  baseHealth: 240
+  attackDamage: 17
   attackSpeed: 2
   healthScaling: 1.05
   damageScaling: 1.05
   xpReward: 30
   goldReward: 5
-  itemDrop: {fileID: 0}
-  dropChance: 0.25
+  itemDrop: {fileID: 11400000, guid: ed6b975fc6fcaef44a5f856fba31e40a, type: 2}
+  dropChance: 0.75

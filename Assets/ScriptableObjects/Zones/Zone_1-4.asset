@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8ad1d7dcec5629245b6436474bf29744, type: 3}
-  m_Name: Zone_1-3
+  m_Name: Zone_1-4
   m_EditorClassIdentifier: Assembly-CSharp::ZoneData
-  zoneName: Zone 1-3
+  zoneName: Zone 1-4
   levelRequired: 1
   prerequisiteZone: {fileID: 0}
   availableQuests: []
   monsters:
-  - {fileID: 11400000, guid: a19bb8f225fc1fb478d995a738eb81e8, type: 2}
+  - {fileID: 11400000, guid: e52708aa64dca984b9f897c2c27a85de, type: 2}
   resource: {fileID: 0}
   npc: {fileID: 0}
-  nextZone: {fileID: 11400000, guid: 91858408dabb12b40bd5484edbf5d253, type: 2}
+  nextZone: {fileID: 11400000, guid: b4ecb9b6a24ee1f4bae97608fff6a9a1, type: 2}
   isUnlocked: 0
   zoneColor: {r: 1, g: 1, b: 1, a: 1}
   zoneTheme: Forest
