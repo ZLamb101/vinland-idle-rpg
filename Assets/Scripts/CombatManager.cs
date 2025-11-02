@@ -360,26 +360,28 @@ public class CombatManager : MonoBehaviour
         currentState = CombatState.Defeat;
         OnCombatStateChanged?.Invoke(currentState);
         
-        // Respawn player with full health
-        if (CharacterManager.Instance != null)
-        {
-            CharacterManager.Instance.HealToFull();
-            playerCurrentHealth = CharacterManager.Instance.GetCurrentHealth();
-            
-            // Recalculate stats in case player leveled up
-            CalculatePlayerStats();
-        }
-        
         // Combat is paused - player must click Continue to resume
+        // Healing will happen when Continue is clicked
     }
     
     /// <summary>
     /// Resume combat after defeat - called by UI Continue button
+    /// Heals player to full HP and starts combat again
     /// </summary>
     public void ResumeAfterDefeat()
     {
         if (currentState == CombatState.Defeat)
         {
+            // Heal player to full health
+            if (CharacterManager.Instance != null)
+            {
+                CharacterManager.Instance.HealToFull();
+                playerCurrentHealth = CharacterManager.Instance.GetCurrentHealth();
+                
+                // Recalculate stats in case player leveled up
+                CalculatePlayerStats();
+            }
+            
             // Load a new random monster and continue combat
             LoadRandomMonster();
         }

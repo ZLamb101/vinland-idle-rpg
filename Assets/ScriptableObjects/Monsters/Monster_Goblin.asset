@@ -24,3 +24,6 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: ed6b975fc6fcaef44a5f856fba31e40a, type: 2}
     quantity: 1
     dropChance: 1
+  - item: {fileID: 11400000, guid: fd63b04a6abe3bf42b95bdcf08f48b65, type: 2}
+    quantity: 1
+    dropChance: 0.2

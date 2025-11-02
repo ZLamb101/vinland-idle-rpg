@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1230dd25aac341943834e5b8bde7142a, type: 3}
-  m_Name: NPC_TrollMark
+  m_Name: NPC_TrollRami
   m_EditorClassIdentifier: Assembly-CSharp::NPCData
-  npcName: Mark
+  npcName: Rami
   npcSprite: {fileID: 1406004857870835685, guid: a810761661b60af489e14c4172c66c46, type: 3}
   dialogueLines:
   - text: Hello Mon
