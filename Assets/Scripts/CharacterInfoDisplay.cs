@@ -93,13 +93,16 @@ public class CharacterInfoDisplay : MonoBehaviour
     {
         if (healthText != null)
         {
+            // Clamp health to 0 minimum for display
+            float displayHealth = Mathf.Max(0f, currentHealth);
+            
             if (showMaxHealth)
             {
-                healthText.text = $"HP: {currentHealth:F0} / {maxHealth:F0}";
+                healthText.text = $"HP: {displayHealth:F0} / {maxHealth:F0}";
             }
             else
             {
-                healthText.text = $"HP: {currentHealth:F0}";
+                healthText.text = $"HP: {displayHealth:F0}";
             }
         }
     }

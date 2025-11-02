@@ -14,12 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterName: Raptor
   monsterSprite: {fileID: -7970112860141335647, guid: 0ec0351421f858a49baaee38138ea721, type: 3}
-  baseHealth: 110
+  level: 1
+  health: 110
   attackDamage: 12
   attackSpeed: 2
-  healthScaling: 1.05
-  damageScaling: 1.05
   xpReward: 30
   goldReward: 5
-  itemDrop: {fileID: 0}
-  dropChance: 0.25
+  dropTable:
+  - item: {fileID: 11400000, guid: 2246114e30743094388657cadb794eb2, type: 2}
+    quantity: 1
+    dropChance: 1
+  - item: {fileID: 11400000, guid: 22fd0e150ef634c40be5c60496e741bd, type: 2}
+    quantity: 1
+    dropChance: 0.25

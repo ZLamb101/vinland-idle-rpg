@@ -29,6 +29,7 @@ public class InventoryUI : MonoBehaviour
     private RectTransform tooltipRect;
     private Canvas tooltipCanvas;
     private RectTransform canvasRect;
+    private int draggingSlotIndex = -1; // Track which slot is being dragged
     
     void Start()
     {
@@ -161,13 +162,14 @@ public class InventoryUI : MonoBehaviour
         // Create inventory slots if they don't exist
         CreateInventorySlots();
         
-        // Subscribe to slot click events
+        // Subscribe to slot click events and drag events
         for (int i = 0; i < inventorySlots.Length; i++)
         {
             if (inventorySlots[i] != null)
             {
                 int slotIndex = i; // Capture for closure
                 inventorySlots[i].OnSlotClicked += (index) => OnSlotClicked(index);
+                inventorySlots[i].OnSlotDragEnd += (fromSlot, toSlot) => OnSlotDragEnd(fromSlot, toSlot);
             }
         }
     }
@@ -405,6 +407,42 @@ public class InventoryUI : MonoBehaviour
     {
         if (tooltipPanel != null)
             tooltipPanel.SetActive(false);
+    }
+    
+    /// <summary>
+    /// Called when drag starts from a slot
+    /// </summary>
+    public void OnDragStart(int slotIndex)
+    {
+        draggingSlotIndex = slotIndex;
+        HideTooltip(); // Hide tooltip during drag
+    }
+    
+    /// <summary>
+    /// Called when drag ends
+    /// </summary>
+    public void OnDragEnd()
+    {
+        draggingSlotIndex = -1;
+    }
+    
+    /// <summary>
+    /// Handle drag end event - swap items between slots
+    /// </summary>
+    void OnSlotDragEnd(int fromSlot, int toSlot)
+    {
+        if (inventoryData == null) return;
+        
+        // Swap the items
+        bool success = inventoryData.SwapItems(fromSlot, toSlot);
+        
+        if (success)
+        {
+            // Refresh display to show the swapped items
+            RefreshDisplay();
+            
+            Debug.Log($"Swapped items from slot {fromSlot} to slot {toSlot}");
+        }
     }
     
     string GetEquipmentStatsText(EquipmentData equipment)

@@ -31,6 +31,9 @@ public class CharacterManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject); // Persist between scenes
+        
+        // Ensure game runs in background (essential for idle games)
+        Application.runInBackground = true;
     }
     
     void Start()

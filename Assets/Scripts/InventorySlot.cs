@@ -5,9 +5,9 @@ using TMPro;
 
 /// <summary>
 /// Individual inventory slot UI component.
-/// Supports left-click to select and right-click to use/equip items.
+/// Supports left-click to select, right-click to use/equip items, and drag-and-drop to reorganize.
 /// </summary>
-public class InventorySlot : MonoBehaviour, IPointerClickHandler
+public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
 {
     [Header("UI References")]
     public Image itemIcon;
@@ -21,9 +21,16 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
     private InventoryItem currentItem;
     private bool isSelected = false;
     
+    // Drag and drop
+    private GameObject dragIcon;
+    private Canvas dragCanvas;
+    private bool isDragging = false;
+    private int draggedSlotIndex = -1;
+    
     // Events
     public System.Action<int> OnSlotClicked;
     public System.Action<int> OnSlotRightClicked;
+    public System.Action<int, int> OnSlotDragEnd; // (fromSlot, toSlot)
     
     void Start()
     {
@@ -221,4 +228,156 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
     public int GetSlotIndex() => slotIndex;
     public InventoryItem GetItem() => currentItem;
     public bool IsEmpty() => currentItem == null || currentItem.IsEmpty();
+    
+    // --- Drag and Drop Implementation ---
+    
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        // Only allow dragging if there's an item in this slot
+        if (currentItem == null || currentItem.IsEmpty()) return;
+        
+        isDragging = true;
+        draggedSlotIndex = slotIndex;
+        
+        // Find canvas for drag icon
+        dragCanvas = GetComponentInParent<Canvas>();
+        if (dragCanvas == null)
+        {
+            dragCanvas = FindObjectOfType<Canvas>();
+        }
+        
+        if (dragCanvas != null && itemIcon != null && itemIcon.sprite != null)
+        {
+            // Create drag icon
+            dragIcon = new GameObject("DragIcon");
+            dragIcon.transform.SetParent(dragCanvas.transform, false);
+            dragIcon.transform.SetAsLastSibling(); // Make sure it's on top
+            
+            Image dragImage = dragIcon.AddComponent<Image>();
+            dragImage.sprite = itemIcon.sprite;
+            dragImage.raycastTarget = false; // Don't block raycasts
+            
+            RectTransform dragRect = dragIcon.GetComponent<RectTransform>();
+            dragRect.sizeDelta = new Vector2(80, 80); // Match slot size
+            
+            // Make the original icon semi-transparent
+            if (itemIcon != null)
+            {
+                Color iconColor = itemIcon.color;
+                iconColor.a = 0.5f;
+                itemIcon.color = iconColor;
+            }
+        }
+        
+        // Notify UI that drag started
+        InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+        if (inventoryUI != null)
+        {
+            inventoryUI.OnDragStart(slotIndex);
+        }
+    }
+    
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (!isDragging || dragIcon == null) return;
+        
+        // Update drag icon position to follow mouse
+        RectTransform dragRect = dragIcon.GetComponent<RectTransform>();
+        if (dragCanvas != null)
+        {
+            Vector2 localPoint;
+            RectTransform canvasRect = dragCanvas.GetComponent<RectTransform>();
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRect,
+                eventData.position,
+                eventData.pressEventCamera,
+                out localPoint
+            );
+            dragRect.anchoredPosition = localPoint;
+        }
+    }
+    
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        if (!isDragging) return;
+        
+        // Clean up drag icon
+        if (dragIcon != null)
+        {
+            Destroy(dragIcon);
+            dragIcon = null;
+        }
+        
+        // Restore original icon opacity
+        if (itemIcon != null)
+        {
+            Color iconColor = itemIcon.color;
+            iconColor.a = 1f;
+            itemIcon.color = iconColor;
+        }
+        
+        isDragging = false;
+        
+        // Check if we dropped on a valid slot
+        // Try multiple methods to find the drop target
+        InventorySlot dropSlot = null;
+        
+        // Method 1: Check current raycast target
+        if (eventData.pointerCurrentRaycast.gameObject != null)
+        {
+            dropSlot = eventData.pointerCurrentRaycast.gameObject.GetComponent<InventorySlot>();
+            if (dropSlot == null)
+            {
+                dropSlot = eventData.pointerCurrentRaycast.gameObject.GetComponentInParent<InventorySlot>();
+            }
+        }
+        
+        // Method 2: Check all raycast results if method 1 failed
+        if (dropSlot == null && eventData.pointerCurrentRaycast.gameObject != null)
+        {
+            // Search through all raycast results
+            foreach (var result in eventData.hovered)
+            {
+                dropSlot = result.GetComponent<InventorySlot>();
+                if (dropSlot != null) break;
+                
+                dropSlot = result.GetComponentInParent<InventorySlot>();
+                if (dropSlot != null) break;
+            }
+        }
+        
+        // Method 3: Check hovered list
+        if (dropSlot == null)
+        {
+            foreach (GameObject hovered in eventData.hovered)
+            {
+                dropSlot = hovered.GetComponent<InventorySlot>();
+                if (dropSlot != null) break;
+                
+                dropSlot = hovered.GetComponentInParent<InventorySlot>();
+                if (dropSlot != null) break;
+            }
+        }
+        
+        if (dropSlot != null && dropSlot != this)
+        {
+            // Valid drop target - swap items
+            OnSlotDragEnd?.Invoke(draggedSlotIndex, dropSlot.slotIndex);
+        }
+        
+        // Notify UI that drag ended
+        InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+        if (inventoryUI != null)
+        {
+            inventoryUI.OnDragEnd();
+        }
+        
+        draggedSlotIndex = -1;
+    }
+    
+    public void OnDrop(PointerEventData eventData)
+    {
+        // This is handled in OnEndDrag, but we implement the interface
+        // to ensure the slot can receive drop events
+    }
 }

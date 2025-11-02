@@ -157,4 +157,24 @@ public class InventoryData
         }
         return count;
     }
+    
+    /// <summary>
+    /// Swap items between two slots. Returns true if successful.
+    /// </summary>
+    public bool SwapItems(int slotIndex1, int slotIndex2)
+    {
+        if (slotIndex1 < 0 || slotIndex1 >= maxSlots) return false;
+        if (slotIndex2 < 0 || slotIndex2 >= maxSlots) return false;
+        if (slotIndex1 == slotIndex2) return false; // Can't swap with itself
+        
+        // Create temporary copies to avoid reference issues
+        InventoryItem item1 = items[slotIndex1];
+        InventoryItem item2 = items[slotIndex2];
+        
+        // Swap the items
+        items[slotIndex1] = item2;
+        items[slotIndex2] = item1;
+        
+        return true;
+    }
 }

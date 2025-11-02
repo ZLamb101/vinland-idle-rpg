@@ -156,13 +156,10 @@ public class CombatManager : MonoBehaviour
         int randomIndex = UnityEngine.Random.Range(0, zoneMonsters.Length);
         currentMonster = zoneMonsters[randomIndex];
         
-        // Get player level for scaling
-        int playerLevel = CharacterManager.Instance != null ? CharacterManager.Instance.GetLevel() : 1;
-        
-        // Initialize monster stats
-        monsterMaxHealth = currentMonster.GetScaledHealth(playerLevel);
+        // Initialize monster stats (fixed, no scaling with player level)
+        monsterMaxHealth = currentMonster.health;
         monsterCurrentHealth = monsterMaxHealth;
-        monsterAttackDamage = currentMonster.GetScaledDamage(playerLevel);
+        monsterAttackDamage = currentMonster.attackDamage;
         monsterAttackSpeed = currentMonster.attackSpeed;
         
         // Reset timers
@@ -340,11 +337,17 @@ public class CombatManager : MonoBehaviour
             CharacterManager.Instance.AddXP(xpReward);
             CharacterManager.Instance.AddGold(goldReward);
             
-            // Check for item drop
-            if (currentMonster.itemDrop != null && UnityEngine.Random.value <= currentMonster.dropChance)
+            // Process drop table - roll for each item independently
+            if (currentMonster.dropTable != null && currentMonster.dropTable.Count > 0)
             {
-                InventoryItem drop = currentMonster.itemDrop.CreateInventoryItem(1);
-                CharacterManager.Instance.AddItemToInventory(drop);
+                foreach (MonsterDropEntry dropEntry in currentMonster.dropTable)
+                {
+                    if (dropEntry.item != null && UnityEngine.Random.value <= dropEntry.dropChance)
+                    {
+                        InventoryItem drop = dropEntry.item.CreateInventoryItem(dropEntry.quantity);
+                        CharacterManager.Instance.AddItemToInventory(drop);
+                    }
+                }
             }
         }
         
@@ -367,8 +370,19 @@ public class CombatManager : MonoBehaviour
             CalculatePlayerStats();
         }
         
-        // After respawn, continue combat with a new random monster
-        Invoke(nameof(LoadRandomMonster), 0.5f);
+        // Combat is paused - player must click Continue to resume
+    }
+    
+    /// <summary>
+    /// Resume combat after defeat - called by UI Continue button
+    /// </summary>
+    public void ResumeAfterDefeat()
+    {
+        if (currentState == CombatState.Defeat)
+        {
+            // Load a new random monster and continue combat
+            LoadRandomMonster();
+        }
     }
     
     /// <summary>

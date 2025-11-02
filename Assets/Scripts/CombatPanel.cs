@@ -30,6 +30,7 @@ public class CombatPanel : MonoBehaviour
     
     [Header("Buttons")]
     public Button retreatButton;
+    public Button continueButton; // Button to continue after defeat
     
     [Header("Damage Display")]
     public TextMeshProUGUI playerDamageText; // Floating damage numbers
@@ -53,6 +54,12 @@ public class CombatPanel : MonoBehaviour
         // Setup buttons
         if (retreatButton != null)
             retreatButton.onClick.AddListener(OnRetreatClicked);
+        if (continueButton != null)
+            continueButton.onClick.AddListener(OnContinueClicked);
+        
+        // Hide buttons initially
+        if (continueButton != null)
+            continueButton.gameObject.SetActive(false);
         
         // Hide panel initially
         if (combatPanel != null)
@@ -87,12 +94,16 @@ public class CombatPanel : MonoBehaviour
         {
             case CombatManager.CombatState.Idle:
                 HideCombatPanel();
+                if (continueButton != null)
+                    continueButton.gameObject.SetActive(false);
                 break;
                 
             case CombatManager.CombatState.Fighting:
                 ShowCombatPanel();
                 if (retreatButton != null)
                     retreatButton.gameObject.SetActive(true);
+                if (continueButton != null)
+                    continueButton.gameObject.SetActive(false);
                 UpdateCombatLog("Battle started!");
                 break;
                 
@@ -100,14 +111,18 @@ public class CombatPanel : MonoBehaviour
                 // Victory state should not occur anymore, but keep for safety
                 if (retreatButton != null)
                     retreatButton.gameObject.SetActive(true);
+                if (continueButton != null)
+                    continueButton.gameObject.SetActive(false);
                 UpdateCombatLog("Victory! Fighting continues...");
                 break;
                 
             case CombatManager.CombatState.Defeat:
-                // After respawn, combat continues automatically
+                // Combat paused - show Continue button
                 if (retreatButton != null)
-                    retreatButton.gameObject.SetActive(true);
-                UpdateCombatLog("Defeat! You have been respawned. Combat continues...");
+                    retreatButton.gameObject.SetActive(false);
+                if (continueButton != null)
+                    continueButton.gameObject.SetActive(true);
+                UpdateCombatLog("Defeat! You have been respawned. Click Continue to resume combat.");
                 break;
         }
     }
@@ -128,26 +143,32 @@ public class CombatPanel : MonoBehaviour
     
     void UpdatePlayerHealth(float current, float max)
     {
+        // Clamp health to 0 minimum for display
+        float displayCurrent = Mathf.Max(0f, current);
+        
         if (playerHealthBar != null)
         {
             playerHealthBar.maxValue = max;
-            playerHealthBar.value = current;
+            playerHealthBar.value = displayCurrent;
         }
         
         if (playerHealthText != null)
-            playerHealthText.text = $"{current:F0} / {max:F0}";
+            playerHealthText.text = $"{displayCurrent:F0} / {max:F0}";
     }
     
     void UpdateMonsterHealth(float current, float max)
     {
+        // Clamp health to 0 minimum for display
+        float displayCurrent = Mathf.Max(0f, current);
+        
         if (monsterHealthBar != null)
         {
             monsterHealthBar.maxValue = max;
-            monsterHealthBar.value = current;
+            monsterHealthBar.value = displayCurrent;
         }
         
         if (monsterHealthText != null)
-            monsterHealthText.text = $"{current:F0} / {max:F0}";
+            monsterHealthText.text = $"{displayCurrent:F0} / {max:F0}";
     }
     
     void UpdatePlayerAttackProgress(float progress)
@@ -227,6 +248,15 @@ public class CombatPanel : MonoBehaviour
         }
         
         HideCombatPanel();
+    }
+    
+    void OnContinueClicked()
+    {
+        // Resume combat after defeat
+        if (CombatManager.Instance != null)
+        {
+            CombatManager.Instance.ResumeAfterDefeat();
+        }
     }
 }
 

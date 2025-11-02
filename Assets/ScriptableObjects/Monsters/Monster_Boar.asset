@@ -14,12 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterName: Boar
   monsterSprite: {fileID: -6209198569807001414, guid: e615b6f6cf24e704c8d5de5724023cad, type: 3}
-  baseHealth: 45
+  level: 1
+  health: 45
   attackDamage: 5
   attackSpeed: 2
-  healthScaling: 1.05
-  damageScaling: 1.05
   xpReward: 30
   goldReward: 5
-  itemDrop: {fileID: 0}
-  dropChance: 0.25
+  dropTable:
+  - item: {fileID: 11400000, guid: b18c36f277537fb4b934db794ee9d44a, type: 2}
+    quantity: 1
+    dropChance: 1
+  - item: {fileID: 11400000, guid: 22fd0e150ef634c40be5c60496e741bd, type: 2}
+    quantity: 1
+    dropChance: 0.25
