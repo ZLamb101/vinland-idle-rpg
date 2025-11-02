@@ -11,6 +11,7 @@ public class ZonePanel : MonoBehaviour
     [Header("Zone Display")]
     public TextMeshProUGUI zoneNameText;
     public Image monsterIconImage; // Image showing the first monster's icon
+    public Image backgroundImage; // Background image for the current zone
 
     [Header("Navigation")]
     public Button previousZoneButton;
@@ -180,6 +181,20 @@ public class ZonePanel : MonoBehaviour
         // Update zone info
         if (zoneNameText != null)
             zoneNameText.text = currentZone.zoneName;
+
+        // Update background image
+        if (backgroundImage != null)
+        {
+            if (currentZone.backgroundImage != null)
+            {
+                backgroundImage.sprite = currentZone.backgroundImage;
+                backgroundImage.gameObject.SetActive(true);
+            }
+            else
+            {
+                backgroundImage.gameObject.SetActive(false);
+            }
+        }
 
         // Update monster icon and fight button visibility
         MonsterData[] monsters = currentZone.GetMonsters();

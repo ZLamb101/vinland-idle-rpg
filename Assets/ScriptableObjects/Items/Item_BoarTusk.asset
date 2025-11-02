@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
   m_Name: Item_BoarTusk
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: Scorpion Claw
-  description: Broken Claw
-  icon: {fileID: 7821071952873048643, guid: 8f0cc07c5a0ee424299de708bb899b6f, type: 3}
+  itemName: Boar Tusk
+  description: The Tusk of an Adult Boar
+  icon: {fileID: -9014470285445359223, guid: 78fbce3ae94a78c409a81d7cc0bdfd61, type: 3}
   itemType: 0
   maxStackSize: 99
   baseValue: 1

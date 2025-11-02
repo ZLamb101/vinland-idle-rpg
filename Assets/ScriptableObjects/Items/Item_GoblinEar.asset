@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_GoblinEar
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Goblin Ear
-  description: Item description
+  description: Very Pointy
   icon: {fileID: -8123184718651246048, guid: 9711a5cc892babc4c8ae515d6a99f04d, type: 3}
   itemType: 0
   maxStackSize: 99

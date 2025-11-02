@@ -31,8 +31,7 @@ public class ZoneData : ScriptableObject
     public bool isUnlocked = false;
     
     [Header("Zone Properties")]
-    public Color zoneColor = Color.white;
-    public string zoneTheme = "Forest"; // For future use (music, visuals, etc.)
+    public Sprite backgroundImage; // Background image for this zone
     
     /// <summary>
     /// Check if this zone is accessible to the player

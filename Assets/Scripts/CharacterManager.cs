@@ -14,6 +14,7 @@ public class CharacterManager : MonoBehaviour
     // Events for UI and other systems to subscribe to
     public event Action<int> OnXPChanged;
     public event Action<int> OnLevelChanged;
+    public event Action<int, int> OnLevelUp; // (oldLevel, newLevel)
     public event Action<int> OnGoldChanged;
     public event Action<string> OnNameChanged;
     public event Action<float, float> OnHealthChanged; // (currentHealth, maxHealth)
@@ -54,8 +55,12 @@ public class CharacterManager : MonoBehaviour
         // Check for level up
         while (characterData.CanLevelUp())
         {
+            int oldLevel = characterData.level;
             characterData.LevelUp();
-            OnLevelChanged?.Invoke(characterData.level);
+            int newLevel = characterData.level;
+            
+            OnLevelChanged?.Invoke(newLevel);
+            OnLevelUp?.Invoke(oldLevel, newLevel); // Emit level-up event with both levels
             OnXPChanged?.Invoke(characterData.currentXP); // Update XP after level up
             
             // Update max health on level up and heal to full
@@ -153,6 +158,30 @@ public class CharacterManager : MonoBehaviour
     
     public float GetCurrentHealth() => characterData.currentHealth;
     public float GetMaxHealth() => characterData.GetMaxHealth();
+    
+    /// <summary>
+    /// Get max health at a specific level (for stat calculations)
+    /// </summary>
+    public float GetMaxHealthAtLevel(int level)
+    {
+        return characterData.GetMaxHealthAtLevel(level);
+    }
+    
+    /// <summary>
+    /// Get base attack damage at a specific level (for stat calculations)
+    /// </summary>
+    public float GetBaseAttackAtLevel(int level)
+    {
+        return characterData.GetBaseAttackAtLevel(level);
+    }
+    
+    /// <summary>
+    /// Get base crit chance at a specific level (for stat calculations)
+    /// </summary>
+    public float GetBaseCritChanceAtLevel(int level)
+    {
+        return characterData.GetBaseCritChanceAtLevel(level);
+    }
     
     // --- Inventory Management ---
     public InventoryData GetInventoryData() => characterData.inventory;

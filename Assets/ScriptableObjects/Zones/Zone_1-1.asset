@@ -24,5 +24,4 @@ MonoBehaviour:
   npc: {fileID: 11400000, guid: d621a9889936ab7419bed89b4695c249, type: 2}
   nextZone: {fileID: 11400000, guid: 8aa0f8ef764cae54fb54e737325108b1, type: 2}
   isUnlocked: 0
-  zoneColor: {r: 1, g: 1, b: 1, a: 1}
-  zoneTheme: Forest
+  backgroundImage: {fileID: -626569156867048193, guid: 808106ee90920d244a2a5f0db27bf40f, type: 3}
