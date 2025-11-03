@@ -12,7 +12,6 @@ public class ResourceManager : MonoBehaviour
     [Header("Gathering State")]
     private bool isGathering = false;
     private ResourceData currentResource;
-    private ZoneData currentZone;
     
     [Header("Gathering Progress")]
     private float gatherProgress = 0f; // 0 to 1
@@ -46,7 +45,37 @@ public class ResourceManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Start gathering a resource from the current zone
+    /// Start gathering a specific resource
+    /// </summary>
+    public bool StartGathering(ResourceData resource)
+    {
+        if (resource == null)
+        {
+            Debug.LogWarning("ResourceManager: Cannot start gathering - resource is null!");
+            return false;
+        }
+        
+        // Stop any current gathering
+        StopGathering();
+        
+        currentResource = resource;
+        isGathering = true;
+        
+        // Calculate time per gather cycle (inverse of gather rate)
+        timePerGather = 1f / currentResource.gatherRate;
+        gatherProgress = 0f;
+        gatherTimer = 0f;
+        
+        OnGatheringStateChanged?.Invoke(isGathering);
+        OnResourceChanged?.Invoke(currentResource);
+        OnGatherProgressChanged?.Invoke(0f);
+        
+        Debug.Log($"Started gathering {currentResource.resourceName} at {currentResource.gatherRate} items/second");
+        return true;
+    }
+    
+    /// <summary>
+    /// Start gathering a resource from the current zone (for backwards compatibility)
     /// </summary>
     public bool StartGathering(ZoneData zone)
     {
@@ -64,24 +93,7 @@ public class ResourceManager : MonoBehaviour
             return false;
         }
         
-        // Stop any current gathering
-        StopGathering();
-        
-        currentResource = resource;
-        currentZone = zone;
-        isGathering = true;
-        
-        // Calculate time per gather cycle (inverse of gather rate)
-        timePerGather = 1f / currentResource.gatherRate;
-        gatherProgress = 0f;
-        gatherTimer = 0f;
-        
-        OnGatheringStateChanged?.Invoke(isGathering);
-        OnResourceChanged?.Invoke(currentResource);
-        OnGatherProgressChanged?.Invoke(0f);
-        
-        Debug.Log($"Started gathering {currentResource.resourceName} at {currentResource.gatherRate} items/second");
-        return true;
+        return StartGathering(resource);
     }
     
     /// <summary>
@@ -95,7 +107,6 @@ public class ResourceManager : MonoBehaviour
         gatherProgress = 0f;
         gatherTimer = 0f;
         currentResource = null;
-        currentZone = null;
         
         OnGatheringStateChanged?.Invoke(isGathering);
         OnGatherProgressChanged?.Invoke(0f);

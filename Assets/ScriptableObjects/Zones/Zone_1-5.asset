@@ -17,9 +17,10 @@ MonoBehaviour:
   prerequisiteZone: {fileID: 0}
   availableQuests: []
   monsters:
-  - {fileID: 11400000, guid: 03759e825945c804b81aa7fac56efef8, type: 2}
+  - monster: {fileID: 11400000, guid: 03759e825945c804b81aa7fac56efef8, type: 2}
+    position: {x: 540, y: -175}
   resource: {fileID: 0}
-  npc: {fileID: 0}
+  npcs: []
   nextZone: {fileID: 0}
   isUnlocked: 0
   backgroundImage: {fileID: -1877671754663334195, guid: b8d5181af07c36a4fa5b4e6476536272, type: 3}

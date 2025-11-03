@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 
 /// <summary>
 /// UI panel that displays current zone information and handles navigation.
@@ -10,7 +11,6 @@ public class ZonePanel : MonoBehaviour
 {
     [Header("Zone Display")]
     public TextMeshProUGUI zoneNameText;
-    public Image monsterIconImage; // Image showing the first monster's icon
     public Image backgroundImage; // Background image for the current zone
 
     [Header("Navigation")]
@@ -24,21 +24,24 @@ public class ZonePanel : MonoBehaviour
     public GameObject questActionPanel; // The existing quest board container
     public GameObject questPanelPrefab; // Prefab for creating quest panels dynamically
 
-    [Header("Combat")]
-    public Button fightButton; // Button to start combat
+    [Header("Monster Display")]
+    [Tooltip("Container GameObject for monster panels. Should be an empty GameObject with RectTransform. Create as child of ZonePanel.")]
+    public Transform monsterContainer; // Container for monster panels (parent RectTransform)
+    public GameObject monsterPanelPrefab; // Prefab for creating monster panels dynamically
 
     [Header("NPC Display")]
-    public Image npcImage; // Image showing the NPC sprite
-    public TextMeshProUGUI npcNameText; // Text showing NPC name
-    public Button talkButton; // Button to talk to NPC
-    public Button shopButton; // Button to open shop (only shown if NPC has shop)
-
+    [Tooltip("Container GameObject for NPC panels. Should be an empty GameObject with RectTransform. Create as child of ZonePanel.")]
+    public Transform npcContainer; // Container for NPC panels (parent RectTransform)
+    public GameObject npcPanelPrefab; // Prefab for creating NPC panels dynamically
+    
     [Header("Resource Gathering")]
-    public Image resourceIconImage; // Image showing the resource icon
-    public Button resourceGatherButton; // Button to start/stop gathering
-    public TextMeshProUGUI resourceGatherButtonText; // Text on the gather button
-    public Slider resourceProgressSlider; // Progress bar for gathering
-    public TextMeshProUGUI resourceDetailsText; // Shows resource name and gather rate
+    [Tooltip("Container GameObject for resource panels. Should be an empty GameObject with RectTransform. Create as child of ZonePanel.")]
+    public Transform resourceContainer; // Container for resource panels (parent RectTransform)
+    public GameObject resourcePanelPrefab; // Prefab for creating resource panels dynamically
+    
+    private List<GameObject> currentNPCPanels = new List<GameObject>(); // Track spawned NPC panels
+    private List<GameObject> currentMonsterPanels = new List<GameObject>(); // Track spawned monster panels
+    private List<GameObject> currentResourcePanels = new List<GameObject>(); // Track spawned resource panels
 
     void Start()
     {
@@ -65,34 +68,8 @@ public class ZonePanel : MonoBehaviour
         // Setup quest icon button
         if (questIconButton != null)
             questIconButton.onClick.AddListener(ToggleQuestZone);
-
-        // Setup fight button
-        if (fightButton != null)
-            fightButton.onClick.AddListener(ToggleCombat);
         
-        // Setup NPC buttons
-        if (talkButton != null)
-            talkButton.onClick.AddListener(OnTalkClicked);
-        
-        if (shopButton != null)
-            shopButton.onClick.AddListener(OnShopClicked);
-        
-        // Setup resource gather button
-        if (resourceGatherButton != null)
-            resourceGatherButton.onClick.AddListener(ToggleResourceGathering);
-        
-        // Subscribe to ResourceManager events
-        if (ResourceManager.Instance != null)
-        {
-            ResourceManager.Instance.OnGatheringStateChanged += OnGatheringStateChanged;
-            ResourceManager.Instance.OnResourceChanged += OnResourceChanged;
-            ResourceManager.Instance.OnGatherProgressChanged += OnGatherProgressChanged;
-        }
-        else
-        {
-            Debug.LogWarning("ZonePanel: ResourceManager.Instance is null! Make sure ResourceManager exists in scene.");
-            StartCoroutine(WaitForResourceManager());
-        }
+        // Resource gathering is now handled by ResourcePanel components
         
         UpdateNavigationButtons();
         InitializeQuestPanel();
@@ -114,19 +91,6 @@ public class ZonePanel : MonoBehaviour
         }
     }
 
-    System.Collections.IEnumerator WaitForResourceManager()
-    {
-        // Wait a frame for ResourceManager to initialize
-        yield return null;
-
-        if (ResourceManager.Instance != null)
-        {
-            ResourceManager.Instance.OnGatheringStateChanged += OnGatheringStateChanged;
-            ResourceManager.Instance.OnResourceChanged += OnResourceChanged;
-            ResourceManager.Instance.OnGatherProgressChanged += OnGatherProgressChanged;
-        }
-    }
-
     void OnDestroy()
     {
         // Unsubscribe from events
@@ -136,12 +100,7 @@ public class ZonePanel : MonoBehaviour
             ZoneManager.Instance.OnQuestsChanged -= OnQuestsChanged;
         }
 
-        if (ResourceManager.Instance != null)
-        {
-            ResourceManager.Instance.OnGatheringStateChanged -= OnGatheringStateChanged;
-            ResourceManager.Instance.OnResourceChanged -= OnResourceChanged;
-            ResourceManager.Instance.OnGatherProgressChanged -= OnGatherProgressChanged;
-        }
+        // Resource gathering events are now handled by ResourcePanel components
     }
 
     void OnZoneChanged(ZoneData zone)
@@ -196,156 +155,14 @@ public class ZonePanel : MonoBehaviour
             }
         }
 
-        // Update monster icon and fight button visibility
-        MonsterData[] monsters = currentZone.GetMonsters();
-        
-        // Filter out null entries from the array
-        System.Collections.Generic.List<MonsterData> validMonsters = new System.Collections.Generic.List<MonsterData>();
-        if (monsters != null)
-        {
-            foreach (MonsterData monster in monsters)
-            {
-                if (monster != null)
-                {
-                    validMonsters.Add(monster);
-                }
-            }
-        }
-        
-        bool hasMonsters = validMonsters.Count > 0;
-        
-        Debug.Log($"ZonePanel: Zone {currentZone.zoneName} has {validMonsters.Count} valid monsters (total array length: {monsters?.Length ?? 0})");
-        
-        // Show/hide monster icon
-        if (monsterIconImage != null)
-        {
-            monsterIconImage.gameObject.SetActive(hasMonsters);
-            
-            // Set the icon to the first monster's sprite if available
-            if (hasMonsters && validMonsters[0] != null && validMonsters[0].monsterSprite != null)
-            {
-                monsterIconImage.sprite = validMonsters[0].monsterSprite;
-                Debug.Log($"ZonePanel: Set monster icon to {validMonsters[0].monsterName}");
-            }
-            else if (hasMonsters)
-            {
-                Debug.LogWarning($"ZonePanel: First monster exists but has no sprite!");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("ZonePanel: monsterIconImage is not assigned!");
-        }
-        
-        // Show/hide fight button
-        if (fightButton != null)
-        {
-            fightButton.gameObject.SetActive(hasMonsters);
-        }
-        else
-        {
-            Debug.LogWarning("ZonePanel: fightButton is not assigned!");
-        }
+        // Update monster display - spawn monster panels dynamically
+        UpdateMonsterDisplay(currentZone);
 
-        // Update resource display
-        ResourceData resource = currentZone.GetResource();
-        bool hasResource = resource != null;
-        
-        Debug.Log($"ZonePanel: Zone {currentZone.zoneName} has resource: {hasResource} {(hasResource ? resource.resourceName : "")}");
-        
-        // Show/hide resource icon
-        if (resourceIconImage != null)
-        {
-            resourceIconImage.gameObject.SetActive(hasResource);
-            
-            if (hasResource && resource.resourceIcon != null)
-            {
-                resourceIconImage.sprite = resource.resourceIcon;
-                Debug.Log($"ZonePanel: Set resource icon to {resource.resourceName}");
-            }
-            else if (hasResource)
-            {
-                Debug.LogWarning($"ZonePanel: Resource exists but has no icon!");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("ZonePanel: resourceIconImage is not assigned!");
-        }
-        
-        // Show/hide resource gather button
-        if (resourceGatherButton != null)
-        {
-            resourceGatherButton.gameObject.SetActive(hasResource);
-        }
-        
-        // Show/hide resource progress slider
-        if (resourceProgressSlider != null)
-        {
-            resourceProgressSlider.gameObject.SetActive(hasResource);
-            resourceProgressSlider.value = 0f;
-        }
-        
-        // Update resource details text
-        if (resourceDetailsText != null)
-        {
-            if (hasResource)
-            {
-                resourceDetailsText.text = $"{resource.resourceName}\n{resource.gatherRate:F1}/sec";
-                resourceDetailsText.gameObject.SetActive(true);
-            }
-            else
-            {
-                resourceDetailsText.gameObject.SetActive(false);
-            }
-        }
+        // Update resource display - spawn resource panels dynamically
+        UpdateResourceDisplay(currentZone);
 
-        // Update NPC display
-        NPCData npc = currentZone.GetNPC();
-        bool hasNPC = npc != null;
-        
-        Debug.Log($"ZonePanel: Zone {currentZone.zoneName} has NPC: {hasNPC} {(hasNPC ? npc.npcName : "")}");
-
-        // Show/hide NPC image
-        if (npcImage != null)
-        {
-            npcImage.gameObject.SetActive(hasNPC);
-
-            if (hasNPC && npc.npcSprite != null)
-            {
-                npcImage.sprite = npc.npcSprite;
-            }
-        }
-
-        // Update NPC name text
-        if (npcNameText != null)
-        {
-            if (hasNPC)
-            {
-                npcNameText.text = npc.npcName;
-                npcNameText.gameObject.SetActive(true);
-            }
-            else
-            {
-                npcNameText.gameObject.SetActive(false);
-            }
-        }
-
-        // Show/hide talk button
-        if (talkButton != null)
-        {
-            talkButton.gameObject.SetActive(hasNPC);
-        }
-
-        // Show/hide shop button (only if NPC has shop)
-        if (shopButton != null)
-        {
-            bool showShop = hasNPC && npc.hasShop;
-            shopButton.gameObject.SetActive(showShop);
-        }
-
-        // Update gather button state
-        UpdateGatherButtonState();
+        // Update NPC display - spawn NPC panels dynamically
+        UpdateNPCDisplay(currentZone);
     }
 
     void UpdateNavigationButtons()
@@ -511,159 +328,204 @@ public class ZonePanel : MonoBehaviour
         }
     }
 
-    void ToggleCombat()
+    /// <summary>
+    /// Update monster display by spawning/removing monster panels
+    /// </summary>
+    void UpdateMonsterDisplay(ZoneData zone)
     {
-        Debug.Log("ToggleCombat called!");
-
-        if (CombatManager.Instance == null)
+        if (zone == null) return;
+        
+        // Clear existing monster panels
+        ClearMonsterPanels();
+        
+        // Get monsters from zone
+        List<ZoneMonsterEntry> monsterEntries = zone.GetMonsterEntries();
+        if (monsterEntries == null || monsterEntries.Count == 0)
         {
-            Debug.LogError("CombatManager.Instance is NULL! Make sure CombatManager GameObject exists in scene!");
+            Debug.Log($"ZonePanel: Zone {zone.zoneName} has no monsters");
             return;
         }
-
-        // Check if combat is already active
-        if (CombatManager.Instance.GetCombatState() != CombatManager.CombatState.Idle)
+        
+        if (monsterContainer == null)
         {
-            // Combat is active - end it
-            Debug.Log("Ending combat and hiding panel");
-            CombatManager.Instance.EndCombat();
+            Debug.LogWarning("ZonePanel: monsterContainer is not assigned! Cannot spawn monster panels.");
             return;
         }
-
-        // Combat is not active - start it
-        if (ZoneManager.Instance == null)
+        
+        if (monsterPanelPrefab == null)
         {
-            Debug.LogError("ZoneManager.Instance is NULL!");
+            Debug.LogWarning("ZonePanel: monsterPanelPrefab is not assigned! Cannot spawn monster panels.");
             return;
         }
-
-        ZoneData currentZone = ZoneManager.Instance.GetCurrentZone();
-        if (currentZone == null)
+        
+        // Spawn monster panels for each monster entry
+        foreach (ZoneMonsterEntry monsterEntry in monsterEntries)
         {
-            Debug.LogWarning("No zone selected for combat!");
-            return;
-        }
-
-        MonsterData[] monsters = currentZone.GetMonsters();
-        if (monsters == null || monsters.Length == 0)
-        {
-            Debug.LogWarning($"Zone {currentZone.zoneName} has no monsters to fight!");
-            return;
-        }
-
-        Debug.Log($"Starting combat with {monsters.Length} monsters from {currentZone.zoneName}");
-
-        // Start combat with this zone's monsters
-        CombatManager.Instance.StartCombat(monsters);
-    }
-
-    void OnTalkClicked()
-    {
-        if (DialogueManager.Instance == null)
-        {
-            Debug.LogError("DialogueManager.Instance is NULL! Make sure DialogueManager exists in scene!");
-            return;
-        }
-
-        ZoneData currentZone = ZoneManager.Instance?.GetCurrentZone();
-        if (currentZone == null)
-        {
-            Debug.LogWarning("No zone selected for talking!");
-            return;
-        }
-
-        NPCData npc = currentZone.GetNPC();
-        if (npc == null)
-        {
-            Debug.LogWarning("No NPC in this zone!");
-            return;
-        }
-
-        DialogueManager.Instance.StartDialogue(npc);
-    }
-
-    void OnShopClicked()
-    {
-        ZoneData currentZone = ZoneManager.Instance?.GetCurrentZone();
-        if (currentZone == null)
-        {
-            Debug.LogWarning("No zone selected!");
-            return;
-        }
-
-        NPCData npc = currentZone.GetNPC();
-        if (npc == null || !npc.hasShop)
-        {
-            Debug.LogWarning("NPC does not have a shop!");
-            return;
-        }
-
-        // TODO: Open shop UI when shop system is implemented
-        Debug.Log($"Opening shop for {npc.npcName}");
-    }
-
-    void ToggleResourceGathering()
-    {
-        if (ResourceManager.Instance == null)
-        {
-            Debug.LogError("ResourceManager.Instance is NULL! Make sure ResourceManager exists in scene!");
-            return;
-        }
-
-        ZoneData currentZone = ZoneManager.Instance?.GetCurrentZone();
-        if (currentZone == null)
-        {
-            Debug.LogWarning("No zone selected for gathering!");
-            return;
-        }
-
-        if (ResourceManager.Instance.IsGathering())
-        {
-            // Stop gathering
-            ResourceManager.Instance.StopGathering();
-        }
-        else
-        {
-            // Start gathering
-            ResourceManager.Instance.StartGathering(currentZone);
+            if (monsterEntry.monster == null) continue;
+            
+            GameObject monsterPanelObj = Instantiate(monsterPanelPrefab, monsterContainer);
+            MonsterPanel monsterPanel = monsterPanelObj.GetComponent<MonsterPanel>();
+            
+            if (monsterPanel != null)
+            {
+                monsterPanel.Initialize(monsterEntry.monster, monsterEntry.position);
+                currentMonsterPanels.Add(monsterPanelObj);
+                Debug.Log($"ZonePanel: Spawned monster panel for {monsterEntry.monster.monsterName} at position {monsterEntry.position}");
+            }
+            else
+            {
+                Debug.LogError("ZonePanel: MonsterPanel component not found on prefab!");
+                Destroy(monsterPanelObj);
+            }
         }
     }
-
-    void OnGatheringStateChanged(bool isGathering)
+    
+    /// <summary>
+    /// Clear all existing monster panels
+    /// </summary>
+    void ClearMonsterPanels()
     {
-        UpdateGatherButtonState();
+        foreach (GameObject panel in currentMonsterPanels)
+        {
+            if (panel != null)
+            {
+                Destroy(panel);
+            }
+        }
+        currentMonsterPanels.Clear();
     }
-
-    void OnResourceChanged(ResourceData resource)
+    
+    /// <summary>
+    /// Update NPC display by spawning/removing NPC panels
+    /// </summary>
+    void UpdateNPCDisplay(ZoneData zone)
     {
-        // Resource changed, update display
-        if (resource != null && resourceIconImage != null && resource.resourceIcon != null)
+        if (zone == null) return;
+        
+        // Clear existing NPC panels
+        ClearNPCPanels();
+        
+        // Get NPCs from zone
+        List<ZoneNPCEntry> npcs = zone.GetNPCs();
+        if (npcs == null || npcs.Count == 0)
         {
-            resourceIconImage.sprite = resource.resourceIcon;
+            Debug.Log($"ZonePanel: Zone {zone.zoneName} has no NPCs");
+            return;
+        }
+        
+        if (npcContainer == null)
+        {
+            Debug.LogWarning("ZonePanel: npcContainer is not assigned! Cannot spawn NPC panels.");
+            return;
+        }
+        
+        if (npcPanelPrefab == null)
+        {
+            Debug.LogWarning("ZonePanel: npcPanelPrefab is not assigned! Cannot spawn NPC panels.");
+            return;
+        }
+        
+        // Spawn NPC panels for each NPC entry
+        foreach (ZoneNPCEntry npcEntry in npcs)
+        {
+            if (npcEntry.npc == null) continue;
+            
+            GameObject npcPanelObj = Instantiate(npcPanelPrefab, npcContainer);
+            NPCPanel npcPanel = npcPanelObj.GetComponent<NPCPanel>();
+            
+            if (npcPanel != null)
+            {
+                npcPanel.Initialize(npcEntry.npc, npcEntry.position);
+                currentNPCPanels.Add(npcPanelObj);
+                Debug.Log($"ZonePanel: Spawned NPC panel for {npcEntry.npc.npcName} at position {npcEntry.position}");
+            }
+            else
+            {
+                Debug.LogError("ZonePanel: NPCPanel component not found on prefab!");
+                Destroy(npcPanelObj);
+            }
         }
     }
-
-    void OnGatherProgressChanged(float progress)
+    
+    /// <summary>
+    /// Clear all existing NPC panels
+    /// </summary>
+    void ClearNPCPanels()
     {
-        if (resourceProgressSlider != null)
+        foreach (GameObject panel in currentNPCPanels)
         {
-            resourceProgressSlider.value = progress;
+            if (panel != null)
+            {
+                Destroy(panel);
+            }
+        }
+        currentNPCPanels.Clear();
+    }
+    
+    /// <summary>
+    /// Update resource display by spawning/removing resource panels
+    /// </summary>
+    void UpdateResourceDisplay(ZoneData zone)
+    {
+        if (zone == null) return;
+        
+        // Clear existing resource panels
+        ClearResourcePanels();
+        
+        // Get resources from zone
+        List<ZoneResourceEntry> resourceEntries = zone.GetResourceEntries();
+        if (resourceEntries == null || resourceEntries.Count == 0)
+        {
+            Debug.Log($"ZonePanel: Zone {zone.zoneName} has no resources");
+            return;
+        }
+        
+        if (resourceContainer == null)
+        {
+            Debug.LogWarning("ZonePanel: resourceContainer is not assigned! Cannot spawn resource panels.");
+            return;
+        }
+        
+        if (resourcePanelPrefab == null)
+        {
+            Debug.LogWarning("ZonePanel: resourcePanelPrefab is not assigned! Cannot spawn resource panels.");
+            return;
+        }
+        
+        // Spawn resource panels for each resource entry
+        foreach (ZoneResourceEntry resourceEntry in resourceEntries)
+        {
+            if (resourceEntry.resource == null) continue;
+            
+            GameObject resourcePanelObj = Instantiate(resourcePanelPrefab, resourceContainer);
+            ResourcePanel resourcePanel = resourcePanelObj.GetComponent<ResourcePanel>();
+            
+            if (resourcePanel != null)
+            {
+                resourcePanel.Initialize(resourceEntry.resource, resourceEntry.position);
+                currentResourcePanels.Add(resourcePanelObj);
+                Debug.Log($"ZonePanel: Spawned resource panel for {resourceEntry.resource.resourceName} at position {resourceEntry.position}");
+            }
+            else
+            {
+                Debug.LogError("ZonePanel: ResourcePanel component not found on prefab!");
+                Destroy(resourcePanelObj);
+            }
         }
     }
-
-    void UpdateGatherButtonState()
+    
+    /// <summary>
+    /// Clear all existing resource panels
+    /// </summary>
+    void ClearResourcePanels()
     {
-        if (resourceGatherButton == null || resourceGatherButtonText == null) return;
-
-        bool isGathering = ResourceManager.Instance != null && ResourceManager.Instance.IsGathering();
-
-        if (isGathering)
+        foreach (GameObject panel in currentResourcePanels)
         {
-            resourceGatherButtonText.text = "Stop Gather";
+            if (panel != null)
+            {
+                Destroy(panel);
+            }
         }
-        else
-        {
-            resourceGatherButtonText.text = "Gather";
-        }
+        currentResourcePanels.Clear();
     }
 }

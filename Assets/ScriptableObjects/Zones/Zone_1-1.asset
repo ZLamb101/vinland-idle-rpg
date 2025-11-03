@@ -19,9 +19,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c6c6072e0daa6be4788323caec51a7ce, type: 2}
   - {fileID: 11400000, guid: 729b1c409b0a6a64098d39e3f76bc773, type: 2}
   monsters:
-  - {fileID: 11400000, guid: 89ee92cf6f85e884baae3a8b23317734, type: 2}
+  - monster: {fileID: 11400000, guid: 89ee92cf6f85e884baae3a8b23317734, type: 2}
+    position: {x: 540, y: -175}
   resource: {fileID: 0}
-  npc: {fileID: 11400000, guid: d621a9889936ab7419bed89b4695c249, type: 2}
+  npcs:
+  - npc: {fileID: 11400000, guid: d621a9889936ab7419bed89b4695c249, type: 2}
+    position: {x: -760, y: -221}
   nextZone: {fileID: 11400000, guid: 8aa0f8ef764cae54fb54e737325108b1, type: 2}
   isUnlocked: 0
   backgroundImage: {fileID: -626569156867048193, guid: 808106ee90920d244a2a5f0db27bf40f, type: 3}
