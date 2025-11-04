@@ -24,12 +24,19 @@ public class GameLog : MonoBehaviour
     public TextMeshProUGUI logEntryTextPrefab;
     public CanvasGroup canvasGroup;
     
+    [Header("Tab System")]
+    public Button gameLogTabButton; // Button to switch to game log tab
+    public Button combatLogTabButton; // Button to switch to combat log tab
+    
     [Header("Settings")]
     public int maxLogEntries = 100;
+    public int maxCombatLogEntries = 100;
     public bool autoScrollToBottom = true;
     public bool allowClickThrough = true;
     
     private List<GameObject> logEntries = new List<GameObject>();
+    private List<GameObject> combatLogEntries = new List<GameObject>();
+    private bool isShowingCombatLog = false;
     
     void Awake()
     {
@@ -52,8 +59,18 @@ public class GameLog : MonoBehaviour
         if (viewportToggleButton != null)
             viewportToggleButton.onClick.AddListener(ToggleViewport);
         
+        // Setup tab buttons
+        if (gameLogTabButton != null)
+            gameLogTabButton.onClick.AddListener(() => SwitchToTab(false));
+        
+        if (combatLogTabButton != null)
+            combatLogTabButton.onClick.AddListener(() => SwitchToTab(true));
+        
         SetupDragging();
         SetupClickThrough();
+        
+        // Start with game log tab
+        SwitchToTab(false);
         
         if (CharacterManager.Instance != null)
             CharacterManager.Instance.OnLevelUp += OnLevelUp;
@@ -255,20 +272,36 @@ public class GameLog : MonoBehaviour
     {
         if (logContentContainer == null) return;
         
-        // Sync list with actual children
+        // Sync game log entries
         logEntries.RemoveAll(entry => entry == null);
-        List<GameObject> actualEntries = new List<GameObject>();
+        logEntries.RemoveAll(entry => entry.name.Contains("CombatLogEntry"));
+        
+        // Sync combat log entries
+        combatLogEntries.RemoveAll(entry => entry == null);
+        combatLogEntries.RemoveAll(entry => !entry.name.Contains("CombatLogEntry"));
+        
+        // Sync with actual children
+        List<GameObject> actualGameEntries = new List<GameObject>();
+        List<GameObject> actualCombatEntries = new List<GameObject>();
         
         foreach (Transform child in logContentContainer.transform)
         {
-            if (child != null && child.gameObject.name.Contains("LogEntry"))
-                actualEntries.Add(child.gameObject);
+            if (child != null)
+            {
+                if (child.gameObject.name.Contains("CombatLogEntry"))
+                    actualCombatEntries.Add(child.gameObject);
+                else if (child.gameObject.name.Contains("LogEntry"))
+                    actualGameEntries.Add(child.gameObject);
+            }
         }
         
         logEntries.Clear();
-        logEntries.AddRange(actualEntries);
+        logEntries.AddRange(actualGameEntries);
         
-        // Remove oldest entries until we're at max
+        combatLogEntries.Clear();
+        combatLogEntries.AddRange(actualCombatEntries);
+        
+        // Remove oldest game log entries
         while (logEntries.Count >= maxLogEntries && logEntries.Count > 0)
         {
             GameObject oldestEntry = logEntries[0];
@@ -285,6 +318,69 @@ public class GameLog : MonoBehaviour
                 Destroy(oldestEntry);
                 #endif
             }
+        }
+        
+        // Remove oldest combat log entries
+        while (combatLogEntries.Count >= maxCombatLogEntries && combatLogEntries.Count > 0)
+        {
+            GameObject oldestEntry = combatLogEntries[0];
+            combatLogEntries.RemoveAt(0);
+            
+            if (oldestEntry != null)
+            {
+                if (oldestEntry.transform.parent != null)
+                    oldestEntry.transform.SetParent(null);
+                
+                #if UNITY_EDITOR
+                DestroyImmediate(oldestEntry);
+                #else
+                Destroy(oldestEntry);
+                #endif
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Switch between game log and combat log tabs
+    /// </summary>
+    public void SwitchToTab(bool showCombatLog)
+    {
+        isShowingCombatLog = showCombatLog;
+        
+        // Update button states (visual feedback)
+        if (gameLogTabButton != null)
+        {
+            gameLogTabButton.interactable = showCombatLog; // Disable if showing that tab
+        }
+        
+        if (combatLogTabButton != null)
+        {
+            combatLogTabButton.interactable = !showCombatLog; // Disable if showing that tab
+        }
+        
+        // Show/hide entries based on tab
+        UpdateEntryVisibility();
+        
+        // Scroll to bottom
+        if (autoScrollToBottom && scrollRect != null)
+            StartCoroutine(ScrollToBottom());
+    }
+    
+    /// <summary>
+    /// Update visibility of log entries based on current tab
+    /// </summary>
+    private void UpdateEntryVisibility()
+    {
+        foreach (GameObject entry in logEntries)
+        {
+            if (entry != null)
+                entry.SetActive(!isShowingCombatLog);
+        }
+        
+        foreach (GameObject entry in combatLogEntries)
+        {
+            if (entry != null)
+                entry.SetActive(isShowingCombatLog);
         }
     }
     
@@ -340,6 +436,9 @@ public class GameLog : MonoBehaviour
         }
         
         logEntries.Add(logEntry);
+        
+        // Set initial visibility based on current tab
+        logEntry.SetActive(!isShowingCombatLog);
         
         // Update layout
         if (logContentContainer != null)
@@ -580,6 +679,103 @@ public class GameLog : MonoBehaviour
             logPanel.SetActive(false);
     }
     
+    /// <summary>
+    /// Add a combat log entry (separate from regular game log)
+    /// </summary>
+    public void AddCombatLogEntry(string message, LogType logType = LogType.Info)
+    {
+        if (logContentContainer == null)
+        {
+            Debug.LogWarning("GameLog: logContentContainer is not assigned!");
+            return;
+        }
+        
+        CleanupExcessEntries();
+        
+        // Create log entry
+        GameObject logEntry = null;
+        
+        if (logEntryPrefab != null)
+        {
+            logEntry = Instantiate(logEntryPrefab, logContentContainer);
+            logEntry.name = "CombatLogEntry";
+        }
+        else if (logEntryTextPrefab != null)
+        {
+            logEntry = Instantiate(logEntryTextPrefab.gameObject, logContentContainer);
+            logEntry.name = "CombatLogEntry";
+        }
+        else
+        {
+            logEntry = CreateFallbackLogEntry(message);
+            logEntry.name = "CombatLogEntry";
+        }
+        
+        // Setup text component
+        TextMeshProUGUI textComponent = logEntry.GetComponent<TextMeshProUGUI>();
+        if (textComponent == null)
+            textComponent = logEntry.GetComponentInChildren<TextMeshProUGUI>();
+        
+        if (textComponent != null)
+        {
+            textComponent.text = FormatLogMessage(message, logType);
+            textComponent.alignment = TextAlignmentOptions.TopLeft;
+            textComponent.enableWordWrapping = true;
+            textComponent.maskable = true;
+            
+            switch (logType)
+            {
+                case LogType.Success: textComponent.color = Color.green; break;
+                case LogType.Warning: textComponent.color = Color.yellow; break;
+                case LogType.Error: textComponent.color = Color.red; break;
+                default: textComponent.color = Color.white; break;
+            }
+            
+            ContentSizeFitter sizeFitter = logEntry.GetComponent<ContentSizeFitter>();
+            if (sizeFitter != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(logEntry.GetComponent<RectTransform>());
+        }
+        
+        combatLogEntries.Add(logEntry);
+        
+        // Set initial visibility based on current tab
+        logEntry.SetActive(isShowingCombatLog);
+        
+        // Update layout
+        if (logContentContainer != null)
+        {
+            RectTransform contentRect = logContentContainer.GetComponent<RectTransform>();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
+            
+            if (scrollRect != null && scrollRect.viewport != null)
+            {
+                RectTransform viewportRect = scrollRect.viewport.GetComponent<RectTransform>();
+                if (viewportRect != null)
+                {
+                    viewportRect.anchoredPosition = Vector2.zero;
+                    ClampContentPosition(contentRect, viewportRect);
+                }
+            }
+            
+            StartCoroutine(ClampContentSize());
+        }
+        
+        // Update ScrollRect
+        if (scrollRect != null && logContentContainer != null)
+        {
+            RectTransform contentRect = logContentContainer.GetComponent<RectTransform>();
+            if (contentRect != null && scrollRect.content != contentRect)
+                scrollRect.content = contentRect;
+            
+            Canvas.ForceUpdateCanvases();
+            scrollRect.CalculateLayoutInputVertical();
+            scrollRect.SetLayoutVertical();
+        }
+        
+        if (autoScrollToBottom && scrollRect != null)
+            StartCoroutine(ScrollToBottom());
+    }
+    
     public void ClearLog()
     {
         foreach (GameObject entry in logEntries)
@@ -588,6 +784,13 @@ public class GameLog : MonoBehaviour
                 Destroy(entry);
         }
         logEntries.Clear();
+        
+        foreach (GameObject entry in combatLogEntries)
+        {
+            if (entry != null)
+                Destroy(entry);
+        }
+        combatLogEntries.Clear();
     }
     
     public void ToggleViewport()

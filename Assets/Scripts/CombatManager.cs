@@ -89,7 +89,7 @@ public class CombatManager : MonoBehaviour
         
         Debug.Log($"Starting combat - player health: {playerCurrentHealth}/{playerMaxHealth}, attack: {playerAttackDamage}");
         
-        // Load first random monster
+        // Load first random monster (will log combat start in LoadRandomMonster)
         LoadRandomMonster();
     }
     
@@ -161,6 +161,12 @@ public class CombatManager : MonoBehaviour
         monsterCurrentHealth = monsterMaxHealth;
         monsterAttackDamage = currentMonster.attackDamage;
         monsterAttackSpeed = currentMonster.attackSpeed;
+        
+        // Log combat start when monster is loaded
+        if (GameLog.Instance != null && currentMonster != null)
+        {
+            GameLog.Instance.AddCombatLogEntry($"Combat started against {currentMonster.monsterName}!", LogType.Info);
+        }
         
         // Reset timers
         playerAttackTimer = 0f;
@@ -241,6 +247,13 @@ public class CombatManager : MonoBehaviour
         OnMonsterHealthChanged?.Invoke(monsterCurrentHealth, monsterMaxHealth);
         OnPlayerDamageDealt?.Invoke(damage);
         
+        // Log combat message
+        if (GameLog.Instance != null && currentMonster != null)
+        {
+            string critText = (damage > playerAttackDamage) ? " (Critical!)" : "";
+            GameLog.Instance.AddCombatLogEntry($"You deal {damage:F0} damage to {currentMonster.monsterName}{critText}", LogType.Info);
+        }
+        
         if (monsterCurrentHealth <= 0)
         {
             OnMonsterDefeated();
@@ -275,18 +288,38 @@ public class CombatManager : MonoBehaviour
         if (totalDodge > 0 && UnityEngine.Random.value <= totalDodge)
         {
             OnMonsterDamageDealt?.Invoke(0); // Show "MISS" or "DODGE"
+            
+            // Log dodge message
+            if (GameLog.Instance != null && currentMonster != null)
+            {
+                GameLog.Instance.AddCombatLogEntry($"{currentMonster.monsterName} attacks, but you dodge!", LogType.Success);
+            }
+            
             return; // Attack dodged, no damage taken
         }
         
         // Apply armor damage reduction
         if (totalArmor > 0)
         {
+            float originalDamage = damage;
             damage *= (1f - totalArmor); // Reduce damage by armor %
+            
+            // Log armor reduction if significant
+            if (GameLog.Instance != null && currentMonster != null && originalDamage - damage > 0.1f)
+            {
+                // Armor blocked some damage, but we'll just show the final damage
+            }
         }
         
         playerCurrentHealth -= damage;
         OnPlayerHealthChanged?.Invoke(playerCurrentHealth, playerMaxHealth);
         OnMonsterDamageDealt?.Invoke(damage);
+        
+        // Log combat message
+        if (GameLog.Instance != null && currentMonster != null)
+        {
+            GameLog.Instance.AddCombatLogEntry($"{currentMonster.monsterName} hits you for {damage:F0} damage", LogType.Warning);
+        }
         
         // Sync with CharacterManager
         if (CharacterManager.Instance != null)
@@ -306,6 +339,12 @@ public class CombatManager : MonoBehaviour
     
     void OnMonsterDefeated()
     {
+        // Log victory message
+        if (GameLog.Instance != null && currentMonster != null)
+        {
+            GameLog.Instance.AddCombatLogEntry($"You defeated {currentMonster.monsterName}!", LogType.Success);
+        }
+        
         // Give rewards with equipment bonuses
         if (CharacterManager.Instance != null && currentMonster != null)
         {
@@ -357,6 +396,12 @@ public class CombatManager : MonoBehaviour
     
     void OnPlayerDefeated()
     {
+        // Log defeat message
+        if (GameLog.Instance != null && currentMonster != null)
+        {
+            GameLog.Instance.AddCombatLogEntry($"You were defeated by {currentMonster.monsterName}!", LogType.Error);
+        }
+        
         currentState = CombatState.Defeat;
         OnCombatStateChanged?.Invoke(currentState);
         
