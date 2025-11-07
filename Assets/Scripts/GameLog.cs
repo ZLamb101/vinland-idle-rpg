@@ -492,16 +492,29 @@ public class GameLog : MonoBehaviour
         
         TextMeshProUGUI text = logEntry.AddComponent<TextMeshProUGUI>();
         
+        // Set font - use TMP_Settings default font if available, otherwise try to find any font asset
         if (text.font == null)
         {
-            TMP_FontAsset defaultFont = Resources.GetBuiltinResource<TMP_FontAsset>("Legacy/SDF - Default");
-            if (defaultFont != null)
-                text.font = defaultFont;
+            // Try TMP_Settings default font first (proper way)
+            if (TMPro.TMP_Settings.defaultFontAsset != null)
+            {
+                text.font = TMPro.TMP_Settings.defaultFontAsset;
+            }
             else
             {
+                // Fallback: try to find any font asset in the project
                 TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
                 if (fonts.Length > 0)
+                {
                     text.font = fonts[0];
+                }
+                else
+                {
+                    // Last resort: try Resources folder (common TextMeshPro font location)
+                    TMP_FontAsset resourceFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+                    if (resourceFont != null)
+                        text.font = resourceFont;
+                }
             }
         }
         

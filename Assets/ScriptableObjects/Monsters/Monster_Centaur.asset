@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterName: Centaur
   monsterSprite: {fileID: -2901703798221810564, guid: adcca60dc3459764d8fa529a8546035b, type: 3}
+  flipSprite: 0
   level: 1
   health: 400
   attackDamage: 25
   attackSpeed: 2
+  attackRange: 500
   xpReward: 30
   goldReward: 5
   dropTable:

@@ -28,6 +28,8 @@ public class MonsterData : ScriptableObject
     [Header("Monster Info")]
     public string monsterName = "Goblin";
     public Sprite monsterSprite;
+    [Tooltip("Flip sprite horizontally (for monsters facing the wrong direction)")]
+    public bool flipSprite = false;
     
     [Header("Combat Stats")]
     [Tooltip("Monster level (fixed, does not scale with player)")]
@@ -41,6 +43,9 @@ public class MonsterData : ScriptableObject
     
     [Tooltip("Time in seconds between attacks")]
     public float attackSpeed = 2f;
+    
+    [Tooltip("Attack range in pixels. Melee monsters should use a small value (e.g., 100). Ranged/magic monsters can use larger values (e.g., 500+)")]
+    public float attackRange = 100f;
     
     [Header("Rewards")]
     public int xpReward = 10;

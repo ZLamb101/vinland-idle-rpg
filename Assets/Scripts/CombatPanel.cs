@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 /// <summary>
 /// UI panel that displays auto-battle combat.
@@ -35,6 +36,11 @@ public class CombatPanel : MonoBehaviour
     [Header("Damage Display")]
     public TextMeshProUGUI playerDamageText; // Floating damage numbers
     public TextMeshProUGUI monsterDamageText; // Floating damage numbers
+    public float damageAnimationDuration = 1f; // How long damage numbers animate
+    public float damageRiseDistance = 50f; // How far damage numbers rise (pixels)
+    
+    private Coroutine playerDamageAnimation;
+    private Coroutine monsterDamageAnimation;
     
     void Start()
     {
@@ -105,15 +111,6 @@ public class CombatPanel : MonoBehaviour
                 if (continueButton != null)
                     continueButton.gameObject.SetActive(false);
                 UpdateCombatLog("Battle started!");
-                break;
-                
-            case CombatManager.CombatState.Victory:
-                // Victory state should not occur anymore, but keep for safety
-                if (retreatButton != null)
-                    retreatButton.gameObject.SetActive(true);
-                if (continueButton != null)
-                    continueButton.gameObject.SetActive(false);
-                UpdateCombatLog("Victory! Fighting continues...");
                 break;
                 
             case CombatManager.CombatState.Defeat:
@@ -188,11 +185,15 @@ public class CombatPanel : MonoBehaviour
         if (playerDamageText != null)
         {
             playerDamageText.text = $"-{damage:F0}";
-            playerDamageText.gameObject.SetActive(true);
             
-            // Hide after short delay
-            CancelInvoke(nameof(HidePlayerDamage));
-            Invoke(nameof(HidePlayerDamage), 0.5f);
+            // Stop any existing animation
+            if (playerDamageAnimation != null)
+            {
+                StopCoroutine(playerDamageAnimation);
+            }
+            
+            // Start new animation
+            playerDamageAnimation = StartCoroutine(AnimateDamageNumber(playerDamageText, damageRiseDistance, damageAnimationDuration));
         }
     }
     
@@ -201,24 +202,93 @@ public class CombatPanel : MonoBehaviour
         if (monsterDamageText != null)
         {
             monsterDamageText.text = $"-{damage:F0}";
-            monsterDamageText.gameObject.SetActive(true);
             
-            // Hide after short delay
-            CancelInvoke(nameof(HideMonsterDamage));
-            Invoke(nameof(HideMonsterDamage), 0.5f);
+            // Stop any existing animation
+            if (monsterDamageAnimation != null)
+            {
+                StopCoroutine(monsterDamageAnimation);
+            }
+            
+            // Start new animation
+            monsterDamageAnimation = StartCoroutine(AnimateDamageNumber(monsterDamageText, damageRiseDistance, damageAnimationDuration));
         }
+    }
+    
+    /// <summary>
+    /// Animate a damage number rising up and fading out
+    /// </summary>
+    IEnumerator AnimateDamageNumber(TextMeshProUGUI damageText, float riseDistance, float duration)
+    {
+        if (damageText == null) yield break;
+        
+        RectTransform rectTransform = damageText.rectTransform;
+        CanvasGroup canvasGroup = damageText.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = damageText.gameObject.AddComponent<CanvasGroup>();
+        }
+        
+        // Store starting position
+        Vector2 startPosition = rectTransform.anchoredPosition;
+        Vector2 endPosition = startPosition + new Vector2(0, riseDistance);
+        
+        // Reset alpha and position
+        canvasGroup.alpha = 1f;
+        rectTransform.anchoredPosition = startPosition;
+        damageText.gameObject.SetActive(true);
+        
+        float elapsed = 0f;
+        
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            
+            // Ease out curve for smooth animation
+            float easedT = 1f - Mathf.Pow(1f - t, 3f);
+            
+            // Interpolate position (rise up)
+            rectTransform.anchoredPosition = Vector2.Lerp(startPosition, endPosition, easedT);
+            
+            // Interpolate alpha (fade out)
+            canvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
+            
+            yield return null;
+        }
+        
+        // Ensure final state
+        rectTransform.anchoredPosition = endPosition;
+        canvasGroup.alpha = 0f;
+        damageText.gameObject.SetActive(false);
+        
+        // Reset position for next use
+        rectTransform.anchoredPosition = startPosition;
     }
     
     void HidePlayerDamage()
     {
         if (playerDamageText != null)
+        {
+            if (playerDamageAnimation != null)
+            {
+                StopCoroutine(playerDamageAnimation);
+                playerDamageAnimation = null;
+            }
             playerDamageText.gameObject.SetActive(false);
+        }
     }
     
     void HideMonsterDamage()
     {
         if (monsterDamageText != null)
+        {
+            if (monsterDamageAnimation != null)
+            {
+                StopCoroutine(monsterDamageAnimation);
+                monsterDamageAnimation = null;
+            }
             monsterDamageText.gameObject.SetActive(false);
+        }
     }
     
     void UpdateCombatLog(string message)
