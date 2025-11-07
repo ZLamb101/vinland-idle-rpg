@@ -36,6 +36,7 @@ public class ItemData : ScriptableObject
         item.description = description;
         item.maxStackSize = maxStackSize;
         item.itemType = itemType;
+        item.baseValue = baseValue; // Store base value for selling
         
         Debug.Log($"CreateInventoryItem for {itemName}: itemType={itemType}, equipmentData={(equipmentData != null ? equipmentData.name : "NULL")}");
         

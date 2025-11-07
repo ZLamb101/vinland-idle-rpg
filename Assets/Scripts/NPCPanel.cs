@@ -11,8 +11,7 @@ public class NPCPanel : MonoBehaviour
     [Header("NPC Display")]
     public Image npcImage; // Image showing the NPC sprite
     public TextMeshProUGUI npcNameText; // Text showing NPC name
-    public Button talkButton; // Button to talk to NPC
-    public Button shopButton; // Button to open shop (only shown if NPC has shop)
+    public Button interactButton; // Single button for all interactions
     
     private NPCData npcData;
     private RectTransform rectTransform;
@@ -21,12 +20,9 @@ public class NPCPanel : MonoBehaviour
     {
         rectTransform = GetComponent<RectTransform>();
         
-        // Setup buttons
-        if (talkButton != null)
-            talkButton.onClick.AddListener(OnTalkClicked);
-        
-        if (shopButton != null)
-            shopButton.onClick.AddListener(OnShopClicked);
+        // Setup interact button
+        if (interactButton != null)
+            interactButton.onClick.AddListener(OnInteractClicked);
     }
     
     /// <summary>
@@ -67,20 +63,50 @@ public class NPCPanel : MonoBehaviour
             npcNameText.gameObject.SetActive(true);
         }
         
-        // Show/hide talk button
-        if (talkButton != null)
+        // Show interact button for all NPCs
+        if (interactButton != null)
         {
-            talkButton.gameObject.SetActive(true);
-        }
-        
-        // Show/hide shop button (only if NPC has shop)
-        if (shopButton != null)
-        {
-            bool showShop = npc.hasShop;
-            shopButton.gameObject.SetActive(showShop);
+            interactButton.gameObject.SetActive(true);
+            
+            // Update button text based on NPC type
+            TextMeshProUGUI buttonText = interactButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (buttonText != null)
+            {
+                switch (npc.npcType)
+                {
+                    case NPCType.ShopNPC:
+                        buttonText.text = "Shop";
+                        break;
+                    case NPCType.TalkableNPC:
+                    default:
+                        buttonText.text = "Talk";
+                        break;
+                }
+            }
         }
         
         gameObject.SetActive(true);
+    }
+    
+    void OnInteractClicked()
+    {
+        if (npcData == null)
+        {
+            Debug.LogWarning("NPCPanel: Cannot interact - NPC is null!");
+            return;
+        }
+        
+        // Route interaction based on NPC type
+        switch (npcData.npcType)
+        {
+            case NPCType.ShopNPC:
+                OnShopClicked();
+                break;
+            case NPCType.TalkableNPC:
+            default:
+                OnTalkClicked();
+                break;
+        }
     }
     
     void OnTalkClicked()
@@ -103,14 +129,26 @@ public class NPCPanel : MonoBehaviour
     
     void OnShopClicked()
     {
-        if (npcData == null || !npcData.hasShop)
+        if (npcData == null || npcData.npcType != NPCType.ShopNPC)
         {
-            Debug.LogWarning("NPCPanel: NPC does not have a shop!");
+            Debug.LogWarning("NPCPanel: NPC is not a shop NPC!");
             return;
         }
         
-        Debug.Log($"Opening shop for {npcData.npcName}");
-        // TODO: Open shop UI when shop system is implemented
+        if (npcData.shopData == null)
+        {
+            Debug.LogWarning($"NPCPanel: NPC {npcData.npcName} has no shop data!");
+            return;
+        }
+        
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.OpenShop(npcData.shopData);
+        }
+        else
+        {
+            Debug.LogWarning("NPCPanel: ShopManager.Instance is null!");
+        }
     }
 }
 

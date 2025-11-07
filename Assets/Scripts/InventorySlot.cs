@@ -171,6 +171,13 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     {
         if (currentItem == null || currentItem.IsEmpty()) return;
         
+        // Check if shop is open - if so, sell the item
+        if (ShopManager.Instance != null && ShopManager.Instance.IsShopOpen())
+        {
+            SellItem();
+            return;
+        }
+        
         Debug.Log($"OnRightClick: {currentItem.itemName}, itemType={currentItem.itemType}, equipmentData={(currentItem.equipmentData != null ? "EXISTS" : "NULL")}, equipmentAssetName='{currentItem.equipmentAssetName}'");
         
         // Check if item is equipment
@@ -182,6 +189,23 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         {
             // Future: Handle consumables or other item types
             Debug.Log($"Right-clicked {currentItem.itemName} - not equipment (itemType={currentItem.itemType}, equipmentData is null={currentItem.equipmentData == null})");
+        }
+    }
+    
+    void SellItem()
+    {
+        if (currentItem == null || currentItem.IsEmpty()) return;
+        if (ShopManager.Instance == null) return;
+        
+        // Sell the item
+        if (ShopManager.Instance.SellItem(currentItem, slotIndex))
+        {
+            // Refresh inventory UI
+            InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+            if (inventoryUI != null)
+            {
+                inventoryUI.RefreshDisplay();
+            }
         }
     }
     

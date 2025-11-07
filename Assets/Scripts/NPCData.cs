@@ -12,6 +12,16 @@ public class DialogueLine
 }
 
 /// <summary>
+/// Type of NPC interaction available
+/// </summary>
+public enum NPCType
+{
+    TalkableNPC,    // NPC that can be talked to
+    ShopNPC         // NPC that runs a shop
+    // Future: Add more types as needed
+}
+
+/// <summary>
 /// ScriptableObject that defines an NPC with dialogue and shop capabilities.
 /// Create instances via: Right-click in Project → Create → Vinland → NPC
 /// </summary>
@@ -22,15 +32,16 @@ public class NPCData : ScriptableObject
     public string npcName = "Merchant";
     public Sprite npcSprite;
     
+    [Header("NPC Type")]
+    [Tooltip("Type of NPC - determines interaction behavior")]
+    public NPCType npcType = NPCType.TalkableNPC;
+    
     [Header("Dialogue")]
     [Tooltip("Dialogue lines this NPC will say when talked to")]
     public DialogueLine[] dialogueLines = new DialogueLine[1];
     
     [Header("Shop")]
-    [Tooltip("Does this NPC have a shop?")]
-    public bool hasShop = false;
-    
-    // Future: ShopData can be added here later
-    // public ShopData shopData;
+    [Tooltip("Shop data for this NPC (only used if npcType is ShopNPC)")]
+    public ShopData shopData;
 }
 

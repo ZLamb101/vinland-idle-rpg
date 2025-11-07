@@ -54,6 +54,7 @@ public class InventoryData
         itemToAdd.description = newItem.description;
         itemToAdd.maxStackSize = newItem.maxStackSize;
         itemToAdd.itemType = newItem.itemType;
+        itemToAdd.baseValue = newItem.baseValue; // Copy base value for selling
         itemToAdd.equipmentAssetName = newItem.equipmentAssetName; // Copy equipment reference!
         itemToAdd.equipmentData = newItem.equipmentData; // Copy runtime reference too
         

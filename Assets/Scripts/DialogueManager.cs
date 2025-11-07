@@ -48,6 +48,12 @@ public class DialogueManager : MonoBehaviour
             return;
         }
         
+        // Close shop if open
+        if (ShopManager.Instance != null && ShopManager.Instance.IsShopOpen())
+        {
+            ShopManager.Instance.CloseShop();
+        }
+        
         currentNPC = npc;
         currentDialogueLines = npc.dialogueLines;
         currentDialogueIndex = 0;

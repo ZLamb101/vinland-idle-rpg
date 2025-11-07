@@ -18,6 +18,10 @@ public class InventoryItem
     [Header("Item Type")]
     public ItemType itemType = ItemType.Material;
     
+    [Header("Item Value")]
+    [Tooltip("Base gold value of this item (for selling)")]
+    public int baseValue = 1;
+    
     [Header("Equipment Reference")]
     [System.NonSerialized] // Don't serialize the direct reference
     public EquipmentData equipmentData; // Runtime reference to equipment data

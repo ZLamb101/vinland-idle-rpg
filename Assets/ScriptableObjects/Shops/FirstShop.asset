@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 528abb6264e73df41a17e24fc988c8ac, type: 3}
+  m_Name: FirstShop
+  m_EditorClassIdentifier: Assembly-CSharp::ShopData
+  shopName: General Store
+  shopItems:
+  - item: {fileID: 11400000, guid: 0f94664e50b48c849aeb8cc3c09e1264, type: 2}
+    price: 10
+    maxStock: 5
+  stockRefreshInterval: 600
