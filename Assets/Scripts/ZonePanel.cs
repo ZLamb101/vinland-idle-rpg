@@ -110,6 +110,12 @@ public class ZonePanel : MonoBehaviour
         {
             ResourceManager.Instance.StopGathering();
         }
+        
+        // Close shop when switching zones
+        if (ShopManager.Instance != null && ShopManager.Instance.IsShopOpen())
+        {
+            ShopManager.Instance.CloseShop();
+        }
 
         UpdateZoneDisplay();
         UpdateNavigationButtons();

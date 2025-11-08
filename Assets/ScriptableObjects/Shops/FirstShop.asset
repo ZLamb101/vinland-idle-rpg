@@ -17,4 +17,10 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: 0f94664e50b48c849aeb8cc3c09e1264, type: 2}
     price: 10
     maxStock: 5
+  - item: {fileID: 11400000, guid: fd63b04a6abe3bf42b95bdcf08f48b65, type: 2}
+    price: 5
+    maxStock: 5
+  - item: {fileID: 11400000, guid: d06585f91f3182d41913aae49c3d67d6, type: 2}
+    price: 5
+    maxStock: 5
   stockRefreshInterval: 600

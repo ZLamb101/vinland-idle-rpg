@@ -102,6 +102,9 @@ public class CombatPanel : MonoBehaviour
                 HideCombatPanel();
                 if (continueButton != null)
                     continueButton.gameObject.SetActive(false);
+                // Clear damage numbers when leaving combat
+                HidePlayerDamage();
+                HideMonsterDamage();
                 break;
                 
             case CombatManager.CombatState.Fighting:
@@ -110,6 +113,9 @@ public class CombatPanel : MonoBehaviour
                     retreatButton.gameObject.SetActive(true);
                 if (continueButton != null)
                     continueButton.gameObject.SetActive(false);
+                // Clear damage numbers when starting combat
+                HidePlayerDamage();
+                HideMonsterDamage();
                 UpdateCombatLog("Battle started!");
                 break;
                 
@@ -127,6 +133,9 @@ public class CombatPanel : MonoBehaviour
     void OnMonsterChanged(MonsterData monster)
     {
         if (monster == null) return;
+        
+        // Clear damage numbers when monster changes
+        HideMonsterDamage();
         
         // Update monster display
         if (monsterNameText != null)

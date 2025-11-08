@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -345,7 +346,13 @@ public class CombatManager : MonoBehaviour
         
         if (monsterCurrentHealth <= 0)
         {
-            OnMonsterDefeated();
+            // Capture enemy position at moment of death before any cleanup
+            Vector2 deathPosition = Vector2.zero;
+            if (visualManager != null && visualManager.CurrentEnemy != null)
+            {
+                deathPosition = visualManager.CurrentEnemy.GetPosition();
+            }
+            OnMonsterDefeated(deathPosition);
         }
     }
     
@@ -424,7 +431,7 @@ public class CombatManager : MonoBehaviour
         }
     }
     
-    void OnMonsterDefeated()
+    void OnMonsterDefeated(Vector2 deathPosition)
     {
         // Log victory message
         if (GameLog.Instance != null && currentMonster != null)
@@ -448,16 +455,27 @@ public class CombatManager : MonoBehaviour
             CharacterManager.Instance.AddGold(goldReward);
             
             // Process drop table - roll for each item independently
+            List<MonsterDropEntry> droppedItems = new List<MonsterDropEntry>();
             if (currentMonster.dropTable != null && currentMonster.dropTable.Count > 0)
             {
                 foreach (MonsterDropEntry dropEntry in currentMonster.dropTable)
                 {
                     if (dropEntry.item != null && UnityEngine.Random.value <= dropEntry.dropChance)
                     {
+                        // Add to dropped items list for visual effect
+                        droppedItems.Add(dropEntry);
+                        
+                        // Create and add item to inventory
                         InventoryItem drop = dropEntry.item.CreateInventoryItem(dropEntry.quantity);
                         CharacterManager.Instance.AddItemToInventory(drop);
                     }
                 }
+            }
+            
+            // Show visual drop effect if items were dropped
+            if (droppedItems.Count > 0 && visualManager != null)
+            {
+                visualManager.ShowItemDrops(droppedItems, deathPosition);
             }
         }
         

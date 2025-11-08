@@ -25,7 +25,7 @@ MonoBehaviour:
     position: {x: -50, y: -250}
   npcs:
   - npc: {fileID: 11400000, guid: b0e427b1d13824543a857b40951784e8, type: 2}
-    position: {x: -300, y: -200}
+    position: {x: -400, y: -200}
   nextZone: {fileID: 11400000, guid: 995e1db24a5e2a1409a384a4452d8824, type: 2}
   isUnlocked: 0
   backgroundImage: {fileID: -1877671754663334195, guid: b8d5181af07c36a4fa5b4e6476536272, type: 3}

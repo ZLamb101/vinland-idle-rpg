@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
 
 /// <summary>
 /// Manages the visual combat scene with hero, enemy, projectiles, and health bars.
@@ -27,7 +28,17 @@ public class CombatVisualManager : MonoBehaviour
     [Header("Projectile Pool")]
     public Transform projectilePool; // Parent for projectiles
     
+    [Header("Item Drops")]
+    [Tooltip("Horizontal spacing between multiple item drops (in pixels)")]
+    public float itemDropSpacing = 60f;
+    
     private EnemyVisual currentEnemy;
+    private List<GameObject> activeItemDrops = new List<GameObject>(); // Track active drop visuals for cleanup
+    
+    /// <summary>
+    /// Get the current enemy visual (for accessing enemy position)
+    /// </summary>
+    public EnemyVisual CurrentEnemy => currentEnemy;
     
     void Awake()
     {
@@ -261,6 +272,179 @@ public class CombatVisualManager : MonoBehaviour
     }
     
     /// <summary>
+    /// Show visual item drops when a monster dies
+    /// </summary>
+    public void ShowItemDrops(List<MonsterDropEntry> droppedItems, Vector2 enemyDeathPosition)
+    {
+        if (droppedItems == null || droppedItems.Count == 0)
+            return;
+        
+        if (combatSceneContainer == null)
+        {
+            Debug.LogWarning("CombatVisualManager: No combatSceneContainer assigned for item drops!");
+            return;
+        }
+        
+        // Get the enemy position in the correct coordinate space
+        Vector2 localEnemyPosition = Vector2.zero;
+        
+        // Try to get the actual enemy position if it still exists
+        if (currentEnemy != null && currentEnemy.rectTransform != null)
+        {
+            RectTransform enemyRect = currentEnemy.rectTransform;
+            
+            // Check if enemy is a direct child of combatSceneContainer
+            if (enemyRect.parent == combatSceneContainer)
+            {
+                // Enemy is a child of combatSceneContainer, use its local anchored position directly
+                localEnemyPosition = enemyRect.anchoredPosition;
+            }
+            else
+            {
+                // Enemy is not a direct child - use RectTransformUtility to convert position
+                Vector3 enemyWorldPos = enemyRect.position;
+                Camera uiCamera = null;
+                Canvas canvas = combatSceneContainer.GetComponentInParent<Canvas>();
+                if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                {
+                    uiCamera = canvas.worldCamera;
+                }
+                
+                Vector2 localPoint;
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    combatSceneContainer,
+                    RectTransformUtility.WorldToScreenPoint(uiCamera, enemyWorldPos),
+                    uiCamera,
+                    out localPoint))
+                {
+                    localEnemyPosition = localPoint;
+                }
+                else
+                {
+                    // Fallback: use world anchored position conversion
+                    Vector2 enemyWorldAnchoredPos = currentEnemy.GetPosition();
+                    RectTransform parentRect = combatSceneContainer.parent as RectTransform;
+                    if (parentRect != null && enemyRect.parent != parentRect)
+                    {
+                        localEnemyPosition = enemyWorldAnchoredPos - parentRect.anchoredPosition;
+                    }
+                    else
+                    {
+                        localEnemyPosition = enemyWorldAnchoredPos;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // No current enemy - use the provided death position and convert if needed
+            RectTransform parentRect = combatSceneContainer.parent as RectTransform;
+            if (parentRect != null)
+            {
+                localEnemyPosition = enemyDeathPosition - parentRect.anchoredPosition;
+            }
+            else
+            {
+                localEnemyPosition = enemyDeathPosition;
+            }
+        }
+        
+        // Calculate horizontal offset for multiple items (centered around enemy position)
+        float totalWidth = (droppedItems.Count - 1) * itemDropSpacing;
+        float startX = localEnemyPosition.x - (totalWidth * 0.5f);
+        
+        for (int i = 0; i < droppedItems.Count; i++)
+        {
+            MonsterDropEntry dropEntry = droppedItems[i];
+            
+            if (dropEntry.item == null || dropEntry.item.icon == null)
+                continue;
+            
+            // Calculate spawn position with horizontal offset
+            Vector2 spawnPos = new Vector2(startX + (i * itemDropSpacing), localEnemyPosition.y);
+            
+            // Create item drop visual GameObject
+            GameObject dropObj = new GameObject($"ItemDrop_{dropEntry.item.itemName}");
+            dropObj.transform.SetParent(combatSceneContainer);
+            
+            // Track for cleanup
+            activeItemDrops.Add(dropObj);
+            
+            // Add RectTransform
+            RectTransform dropRect = dropObj.AddComponent<RectTransform>();
+            dropRect.sizeDelta = new Vector2(64f, 64f); // Standard item icon size
+            dropRect.anchoredPosition = spawnPos;
+            
+            // Add CanvasGroup for fade effect
+            CanvasGroup canvasGroup = dropObj.AddComponent<CanvasGroup>();
+            
+            // Add Image for item icon
+            Image iconImage = dropObj.AddComponent<Image>();
+            iconImage.sprite = dropEntry.item.icon;
+            iconImage.preserveAspect = true;
+            
+            // Add quantity text if quantity > 1
+            if (dropEntry.quantity > 1)
+            {
+                GameObject textObj = new GameObject("QuantityText");
+                textObj.transform.SetParent(dropObj.transform);
+                
+                RectTransform textRect = textObj.AddComponent<RectTransform>();
+                textRect.anchorMin = new Vector2(0.6f, 0.6f);
+                textRect.anchorMax = new Vector2(1f, 1f);
+                textRect.sizeDelta = Vector2.zero;
+                textRect.anchoredPosition = Vector2.zero;
+                
+                TextMeshProUGUI quantityText = textObj.AddComponent<TextMeshProUGUI>();
+                quantityText.text = dropEntry.quantity.ToString();
+                quantityText.fontSize = 16;
+                quantityText.color = Color.white;
+                quantityText.alignment = TextAlignmentOptions.BottomRight;
+                quantityText.fontStyle = FontStyles.Bold;
+                
+                // Add outline for better visibility
+                var outline = textObj.AddComponent<UnityEngine.UI.Outline>();
+                outline.effectColor = Color.black;
+                outline.effectDistance = new Vector2(1f, -1f);
+            }
+            
+            // Add ItemDropVisual component
+            ItemDropVisual dropVisual = dropObj.AddComponent<ItemDropVisual>();
+            dropVisual.itemIcon = iconImage;
+            dropVisual.rectTransform = dropRect;
+            dropVisual.canvasGroup = canvasGroup;
+            
+            // Find quantity text if it exists
+            if (dropEntry.quantity > 1)
+            {
+                TextMeshProUGUI qtyText = dropObj.GetComponentInChildren<TextMeshProUGUI>();
+                dropVisual.quantityText = qtyText;
+            }
+            
+            // Setup and start animation
+            dropVisual.Setup(dropEntry.item.icon, dropEntry.quantity, spawnPos);
+            
+            // Remove from tracking list when destroyed
+            dropVisual.gameObject.AddComponent<ItemDropCleanup>().OnDestroyed += () => {
+                activeItemDrops.Remove(dropObj);
+            };
+        }
+    }
+    
+    /// <summary>
+    /// Helper component to track when item drops are destroyed
+    /// </summary>
+    private class ItemDropCleanup : MonoBehaviour
+    {
+        public System.Action OnDestroyed;
+        
+        void OnDestroy()
+        {
+            OnDestroyed?.Invoke();
+        }
+    }
+    
+    /// <summary>
     /// Clean up combat visuals
     /// </summary>
     public void Cleanup()
@@ -277,6 +461,29 @@ public class CombatVisualManager : MonoBehaviour
             foreach (Transform child in projectilePool)
             {
                 Destroy(child.gameObject);
+            }
+        }
+        
+        // Clean up any active item drop visuals
+        foreach (GameObject drop in activeItemDrops)
+        {
+            if (drop != null)
+            {
+                Destroy(drop);
+            }
+        }
+        activeItemDrops.Clear();
+        
+        // Also clean up any ItemDrop visuals that might be children of combatSceneContainer
+        if (combatSceneContainer != null)
+        {
+            ItemDropVisual[] remainingDrops = combatSceneContainer.GetComponentsInChildren<ItemDropVisual>();
+            foreach (ItemDropVisual drop in remainingDrops)
+            {
+                if (drop != null && drop.gameObject != null)
+                {
+                    Destroy(drop.gameObject);
+                }
             }
         }
     }
