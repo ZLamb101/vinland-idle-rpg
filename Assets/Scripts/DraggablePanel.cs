@@ -43,7 +43,6 @@ public class DraggablePanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         canvas = GetComponentInParent<Canvas>();
         if (canvas == null)
         {
-            Debug.LogWarning("DraggablePanel: No Canvas found in parent hierarchy!");
         }
     }
     

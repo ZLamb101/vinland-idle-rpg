@@ -80,7 +80,6 @@ public class CombatManager : MonoBehaviour
     public event Action<float, int> OnMonsterAttackProgress; // (progress 0-1, index)
     public event Action<float> OnPlayerDamageDealt; // Damage dealt BY player TO monsters (for showing above enemies)
     public event Action<float> OnPlayerDamageTaken; // Damage dealt TO player BY monsters (for showing player damage)
-    public event Action<float> OnMonsterDamageDealt; // Visual feedback (legacy, may be unused)
     
     public enum CombatState
     {
@@ -159,20 +158,28 @@ public class CombatManager : MonoBehaviour
     /// </summary>
     public void StartCombat(MonsterData[] monsters, int mobCount = 1)
     {
-        Debug.Log($"CombatManager.StartCombat called with {monsters?.Length ?? 0} monsters, mobCount: {mobCount}");
-        
         if (monsters == null || monsters.Length == 0)
         {
-            Debug.LogWarning("No monsters to fight in this zone!");
             return;
+        }
+        
+        // IMPORTANT: Re-find visual manager in case scene was reloaded
+        // CombatManager persists between scenes, but CombatVisualManager is recreated
+        if (visualManager == null)
+        {
+            visualManager = FindObjectOfType<CombatVisualManager>();
+        }
+        
+        // Ensure we're not in combat already (clean up any stale state)
+        if (currentState == CombatState.Fighting)
+        {
+            EndCombat();
         }
         
         zoneMonsters = monsters;
         
         // Initialize player stats with equipment bonuses
         CalculatePlayerStats();
-        
-        Debug.Log($"Starting combat - player health: {playerCurrentHealth}/{playerMaxHealth}, attack: {playerAttackDamage}");
         
         // Spawn monster group (all at once)
         SpawnMonsterGroup(mobCount);
@@ -234,11 +241,8 @@ public class CombatManager : MonoBehaviour
     /// </summary>
     void SpawnMonsterGroup(int count)
     {
-        Debug.Log($"CombatManager.SpawnMonsterGroup called with count: {count}");
-        
         if (zoneMonsters == null || zoneMonsters.Length == 0)
         {
-            Debug.LogWarning("No monsters available in zone!");
             return;
         }
         
@@ -248,7 +252,6 @@ public class CombatManager : MonoBehaviour
         // Create list of monster data to spawn
         List<MonsterData> monstersToSpawn = new List<MonsterData>();
         
-        Debug.Log($"Spawning {count} monster(s)...");
         for (int i = 0; i < count; i++)
         {
             // Randomly select a monster from the zone's available monsters
@@ -273,6 +276,12 @@ public class CombatManager : MonoBehaviour
         currentTargetIndex = 0;
         
         // Initialize visual combat
+        // Re-find visual manager if it's null (scene might have been reloaded)
+        if (visualManager == null)
+        {
+            visualManager = FindObjectOfType<CombatVisualManager>();
+        }
+        
         if (visualManager != null)
         {
             // Get hero sprite (if available)
@@ -593,8 +602,6 @@ public class CombatManager : MonoBehaviour
         // Apply dodge
         if (stats.dodge > 0 && UnityEngine.Random.value <= stats.dodge)
         {
-            OnMonsterDamageDealt?.Invoke(0); // Show "MISS" or "DODGE"
-            
             // Log dodge message
             if (GameLog.Instance != null && monster.monsterData != null)
             {
@@ -719,7 +726,6 @@ public class CombatManager : MonoBehaviour
             // All monsters defeated - respawn new group after a delay
             // Get mob count from selector (read current value, not cached)
             int mobCount = GetMobCountFromSelector();
-            Debug.Log($"CombatManager: All monsters dead, respawning with mob count from selector: {mobCount}");
             StartCoroutine(RespawnMonsterGroupAfterDelay(mobCount, 0.5f));
         }
         else
@@ -806,6 +812,9 @@ public class CombatManager : MonoBehaviour
         {
             visualManager.Cleanup();
         }
+        
+        // Clear visual manager reference so it gets re-found next time (in case scene was reloaded)
+        visualManager = null;
         
         OnCombatStateChanged?.Invoke(currentState);
     }

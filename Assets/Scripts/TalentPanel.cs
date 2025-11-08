@@ -294,7 +294,6 @@ public class TalentPanel : MonoBehaviour
         int currentGold = CharacterManager.Instance.GetGold();
         if (currentGold < resetCost)
         {
-            Debug.LogWarning($"Not enough gold to reset talents! Need {resetCost}, have {currentGold}");
             return;
         }
         
@@ -304,8 +303,6 @@ public class TalentPanel : MonoBehaviour
         
         RefreshAllButtons();
         HideTooltip();
-        
-        Debug.Log($"Reset all talents for {resetCost} gold");
     }
     
     public void TogglePanel()
@@ -410,7 +407,6 @@ public class TalentButton : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"TalentButton: rankText is null for talent {talent.talentName}. Make sure RankText is assigned in the Inspector.");
         }
         
         // Update border color and button state

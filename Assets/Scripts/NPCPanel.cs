@@ -34,7 +34,6 @@ public class NPCPanel : MonoBehaviour
         
         if (npc == null)
         {
-            Debug.LogWarning("NPCPanel: Cannot initialize with null NPC!");
             gameObject.SetActive(false);
             return;
         }
@@ -92,7 +91,6 @@ public class NPCPanel : MonoBehaviour
     {
         if (npcData == null)
         {
-            Debug.LogWarning("NPCPanel: Cannot interact - NPC is null!");
             return;
         }
         
@@ -113,7 +111,6 @@ public class NPCPanel : MonoBehaviour
     {
         if (npcData == null)
         {
-            Debug.LogWarning("NPCPanel: Cannot talk - NPC is null!");
             return;
         }
         
@@ -123,7 +120,6 @@ public class NPCPanel : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("NPCPanel: DialogueManager.Instance is null!");
         }
     }
     
@@ -131,13 +127,11 @@ public class NPCPanel : MonoBehaviour
     {
         if (npcData == null || npcData.npcType != NPCType.ShopNPC)
         {
-            Debug.LogWarning("NPCPanel: NPC is not a shop NPC!");
             return;
         }
         
         if (npcData.shopData == null)
         {
-            Debug.LogWarning($"NPCPanel: NPC {npcData.npcName} has no shop data!");
             return;
         }
         
@@ -147,7 +141,6 @@ public class NPCPanel : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("NPCPanel: ShopManager.Instance is null!");
         }
     }
 }

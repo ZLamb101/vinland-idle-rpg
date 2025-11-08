@@ -56,7 +56,6 @@ public class InventoryItem
         {
             // Store the asset name (without path, just the name)
             equipmentAssetName = data.name;
-            Debug.Log($"SetEquipmentData: Stored '{equipmentAssetName}' for {itemName}");
         }
         else
         {
@@ -69,8 +68,6 @@ public class InventoryItem
     /// </summary>
     public void LoadEquipmentData()
     {
-        Debug.Log($"LoadEquipmentData called for {itemName}, equipmentAssetName: '{equipmentAssetName}'");
-        
         if (!string.IsNullOrEmpty(equipmentAssetName))
         {
             // Try loading from Equipment subfolder first
@@ -84,16 +81,13 @@ public class InventoryItem
             
             if (equipmentData == null)
             {
-                Debug.LogWarning($"Could not load equipment: {equipmentAssetName}. Make sure it's in Resources/Equipment/ or Resources/ folder!");
             }
             else
             {
-                Debug.Log($"Successfully loaded equipment: {equipmentData.name}");
             }
         }
         else
         {
-            Debug.LogWarning($"equipmentAssetName is empty for {itemName}!");
         }
     }
     

@@ -22,7 +22,6 @@ public class CombatPanel : MonoBehaviour
     
     [Header("Combat Info")]
     public TextMeshProUGUI combatLogText;
-    public TextMeshProUGUI monsterCountText; // "Monster 1/5"
     
     [Header("Buttons")]
     public Button retreatButton;
@@ -180,7 +179,6 @@ public class CombatPanel : MonoBehaviour
     {
         if (playerDamageTextPrefab == null)
         {
-            Debug.LogWarning("CombatPanel: playerDamageTextPrefab is not assigned! Cannot show damage numbers.");
             return null;
         }
         
@@ -195,8 +193,6 @@ public class CombatPanel : MonoBehaviour
             activeDamageTexts.Add(damageObj);
             return text;
         }
-        
-        Debug.LogWarning("CombatPanel: playerDamageTextPrefab does not contain a TextMeshProUGUI component!");
         return null;
     }
     

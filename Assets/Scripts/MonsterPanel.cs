@@ -57,7 +57,6 @@ public class MonsterPanel : MonoBehaviour
         
         if (monster == null)
         {
-            Debug.LogWarning("MonsterPanel: Cannot initialize with null monster!");
             gameObject.SetActive(false);
             return;
         }
@@ -99,20 +98,17 @@ public class MonsterPanel : MonoBehaviour
     {
         if (monsterData == null)
         {
-            Debug.LogWarning("MonsterPanel: Cannot fight - monster is null!");
             return;
         }
         
         if (CombatManager.Instance == null)
         {
-            Debug.LogWarning("MonsterPanel: CombatManager.Instance is null!");
             return;
         }
         
         // Check if combat is already active
         if (CombatManager.Instance.GetCombatState() != CombatManager.CombatState.Idle)
         {
-            Debug.Log("Combat is already active!");
             return;
         }
         
@@ -127,11 +123,9 @@ public class MonsterPanel : MonoBehaviour
         if (mobCountSelector != null)
         {
             mobCount = mobCountSelector.GetMobCount();
-            Debug.Log($"MonsterPanel: Retrieved mob count from selector '{mobCountSelector.name}': {mobCount}");
         }
         else
         {
-            Debug.LogWarning("MonsterPanel: mobCountSelector is null, using default count of 1");
         }
         
         // Get all monsters from current zone for combat
@@ -143,7 +137,6 @@ public class MonsterPanel : MonoBehaviour
                 MonsterData[] allMonsters = currentZone.GetMonsters();
                 if (allMonsters != null && allMonsters.Length > 0)
                 {
-                    Debug.Log($"MonsterPanel: Starting combat with {mobCount} mob(s) from {currentZone.zoneName}");
                     CombatManager.Instance.StartCombat(allMonsters, mobCount);
                 }
             }

@@ -167,7 +167,6 @@ public class EquipmentPanel : MonoBehaviour
                     bool added = CharacterManager.Instance.AddItemToInventory(item);
                     if (!added)
                     {
-                        Debug.LogWarning("Inventory full! Cannot unequip item.");
                         // Re-equip the item
                         EquipmentManager.Instance.EquipItem(unequipped);
                     }

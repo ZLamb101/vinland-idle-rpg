@@ -197,7 +197,6 @@ public class GameLog : MonoBehaviour
         
         if (logPanelRect == null)
         {
-            Debug.LogWarning("GameLog: logPanelRect is not assigned!");
             return;
         }
         
@@ -388,7 +387,6 @@ public class GameLog : MonoBehaviour
     {
         if (logContentContainer == null)
         {
-            Debug.LogWarning("GameLog: logContentContainer is not assigned!");
             return;
         }
         
@@ -596,7 +594,6 @@ public class GameLog : MonoBehaviour
         const float MAX_HEIGHT = 10000f;
         if (sizeDelta.y > MAX_HEIGHT)
         {
-            Debug.LogWarning($"GameLog: Content height ({sizeDelta.y}) exceeded maximum ({MAX_HEIGHT})");
             sizeDelta.y = MAX_HEIGHT;
         }
         
@@ -699,7 +696,6 @@ public class GameLog : MonoBehaviour
     {
         if (logContentContainer == null)
         {
-            Debug.LogWarning("GameLog: logContentContainer is not assigned!");
             return;
         }
         

@@ -53,7 +53,6 @@ public class ZonePanel : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("ZonePanel: ZoneManager.Instance is null in Start! Ensure ZoneManager is initialized before ZonePanel.");
             // Try to initialize display anyway (ZoneManager might set currentZone in its Start)
             StartCoroutine(WaitForZoneManager());
         }
@@ -73,6 +72,16 @@ public class ZonePanel : MonoBehaviour
         
         UpdateNavigationButtons();
         InitializeQuestPanel();
+        
+        // Initialize quests for current zone when scene loads
+        if (ZoneManager.Instance != null)
+        {
+            ZoneData currentZone = ZoneManager.Instance.GetCurrentZone();
+            if (currentZone != null)
+            {
+                InitializeQuestsForZone(currentZone);
+            }
+        }
         
         // Update display after everything is initialized
         UpdateZoneDisplay();
@@ -132,14 +141,12 @@ public class ZonePanel : MonoBehaviour
     {
         if (ZoneManager.Instance == null)
         {
-            Debug.LogWarning("ZonePanel: ZoneManager.Instance is null!");
             return;
         }
 
         ZoneData currentZone = ZoneManager.Instance.GetCurrentZone();
         if (currentZone == null)
         {
-            Debug.LogWarning("ZonePanel: Current zone is null!");
             return;
         }
 
@@ -252,6 +259,10 @@ public class ZonePanel : MonoBehaviour
     {
         if (zone == null || questActionPanel == null) return;
 
+        // IMPORTANT: Clear static active quest reference when re-initializing
+        // This prevents stale references from previous character sessions
+        QuestPanel.ClearActiveQuestReference();
+
         int playerLevel = CharacterManager.Instance != null ? CharacterManager.Instance.GetLevel() : 1;
         QuestData[] availableQuests = zone.GetAllQuests(); // Get all quests, including locked ones
 
@@ -318,7 +329,6 @@ public class ZonePanel : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogError($"QuestPanel component not found on prefab!");
                 }
             }
             else
@@ -348,19 +358,16 @@ public class ZonePanel : MonoBehaviour
         List<ZoneMonsterEntry> monsterEntries = zone.GetMonsterEntries();
         if (monsterEntries == null || monsterEntries.Count == 0)
         {
-            Debug.Log($"ZonePanel: Zone {zone.zoneName} has no monsters");
             return;
         }
         
         if (monsterContainer == null)
         {
-            Debug.LogWarning("ZonePanel: monsterContainer is not assigned! Cannot spawn monster panels.");
             return;
         }
         
         if (monsterPanelPrefab == null)
         {
-            Debug.LogWarning("ZonePanel: monsterPanelPrefab is not assigned! Cannot spawn monster panels.");
             return;
         }
         
@@ -376,11 +383,9 @@ public class ZonePanel : MonoBehaviour
             {
                 monsterPanel.Initialize(monsterEntry.monster, monsterEntry.position);
                 currentMonsterPanels.Add(monsterPanelObj);
-                Debug.Log($"ZonePanel: Spawned monster panel for {monsterEntry.monster.monsterName} at position {monsterEntry.position}");
             }
             else
             {
-                Debug.LogError("ZonePanel: MonsterPanel component not found on prefab!");
                 Destroy(monsterPanelObj);
             }
         }
@@ -415,19 +420,16 @@ public class ZonePanel : MonoBehaviour
         List<ZoneNPCEntry> npcs = zone.GetNPCs();
         if (npcs == null || npcs.Count == 0)
         {
-            Debug.Log($"ZonePanel: Zone {zone.zoneName} has no NPCs");
             return;
         }
         
         if (npcContainer == null)
         {
-            Debug.LogWarning("ZonePanel: npcContainer is not assigned! Cannot spawn NPC panels.");
             return;
         }
         
         if (npcPanelPrefab == null)
         {
-            Debug.LogWarning("ZonePanel: npcPanelPrefab is not assigned! Cannot spawn NPC panels.");
             return;
         }
         
@@ -443,11 +445,9 @@ public class ZonePanel : MonoBehaviour
             {
                 npcPanel.Initialize(npcEntry.npc, npcEntry.position);
                 currentNPCPanels.Add(npcPanelObj);
-                Debug.Log($"ZonePanel: Spawned NPC panel for {npcEntry.npc.npcName} at position {npcEntry.position}");
             }
             else
             {
-                Debug.LogError("ZonePanel: NPCPanel component not found on prefab!");
                 Destroy(npcPanelObj);
             }
         }
@@ -482,19 +482,16 @@ public class ZonePanel : MonoBehaviour
         List<ZoneResourceEntry> resourceEntries = zone.GetResourceEntries();
         if (resourceEntries == null || resourceEntries.Count == 0)
         {
-            Debug.Log($"ZonePanel: Zone {zone.zoneName} has no resources");
             return;
         }
         
         if (resourceContainer == null)
         {
-            Debug.LogWarning("ZonePanel: resourceContainer is not assigned! Cannot spawn resource panels.");
             return;
         }
         
         if (resourcePanelPrefab == null)
         {
-            Debug.LogWarning("ZonePanel: resourcePanelPrefab is not assigned! Cannot spawn resource panels.");
             return;
         }
         
@@ -510,11 +507,9 @@ public class ZonePanel : MonoBehaviour
             {
                 resourcePanel.Initialize(resourceEntry.resource, resourceEntry.position);
                 currentResourcePanels.Add(resourcePanelObj);
-                Debug.Log($"ZonePanel: Spawned resource panel for {resourceEntry.resource.resourceName} at position {resourceEntry.position}");
             }
             else
             {
-                Debug.LogError("ZonePanel: ResourcePanel component not found on prefab!");
                 Destroy(resourcePanelObj);
             }
         }

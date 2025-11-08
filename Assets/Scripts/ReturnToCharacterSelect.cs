@@ -28,8 +28,6 @@ public class ReturnToCharacterSelect : MonoBehaviour
         // Save current character if needed
         if (saveBeforeReturning)
         {
-            Debug.Log("🔄 Returning to character select - saving current progress...");
-            
             // Get current character data directly from CharacterManager
             if (CharacterManager.Instance != null)
             {
@@ -38,18 +36,15 @@ public class ReturnToCharacterSelect : MonoBehaviour
                 if (loader != null)
                 {
                     loader.SaveCurrentCharacter();
-                    Debug.Log("✅ Character saved via CharacterLoader");
                 }
                 else
                 {
                     // This is normal - CharacterLoader might not be found during scene transition
-                    Debug.Log("📝 CharacterLoader not found - using manual save (this is normal)");
                     SaveCharacterManually();
                 }
             }
             else
             {
-                Debug.LogWarning("CharacterManager not found - cannot save character data");
             }
         }
         
@@ -62,9 +57,9 @@ public class ReturnToCharacterSelect : MonoBehaviour
         // Get current character data from CharacterManager
         CharacterData currentData = CharacterManager.Instance.GetCharacterData();
         
-        // Get character info from PlayerPrefs
-        string currentRace = PlayerPrefs.GetString("ActiveCharacterRace", "Human");
-        string currentClass = PlayerPrefs.GetString("ActiveCharacterClass", "Warrior");
+        // Get character info from CharacterData (preferred) or PlayerPrefs (fallback)
+        string currentRace = !string.IsNullOrEmpty(currentData.race) ? currentData.race : PlayerPrefs.GetString("ActiveCharacterRace", "Human");
+        string currentClass = !string.IsNullOrEmpty(currentData.characterClass) ? currentData.characterClass : PlayerPrefs.GetString("ActiveCharacterClass", "Warrior");
         int currentSlotIndex = PlayerPrefs.GetInt("ActiveCharacterSlot", 0);
         
         // Create saved character data
@@ -78,9 +73,9 @@ public class ReturnToCharacterSelect : MonoBehaviour
         
         // Also update active character
         PlayerPrefs.SetString("ActiveCharacter", json);
+        PlayerPrefs.SetString("ActiveCharacterRace", savedData.race);
+        PlayerPrefs.SetString("ActiveCharacterClass", savedData.characterClass);
         PlayerPrefs.Save();
-        
-        Debug.Log($"💾 Manual save to {key}: {savedData.characterName} - Level {savedData.level} ({savedData.currentXP} XP, {savedData.gold} Gold)");
     }
 }
 

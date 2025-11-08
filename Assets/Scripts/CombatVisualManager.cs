@@ -20,10 +20,6 @@ public class CombatVisualManager : MonoBehaviour
     public EnemyVisual enemyVisualPrefab; // Prefab should have monsterDetailsContainer as a child
     public RectTransform enemySpawnPosition; // Where enemies spawn (right side)
     
-    [Header("Enemy Health Bar")]
-    public Slider enemyHealthBar; // Legacy - for single monster (will be replaced by per-enemy bars)
-    public TextMeshProUGUI enemyHealthText; // Legacy - for single monster
-    
     [Header("Projectile Pool")]
     public Transform projectilePool; // Parent for projectiles
     
@@ -42,11 +38,6 @@ public class CombatVisualManager : MonoBehaviour
     private int currentTargetIndex = 0;
     private Dictionary<int, Coroutine> activeDamageAnimations = new Dictionary<int, Coroutine>(); // Track damage text animations by enemy index
     private Dictionary<int, Vector2> damageTextStartPositions = new Dictionary<int, Vector2>(); // Store original starting positions for damage text
-    
-    /// <summary>
-    /// Get the current enemy visual (for accessing enemy position) - legacy support
-    /// </summary>
-    public EnemyVisual CurrentEnemy => activeEnemies.Count > 0 ? activeEnemies[0] : null;
     
     /// <summary>
     /// Get enemy visual by index
@@ -107,6 +98,9 @@ public class CombatVisualManager : MonoBehaviour
     
     void OnDestroy()
     {
+        // Clean up all visuals before destroying
+        Cleanup();
+        
         // Unsubscribe from events
         if (CombatManager.Instance != null)
         {
@@ -115,6 +109,12 @@ public class CombatVisualManager : MonoBehaviour
             CombatManager.Instance.OnTargetChanged -= SetTargetIndicator;
             CombatManager.Instance.OnPlayerDamageDealt -= OnPlayerDamageDealt;
         }
+    }
+    
+    void OnDisable()
+    {
+        // Also clean up when disabled (scene change, etc.)
+        Cleanup();
     }
     
     void OnMonsterAttackProgress(float progress, int index)
@@ -169,28 +169,17 @@ public class CombatVisualManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Legacy support - Initialize combat with single enemy
-    /// </summary>
-    public void InitializeCombat(Sprite heroSprite, MonsterData monsterData)
-    {
-        List<MonsterData> monsters = new List<MonsterData> { monsterData };
-        InitializeCombat(heroSprite, monsters);
-    }
-    
-    /// <summary>
     /// Spawn a group of enemies with Y-axis spacing
     /// </summary>
     void SpawnEnemyGroup(List<MonsterData> monsters)
     {
         if (enemyVisualPrefab == null)
         {
-            Debug.LogWarning("CombatVisualManager: No enemy visual prefab assigned!");
             return;
         }
         
         if (monsters == null || monsters.Count == 0)
         {
-            Debug.LogWarning("CombatVisualManager: No monsters to spawn!");
             return;
         }
         
@@ -228,7 +217,6 @@ public class CombatVisualManager : MonoBehaviour
             
             if (enemyVisual == null)
             {
-                Debug.LogError("CombatVisualManager: EnemyVisual component not found on prefab!");
                 Destroy(enemyObj);
                 continue;
             }
@@ -341,19 +329,19 @@ public class CombatVisualManager : MonoBehaviour
                         {
                             text.text = monsterInstance[i].monsterData.monsterName;
                             break;
-                        }
                     }
                 }
             }
-            else
-            {
-                Debug.LogWarning($"CombatVisualManager: Monster details container not found in enemy prefab! Make sure the EnemyVisual prefab has a child GameObject with UI elements (health bar, name, etc.).");
-            }
-            
-            // Set callback for when enemy reaches attack range
+        }
+        else
+        {
+            // Monster details container not found - continue without it
+        }
+        
+        // Set callback for when enemy reaches attack range
             enemyVisual.SetOnReachAttackRange(() => {
-                // Enemy reached attack range - combat manager will handle attack timing
-            });
+            // Enemy reached attack range - combat manager will handle attack timing
+        });
             
             // Set click callback for targeting
             enemyVisual.SetOnClickCallback(() => {
@@ -440,15 +428,6 @@ public class CombatVisualManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Legacy support - Spawn a single enemy
-    /// </summary>
-    void SpawnEnemy(MonsterData monsterData)
-    {
-        List<MonsterData> monsters = new List<MonsterData> { monsterData };
-        SpawnEnemyGroup(monsters);
-    }
-    
-    /// <summary>
     /// Hero attacks - spawn projectile toward specific enemy
     /// </summary>
     public void HeroAttack(float damage, int targetIndex, System.Action<float, int> onHit)
@@ -490,15 +469,6 @@ public class CombatVisualManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Legacy support - Hero attacks current enemy
-    /// </summary>
-    public void HeroAttack(float damage, System.Action<float> onHit)
-    {
-        int targetIndex = currentTargetIndex;
-        HeroAttack(damage, targetIndex, (dealtDamage, idx) => onHit?.Invoke(dealtDamage));
-    }
-    
-    /// <summary>
     /// Enemy attacks - play swipe animation for specific enemy
     /// </summary>
     public void EnemyAttack(int enemyIndex, System.Action onComplete)
@@ -517,14 +487,6 @@ public class CombatVisualManager : MonoBehaviour
         }
         
         enemy.PerformAttack(onComplete);
-    }
-    
-    /// <summary>
-    /// Legacy support - Enemy attacks current enemy
-    /// </summary>
-    public void EnemyAttack(System.Action onComplete)
-    {
-        EnemyAttack(currentTargetIndex, onComplete);
     }
     
     /// <summary>
@@ -586,18 +548,6 @@ public class CombatVisualManager : MonoBehaviour
         
         // Update swing timer bar (usually the second slider if it exists)
         UpdateMonsterSwingTimer(index);
-        
-        // Legacy support - update single health bar if it exists and this is the first enemy
-        if (index == 0 && enemyHealthBar != null)
-        {
-            enemyHealthBar.maxValue = max;
-            enemyHealthBar.value = Mathf.Max(0f, current);
-        }
-        
-        if (index == 0 && enemyHealthText != null)
-        {
-            enemyHealthText.text = $"{Mathf.Max(0f, current):F0} / {max:F0}";
-        }
     }
     
     /// <summary>
@@ -726,10 +676,6 @@ public class CombatVisualManager : MonoBehaviour
             Coroutine animCoroutine = StartCoroutine(AnimateDamageText(damageText, enemyIndex));
             activeDamageAnimations[enemyIndex] = animCoroutine;
         }
-        else
-        {
-            Debug.LogWarning($"CombatVisualManager: Could not find damage text component for enemy {enemyIndex}!");
-        }
     }
     
     /// <summary>
@@ -814,14 +760,6 @@ public class CombatVisualManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Legacy support - Update enemy health bar (for first enemy)
-    /// </summary>
-    public void UpdateEnemyHealth(float current, float max)
-    {
-        UpdateEnemyHealth(current, max, 0);
-    }
-    
-    /// <summary>
     /// Check if specific enemy is in attack range
     /// </summary>
     public bool IsEnemyInAttackRange(int index)
@@ -831,14 +769,6 @@ public class CombatVisualManager : MonoBehaviour
         
         EnemyVisual enemy = activeEnemies[index];
         return enemy != null && enemy.IsInAttackRange();
-    }
-    
-    /// <summary>
-    /// Legacy support - Check if current enemy is in attack range
-    /// </summary>
-    public bool IsEnemyInAttackRange()
-    {
-        return IsEnemyInAttackRange(currentTargetIndex);
     }
     
     /// <summary>
@@ -886,7 +816,6 @@ public class CombatVisualManager : MonoBehaviour
         
         if (combatSceneContainer == null)
         {
-            Debug.LogWarning("CombatVisualManager: No combatSceneContainer assigned for item drops!");
             return;
         }
         
@@ -900,31 +829,31 @@ public class CombatVisualManager : MonoBehaviour
             if (enemy.rectTransform != null)
             {
                 RectTransform enemyRect = enemy.rectTransform;
-                
-                // Check if enemy is a direct child of combatSceneContainer
-                if (enemyRect.parent == combatSceneContainer)
-                {
-                    localEnemyPosition = enemyRect.anchoredPosition;
-                }
-                else
-                {
+            
+            // Check if enemy is a direct child of combatSceneContainer
+            if (enemyRect.parent == combatSceneContainer)
+            {
+                localEnemyPosition = enemyRect.anchoredPosition;
+            }
+            else
+            {
                     // Convert to local space
-                    Vector3 enemyWorldPos = enemyRect.position;
-                    Camera uiCamera = null;
-                    Canvas canvas = combatSceneContainer.GetComponentInParent<Canvas>();
-                    if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
-                    {
-                        uiCamera = canvas.worldCamera;
-                    }
-                    
-                    Vector2 localPoint;
-                    if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        combatSceneContainer,
-                        RectTransformUtility.WorldToScreenPoint(uiCamera, enemyWorldPos),
-                        uiCamera,
-                        out localPoint))
-                    {
-                        localEnemyPosition = localPoint;
+                Vector3 enemyWorldPos = enemyRect.position;
+                Camera uiCamera = null;
+                Canvas canvas = combatSceneContainer.GetComponentInParent<Canvas>();
+                if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                {
+                    uiCamera = canvas.worldCamera;
+                }
+                
+                Vector2 localPoint;
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    combatSceneContainer,
+                    RectTransformUtility.WorldToScreenPoint(uiCamera, enemyWorldPos),
+                    uiCamera,
+                    out localPoint))
+                {
+                    localEnemyPosition = localPoint;
                     }
                 }
             }
@@ -1010,14 +939,6 @@ public class CombatVisualManager : MonoBehaviour
                 activeItemDrops.Remove(dropObj);
             };
         }
-    }
-    
-    /// <summary>
-    /// Legacy support - Show item drops at position
-    /// </summary>
-    public void ShowItemDrops(List<MonsterDropEntry> droppedItems, Vector2 enemyDeathPosition)
-    {
-        ShowItemDrops(droppedItems, enemyDeathPosition, 0);
     }
     
     /// <summary>

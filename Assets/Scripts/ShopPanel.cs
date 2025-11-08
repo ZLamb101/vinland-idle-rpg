@@ -218,7 +218,6 @@ public class ShopPanel : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning("ShopPanel: ShopItemSlot component not found on prefab!");
                     Destroy(slotObj);
                 }
             }

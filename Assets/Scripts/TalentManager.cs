@@ -62,7 +62,6 @@ public class TalentManager : MonoBehaviour
     void OnPlayerLevelUp(int newLevel)
     {
         AddTalentPoints(1);
-        Debug.Log($"Level up! Gained 1 talent point. Total unspent: {unspentTalentPoints}");
     }
     
     /// <summary>
@@ -85,7 +84,6 @@ public class TalentManager : MonoBehaviour
         // Check if we have points
         if (unspentTalentPoints <= 0)
         {
-            Debug.LogWarning("No talent points available!");
             return false;
         }
         
@@ -98,7 +96,6 @@ public class TalentManager : MonoBehaviour
         
         if (!talent.CanUnlock(currentRank, pointsInTree, prereq))
         {
-            Debug.LogWarning($"Cannot unlock {talent.talentName}: requirements not met");
             return false;
         }
         
@@ -113,8 +110,6 @@ public class TalentManager : MonoBehaviour
         // Notify listeners
         OnTalentPointsChanged?.Invoke(unspentTalentPoints);
         OnTalentUnlocked?.Invoke(talent, newRank);
-        
-        Debug.Log($"Unlocked {talent.talentName} rank {newRank}/{talent.maxRanks}");
         return true;
     }
     
@@ -199,8 +194,6 @@ public class TalentManager : MonoBehaviour
         
         RecalculateBonuses();
         OnTalentPointsChanged?.Invoke(unspentTalentPoints);
-        
-        Debug.Log($"Reset all talents, refunded {pointsToRefund} points");
     }
     
     // Getters

@@ -35,32 +35,25 @@ public class InventoryToggle : MonoBehaviour
                 if (inventoryUI != null)
                 {
                     inventoryUI.RefreshDisplay();
-                    Debug.Log("Inventory UI refreshed when opened");
                 }
                 else
                 {
-                    Debug.LogWarning("InventoryUI component not found on inventory panel!");
                 }
             }
-            
-            Debug.Log($"Inventory panel is now {(!currentlyShowingInventory ? "open" : "closed")}");
         }
         else
         {
-            Debug.LogWarning("Inventory panel reference is missing!");
         }
     }
     
     public void ShowInventoryQuick()
     {
         if (inventoryPanel != null) inventoryPanel.SetActive(true);
-        Debug.Log("Showing inventory panel");
     }
     
     public void ShowQuestPanel()
     {
         // Method kept for backwards compatibility so existing button bindings don't break.
         if (inventoryPanel != null) inventoryPanel.SetActive(false);
-        Debug.Log("Hiding inventory panel (quest panel handling removed)");
     }
 }

@@ -38,13 +38,11 @@ public class DialogueManager : MonoBehaviour
     {
         if (npc == null)
         {
-            Debug.LogWarning("DialogueManager: Cannot start dialogue - NPC is null!");
             return;
         }
         
         if (npc.dialogueLines == null || npc.dialogueLines.Length == 0)
         {
-            Debug.LogWarning($"DialogueManager: NPC {npc.npcName} has no dialogue lines!");
             return;
         }
         
@@ -61,8 +59,6 @@ public class DialogueManager : MonoBehaviour
         
         OnDialogueStarted?.Invoke(npc);
         ShowCurrentDialogueLine();
-        
-        Debug.Log($"Started dialogue with {npc.npcName}");
     }
     
     /// <summary>
@@ -112,8 +108,6 @@ public class DialogueManager : MonoBehaviour
         currentDialogueIndex = 0;
         
         OnDialogueEnded?.Invoke();
-        
-        Debug.Log("Dialogue ended");
     }
     
     // Getters

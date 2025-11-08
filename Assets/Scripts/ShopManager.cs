@@ -48,7 +48,6 @@ public class ShopManager : MonoBehaviour
     {
         if (shop == null)
         {
-            Debug.LogWarning("ShopManager: Cannot open shop - shop data is null!");
             return;
         }
         
@@ -91,7 +90,6 @@ public class ShopManager : MonoBehaviour
         }
         
         OnShopOpened?.Invoke(shop);
-        Debug.Log($"Opened shop: {shop.shopName}");
     }
     
     /// <summary>
@@ -111,7 +109,6 @@ public class ShopManager : MonoBehaviour
         isShopOpen = false;
         
         OnShopClosed?.Invoke();
-        Debug.Log("Shop closed");
     }
     
     /// <summary>
@@ -128,8 +125,6 @@ public class ShopManager : MonoBehaviour
                 entry.RestoreStock();
             }
         }
-        
-        Debug.Log($"Refreshed stock for shop: {shop.shopName}");
     }
     
     /// <summary>
@@ -191,19 +186,16 @@ public class ShopManager : MonoBehaviour
     {
         if (!isShopOpen || currentShop == null)
         {
-            Debug.LogWarning("ShopManager: Cannot buy - shop is not open!");
             return false;
         }
         
         if (entry == null || entry.item == null)
         {
-            Debug.LogWarning("ShopManager: Cannot buy - invalid entry!");
             return false;
         }
         
         if (!entry.IsInStock())
         {
-            Debug.LogWarning($"ShopManager: Cannot buy {entry.item.itemName} - out of stock!");
             return false;
         }
         
@@ -217,7 +209,6 @@ public class ShopManager : MonoBehaviour
         // Check if player has enough gold
         if (CharacterManager.Instance == null || CharacterManager.Instance.GetGold() < totalCost)
         {
-            Debug.LogWarning($"ShopManager: Not enough gold! Need {totalCost}, have {CharacterManager.Instance?.GetGold() ?? 0}");
             return false;
         }
         
@@ -230,7 +221,6 @@ public class ShopManager : MonoBehaviour
             
             if (!added)
             {
-                Debug.LogWarning("ShopManager: Not enough inventory space!");
                 return false;
             }
             
@@ -246,8 +236,6 @@ public class ShopManager : MonoBehaviour
             {
                 OnStockChanged?.Invoke(entryIndex);
             }
-            
-            Debug.Log($"Bought {quantity}x {entry.item.itemName} for {totalCost} gold");
             return true;
         }
         
@@ -261,13 +249,11 @@ public class ShopManager : MonoBehaviour
     {
         if (!isShopOpen)
         {
-            Debug.LogWarning("ShopManager: Cannot sell - shop is not open!");
             return false;
         }
         
         if (item == null || item.IsEmpty())
         {
-            Debug.LogWarning("ShopManager: Cannot sell - invalid item!");
             return false;
         }
         
@@ -297,8 +283,6 @@ public class ShopManager : MonoBehaviour
         }
         
         OnBuyBackChanged?.Invoke();
-        
-        Debug.Log($"Sold {item.quantity}x {item.itemName} for {sellValue} gold");
         return true;
     }
     
@@ -309,20 +293,17 @@ public class ShopManager : MonoBehaviour
     {
         if (!hasBuyBack || buyBackItem == null)
         {
-            Debug.LogWarning("ShopManager: No item available for buyback!");
             return false;
         }
         
         if (!isShopOpen)
         {
-            Debug.LogWarning("ShopManager: Cannot buyback - shop is not open!");
             return false;
         }
         
         // Check if player has enough gold
         if (CharacterManager.Instance == null || CharacterManager.Instance.GetGold() < buyBackPrice)
         {
-            Debug.LogWarning($"ShopManager: Not enough gold for buyback! Need {buyBackPrice}");
             return false;
         }
         
@@ -333,7 +314,6 @@ public class ShopManager : MonoBehaviour
             
             if (!added)
             {
-                Debug.LogWarning("ShopManager: Not enough inventory space for buyback!");
                 return false;
             }
             
@@ -350,8 +330,6 @@ public class ShopManager : MonoBehaviour
             hasBuyBack = false;
             
             OnBuyBackChanged?.Invoke();
-            
-            Debug.Log($"Bought back {itemName} for {price} gold");
             return true;
         }
         

@@ -59,7 +59,6 @@ public class ResourcePanel : MonoBehaviour
         
         if (resource == null)
         {
-            Debug.LogWarning("ResourcePanel: Cannot initialize with null resource!");
             gameObject.SetActive(false);
             return;
         }
@@ -118,13 +117,11 @@ public class ResourcePanel : MonoBehaviour
     {
         if (resourceData == null)
         {
-            Debug.LogWarning("ResourcePanel: Cannot gather - resource is null!");
             return;
         }
         
         if (ResourceManager.Instance == null)
         {
-            Debug.LogWarning("ResourcePanel: ResourceManager.Instance is null!");
             return;
         }
         

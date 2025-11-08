@@ -9,7 +9,8 @@ public class CharacterManager : MonoBehaviour
 {
     public static CharacterManager Instance { get; private set; }
     
-    [SerializeField] private CharacterData characterData = new CharacterData();
+    private CharacterData characterData = new CharacterData(); // Not serialized - loaded at runtime
+    private bool dataHasBeenLoaded = false; // Track if character data has been loaded from save
     
     // Events for UI and other systems to subscribe to
     public event Action<int> OnXPChanged;
@@ -32,21 +33,35 @@ public class CharacterManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject); // Persist between scenes
         
+        // Reset loaded flag when singleton is first created or reset
+        // This ensures fresh data is loaded when entering a new scene
+        dataHasBeenLoaded = false;
+        
         // Ensure game runs in background (essential for idle games)
         Application.runInBackground = true;
     }
     
     void Start()
     {
-        // Initialize health to max
-        characterData.currentHealth = characterData.GetMaxHealth();
-        
-        // Initialize by triggering events with current values
-        OnXPChanged?.Invoke(characterData.currentXP);
-        OnLevelChanged?.Invoke(characterData.level);
-        OnGoldChanged?.Invoke(characterData.gold);
-        OnNameChanged?.Invoke(characterData.characterName);
-        OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+        // Only initialize if character data hasn't been loaded yet
+        // If data has been loaded (from CharacterLoader), don't overwrite it
+        if (!dataHasBeenLoaded)
+        {
+            // Initialize health to max for new characters
+            characterData.currentHealth = characterData.GetMaxHealth();
+            
+            // Don't fire events here if data hasn't been loaded - CharacterLoader will do it
+            // This prevents empty/default values from being displayed before character is loaded
+        }
+        else
+        {
+            // Data has been loaded, trigger events to update UI
+            OnXPChanged?.Invoke(characterData.currentXP);
+            OnLevelChanged?.Invoke(characterData.level);
+            OnGoldChanged?.Invoke(characterData.gold);
+            OnNameChanged?.Invoke(characterData.characterName);
+            OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+        }
     }
     
     // --- XP Management ---
@@ -106,6 +121,20 @@ public class CharacterManager : MonoBehaviour
     }
     
     public string GetName() => characterData.characterName;
+    
+    // --- Race/Class Management ---
+    public string GetRace() => characterData.race;
+    public string GetCharacterClass() => characterData.characterClass;
+    
+    public void SetRace(string newRace)
+    {
+        characterData.race = newRace;
+    }
+    
+    public void SetCharacterClass(string newClass)
+    {
+        characterData.characterClass = newClass;
+    }
     
     // --- Talent-Modified Stats ---
     /// <summary>
@@ -193,7 +222,6 @@ public class CharacterManager : MonoBehaviour
     {
         if (item == null)
         {
-            Debug.LogWarning("Trying to add null item to inventory!");
             return false;
         }
         
@@ -226,6 +254,7 @@ public class CharacterManager : MonoBehaviour
     public void LoadCharacterData(CharacterData data)
     {
         characterData = data;
+        dataHasBeenLoaded = true; // Mark that data has been loaded
         
         // Load equipment references for all inventory items
         if (characterData.inventory != null)

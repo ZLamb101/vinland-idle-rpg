@@ -51,7 +51,6 @@ public class ResourceManager : MonoBehaviour
     {
         if (resource == null)
         {
-            Debug.LogWarning("ResourceManager: Cannot start gathering - resource is null!");
             return false;
         }
         
@@ -69,8 +68,6 @@ public class ResourceManager : MonoBehaviour
         OnGatheringStateChanged?.Invoke(isGathering);
         OnResourceChanged?.Invoke(currentResource);
         OnGatherProgressChanged?.Invoke(0f);
-        
-        Debug.Log($"Started gathering {currentResource.resourceName} at {currentResource.gatherRate} items/second");
         return true;
     }
     
@@ -81,7 +78,6 @@ public class ResourceManager : MonoBehaviour
     {
         if (zone == null)
         {
-            Debug.LogWarning("ResourceManager: Cannot start gathering - zone is null!");
             return false;
         }
         
@@ -89,7 +85,6 @@ public class ResourceManager : MonoBehaviour
         
         if (resource == null)
         {
-            Debug.LogWarning($"ResourceManager: Zone {zone.zoneName} has no resource to gather!");
             return false;
         }
         
@@ -110,8 +105,6 @@ public class ResourceManager : MonoBehaviour
         
         OnGatheringStateChanged?.Invoke(isGathering);
         OnGatherProgressChanged?.Invoke(0f);
-        
-        Debug.Log("Stopped gathering resources");
     }
     
     void UpdateGathering()
@@ -137,7 +130,6 @@ public class ResourceManager : MonoBehaviour
     {
         if (currentResource == null || currentResource.gatheredItem == null)
         {
-            Debug.LogWarning("ResourceManager: Cannot gather - resource or gathered item is null!");
             return;
         }
         
@@ -148,7 +140,6 @@ public class ResourceManager : MonoBehaviour
             CharacterManager.Instance.AddItemToInventory(items);
             
             OnItemsGathered?.Invoke(currentResource.itemsPerGather);
-            Debug.Log($"Gathered {currentResource.itemsPerGather}x {currentResource.gatheredItem.itemName}");
         }
     }
     

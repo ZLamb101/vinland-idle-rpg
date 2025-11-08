@@ -17,9 +17,17 @@ public class CharacterSelectionManager : MonoBehaviour
     public TextMeshProUGUI totalLevelText;
     public TextMeshProUGUI nextUnlockText; // Optional: Shows what unlocks next
     
+    [Header("Selected Hero Display")]
+    public GameObject selectedHeroPanel; // Panel showing currently selected hero info
+    public TextMeshProUGUI selectedHeroNameText; // Name of selected hero
+    public TextMeshProUGUI selectedHeroLevelText; // Level of selected hero
+    
     [Header("Action Button")]
     public Button actionButton;
     public TextMeshProUGUI actionButtonText;
+    
+    [Header("Delete Button")]
+    public Button deleteButton; // Button to delete currently selected hero
     
     [Header("Character Creation Panel")]
     public GameObject characterCreationPanel;
@@ -33,22 +41,27 @@ public class CharacterSelectionManager : MonoBehaviour
     public string gameSceneName = "SampleScene"; // Scene to load when entering world
     
     [Header("Slot Unlock Levels")]
-    public int[] slotUnlockLevels = { 0, 15, 30, 50, 75, 100 }; // Account level required for each slot
+    public int[] slotUnlockLevels = { 0, 3, 7, 15, 25, 35 }; // Account level required for each slot
     
     private SavedCharacterData[] savedCharacters = new SavedCharacterData[6];
     private CharacterSlot selectedSlot = null;
     private int selectedSlotIndex = -1;
+    private bool[] slotHasBeenUnlocked = new bool[6]; // Track if slot has ever had a character (stays unlocked)
     
     void Start()
     {
         InitializeSlots();
         LoadAllCharacters();
+        LoadSlotUnlockStates(); // Load which slots have been unlocked before
         UpdateSlotLocks();
         UpdateTotalLevelDisplay();
         
         // Setup buttons
         if (actionButton != null)
             actionButton.onClick.AddListener(OnActionButtonClick);
+        
+        if (deleteButton != null)
+            deleteButton.onClick.AddListener(OnDeleteButtonClick);
         
         if (confirmCreateButton != null)
             confirmCreateButton.onClick.AddListener(OnConfirmCreate);
@@ -65,6 +78,9 @@ public class CharacterSelectionManager : MonoBehaviour
         {
             SelectFirstAvailableSlot();
         }
+        
+        // Initialize selected hero display
+        UpdateSelectedHeroDisplay();
     }
     
     void InitializeSlots()
@@ -96,7 +112,12 @@ public class CharacterSelectionManager : MonoBehaviour
             {
                 string json = PlayerPrefs.GetString(key);
                 savedCharacters[i] = JsonUtility.FromJson<SavedCharacterData>(json);
-                Debug.Log($"Loaded {key}: {savedCharacters[i].characterName} - Level {savedCharacters[i].level}");
+                
+                // If character exists, mark slot as unlocked
+                if (!savedCharacters[i].isEmpty)
+                {
+                    slotHasBeenUnlocked[i] = true;
+                }
             }
             else
             {
@@ -104,6 +125,25 @@ public class CharacterSelectionManager : MonoBehaviour
                 savedCharacters[i] = new SavedCharacterData { isEmpty = true };
             }
         }
+    }
+    
+    void LoadSlotUnlockStates()
+    {
+        // Load which slots have been unlocked (had characters created) from PlayerPrefs
+        for (int i = 0; i < slotHasBeenUnlocked.Length; i++)
+        {
+            string key = $"Slot_{i}_Unlocked";
+            slotHasBeenUnlocked[i] = PlayerPrefs.GetInt(key, 0) == 1;
+        }
+    }
+    
+    void SaveSlotUnlockState(int slotIndex)
+    {
+        // Save that this slot has been unlocked (has had a character created)
+        string key = $"Slot_{slotIndex}_Unlocked";
+        PlayerPrefs.SetInt(key, 1);
+        PlayerPrefs.Save();
+        slotHasBeenUnlocked[slotIndex] = true;
     }
     
     void SaveCharacter(int slotIndex, SavedCharacterData data)
@@ -124,8 +164,15 @@ public class CharacterSelectionManager : MonoBehaviour
         {
             if (characterSlots[i] != null)
             {
-                bool isLocked = totalAccountLevel < slotUnlockLevels[i];
-                characterSlots[i].Initialize(i, savedCharacters[i], isLocked);
+                // Slot is unlocked if:
+                // 1. Account level meets requirement, OR
+                // 2. Slot has been unlocked before (had a character created in it)
+                bool meetsLevelRequirement = totalAccountLevel >= slotUnlockLevels[i];
+                bool hasBeenUnlocked = slotHasBeenUnlocked[i];
+                bool isLocked = !meetsLevelRequirement && !hasBeenUnlocked;
+                
+                int unlockLevel = slotUnlockLevels[i];
+                characterSlots[i].Initialize(i, savedCharacters[i], isLocked, unlockLevel);
             }
         }
         
@@ -198,6 +245,7 @@ public class CharacterSelectionManager : MonoBehaviour
         slot.SetSelected(true);
         
         UpdateActionButton();
+        UpdateSelectedHeroDisplay(); // Update display when selection changes
     }
     
     void SelectFirstAvailableSlot()
@@ -230,6 +278,13 @@ public class CharacterSelectionManager : MonoBehaviour
         {
             actionButton.interactable = true;
             actionButtonText.text = "Enter World";
+        }
+        
+        // Update delete button state
+        if (deleteButton != null)
+        {
+            // Only enable delete button if a non-empty slot is selected
+            deleteButton.interactable = selectedSlot != null && !selectedSlot.IsEmpty();
         }
     }
     
@@ -281,7 +336,6 @@ public class CharacterSelectionManager : MonoBehaviour
         string charName = nameInputField != null ? nameInputField.text.Trim() : "";
         if (string.IsNullOrEmpty(charName))
         {
-            Debug.LogWarning("Character name cannot be empty!");
             return;
         }
         
@@ -307,6 +361,9 @@ public class CharacterSelectionManager : MonoBehaviour
         // Save character
         SaveCharacter(selectedSlotIndex, newChar);
         
+        // Mark this slot as unlocked (has had a character created)
+        SaveSlotUnlockState(selectedSlotIndex);
+        
         // Update slot display
         if (selectedSlot != null)
         {
@@ -318,9 +375,10 @@ public class CharacterSelectionManager : MonoBehaviour
             characterCreationPanel.SetActive(false);
         
         UpdateActionButton();
+        UpdateSlotLocks(); // Update slot locks after creating character
         UpdateTotalLevelDisplay();
+        UpdateSelectedHeroDisplay(); // Update selected hero display
         
-        Debug.Log($"Created character: {charName} - Level {newChar.level} {race} {charClass}");
     }
     
     void OnCancelCreate()
@@ -335,33 +393,26 @@ public class CharacterSelectionManager : MonoBehaviour
         
         SavedCharacterData charData = selectedSlot.GetCharacterData();
         
+        // Save the slot index FIRST before saving character data
+        // This ensures CharacterLoader knows which slot to save back to
+        PlayerPrefs.SetInt("ActiveCharacterSlot", selectedSlotIndex);
+        
         // Store selected character data to load in game scene
         string json = JsonUtility.ToJson(charData);
         PlayerPrefs.SetString("ActiveCharacter", json);
         PlayerPrefs.SetString("ActiveCharacterRace", charData.race);
         PlayerPrefs.SetString("ActiveCharacterClass", charData.characterClass);
-        PlayerPrefs.SetInt("ActiveCharacterSlot", selectedSlotIndex);
-        PlayerPrefs.Save();
         
-        Debug.Log($"Loading character: {charData.characterName}");
+        // Save synchronously (required before scene load)
+        PlayerPrefs.Save();
         
         // Check if scene exists before loading
         if (string.IsNullOrEmpty(gameSceneName))
         {
-            Debug.LogError("Game Scene Name is not set! Please set it in CharacterSelectionManager.");
             return;
         }
         
-        // Validate scene count
-        if (SceneManager.sceneCountInBuildSettings == 0)
-        {
-            Debug.LogError("No scenes in Build Settings! Add scenes via File → Build Settings.");
-            return;
-        }
-        
-        Debug.Log($"Loading scene: {gameSceneName}");
-        
-        // Load game scene
+        // Load game scene immediately
         SceneManager.LoadScene(gameSceneName);
     }
     
@@ -372,12 +423,75 @@ public class CharacterSelectionManager : MonoBehaviour
         UpdateSlotLocks();
         UpdateActionButton();
         UpdateTotalLevelDisplay();
+        UpdateSelectedHeroDisplay(); // Update selected hero display
+    }
+    
+    void UpdateSelectedHeroDisplay()
+    {
+        if (selectedHeroPanel != null)
+        {
+            // Show panel only if a slot is selected and it's not empty
+            bool shouldShow = selectedSlot != null && !selectedSlot.IsEmpty();
+            selectedHeroPanel.SetActive(shouldShow);
+            
+            if (shouldShow && selectedSlot != null)
+            {
+                SavedCharacterData charData = selectedSlot.GetCharacterData();
+                
+                // Update name
+                if (selectedHeroNameText != null)
+                {
+                    selectedHeroNameText.text = charData.characterName;
+                }
+                
+                // Update level
+                if (selectedHeroLevelText != null)
+                {
+                    selectedHeroLevelText.text = $"Level {charData.level}";
+                }
+            }
+            else
+            {
+                // Clear text if panel is hidden
+                if (selectedHeroNameText != null)
+                    selectedHeroNameText.text = "";
+                if (selectedHeroLevelText != null)
+                    selectedHeroLevelText.text = "";
+            }
+        }
     }
     
     // Public getter for total account level (for other systems to use)
     public int GetTotalLevel()
     {
         return GetTotalAccountLevel();
+    }
+    
+    void OnDeleteButtonClick()
+    {
+        if (selectedSlot == null || selectedSlot.IsEmpty())
+        {
+            return;
+        }
+        
+        // Confirm deletion (you could add a confirmation dialog here)
+        SavedCharacterData charData = selectedSlot.GetCharacterData();
+        string charName = charData.characterName;
+        
+        
+        // Delete the character
+        DeleteCharacter(selectedSlotIndex);
+        
+        // Clear selection or select first available slot
+        selectedSlot = null;
+        selectedSlotIndex = -1;
+        SelectFirstAvailableSlot();
+        
+        // Update displays
+        UpdateActionButton();
+        UpdateSlotLocks();
+        UpdateTotalLevelDisplay();
+        UpdateSelectedHeroDisplay();
     }
     
     // Public method to delete a character (for future use)
@@ -387,6 +501,18 @@ public class CharacterSelectionManager : MonoBehaviour
         
         string key = $"Character_{slotIndex}";
         PlayerPrefs.DeleteKey(key);
+        
+        // If this was the active character, clear active character data
+        int activeSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+        if (activeSlot == slotIndex)
+        {
+            PlayerPrefs.DeleteKey("ActiveCharacter");
+            PlayerPrefs.DeleteKey("ActiveCharacterRace");
+            PlayerPrefs.DeleteKey("ActiveCharacterClass");
+            PlayerPrefs.DeleteKey("ActiveCharacterSlot");
+        }
+        
+        PlayerPrefs.Save(); // Save changes
         
         savedCharacters[slotIndex] = new SavedCharacterData { isEmpty = true };
         

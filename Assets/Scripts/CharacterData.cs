@@ -7,12 +7,16 @@ using UnityEngine;
 [System.Serializable]
 public class CharacterData
 {
-    public string characterName = "Hero";
+    public string characterName = ""; // Empty by default - will be set when character is loaded
     public int level = 1;
     public int currentXP = 0;
     public int gold = 0;
     public float currentHealth = 50f;
     public InventoryData inventory = new InventoryData();
+    
+    // Character creation data (persists through gameplay)
+    public string race = "Human";
+    public string characterClass = "Warrior";
     
     // Health: 50 at level 1, +10% per level
     public float GetMaxHealth()

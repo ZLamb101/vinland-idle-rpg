@@ -131,14 +131,10 @@ public class InventoryUI : MonoBehaviour
     void LoadEquipmentReferences()
     {
         if (inventoryData == null || inventoryData.items == null) return;
-        
-        Debug.Log($"LoadEquipmentReferences: Checking {inventoryData.items.Length} inventory slots");
-        
         foreach (var item in inventoryData.items)
         {
             if (item != null && item.itemType == ItemType.Equipment)
             {
-                Debug.Log($"Found equipment item: {item.itemName}, calling LoadEquipmentData()");
                 item.LoadEquipmentData();
             }
         }
@@ -440,8 +436,6 @@ public class InventoryUI : MonoBehaviour
         {
             // Refresh display to show the swapped items
             RefreshDisplay();
-            
-            Debug.Log($"Swapped items from slot {fromSlot} to slot {toSlot}");
         }
     }
     

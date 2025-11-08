@@ -51,7 +51,6 @@ public class EquipmentManager : MonoBehaviour
             int playerLevel = CharacterManager.Instance.GetLevel();
             if (playerLevel < equipment.levelRequired)
             {
-                Debug.LogWarning($"Level {equipment.levelRequired} required to equip {equipment.equipmentName}");
                 return false;
             }
         }
@@ -74,8 +73,6 @@ public class EquipmentManager : MonoBehaviour
         
         // Notify listeners
         OnEquipmentChanged?.Invoke(slot, equipment);
-        
-        Debug.Log($"Equipped {equipment.equipmentName} to {slot}");
         return true;
     }
     
@@ -88,7 +85,6 @@ public class EquipmentManager : MonoBehaviour
         
         if (unequipped == null)
         {
-            Debug.LogWarning($"No equipment in {slot} slot to unequip");
             return null;
         }
         
@@ -100,8 +96,6 @@ public class EquipmentManager : MonoBehaviour
         
         // Notify listeners
         OnEquipmentChanged?.Invoke(slot, null);
-        
-        Debug.Log($"Unequipped {unequipped.equipmentName} from {slot}");
         return unequipped;
     }
     

@@ -28,7 +28,6 @@ public class QuestPanel : MonoBehaviour
     {
         if (questData == null)
         {
-            Debug.LogError("QuestPanel: No QuestData assigned!");
             return;
         }
         
@@ -67,6 +66,19 @@ public class QuestPanel : MonoBehaviour
         if (currentlyActiveQuest == this)
         {
             currentlyActiveQuest = null;
+        }
+    }
+    
+    void OnDisable()
+    {
+        // Also clear active quest reference when disabled (scene change, etc.)
+        if (currentlyActiveQuest == this)
+        {
+            currentlyActiveQuest = null;
+            isActive = false;
+            currentTime = 0f;
+            if (slider != null)
+                slider.value = 0f;
         }
     }
     
@@ -240,7 +252,6 @@ public class QuestPanel : MonoBehaviour
                 bool itemAdded = CharacterManager.Instance.AddItemToInventory(itemReward);
                 if (!itemAdded)
                 {
-                    Debug.LogWarning("Inventory is full! Item reward lost.");
                 }
             }
         }
@@ -265,15 +276,18 @@ public class QuestPanel : MonoBehaviour
             StopQuest();
         }
         
+        // Reset quest state completely
+        isActive = false;
+        currentTime = 0f;
+        if (slider != null)
+            slider.value = 0f;
+        
         questData = newQuestData;
         
-        // Initialize quest UI if not already done
-        if (questNameText != null)
-        {
-            UpdateQuestDisplay();
-            UpdateButtonText();
-            CheckQuestAvailability();
-        }
+        // Re-initialize quest UI
+        UpdateQuestDisplay();
+        UpdateButtonText();
+        CheckQuestAvailability();
     }
     
     // Public method to check if this quest is currently active
@@ -286,5 +300,19 @@ public class QuestPanel : MonoBehaviour
     public static QuestPanel GetActiveQuest()
     {
         return currentlyActiveQuest;
+    }
+    
+    // Static method to clear the active quest reference (useful when re-initializing)
+    public static void ClearActiveQuestReference()
+    {
+        if (currentlyActiveQuest != null)
+        {
+            // Stop the quest if it's still valid
+            if (currentlyActiveQuest.gameObject != null)
+            {
+                currentlyActiveQuest.StopQuest();
+            }
+        }
+        currentlyActiveQuest = null;
     }
 }

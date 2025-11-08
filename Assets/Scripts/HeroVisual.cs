@@ -50,7 +50,6 @@ public class HeroVisual : MonoBehaviour
     {
         if (projectilePrefab == null)
         {
-            Debug.LogWarning("HeroVisual: No projectile prefab assigned!");
             return;
         }
         

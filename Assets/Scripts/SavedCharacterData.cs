@@ -33,8 +33,9 @@ public class SavedCharacterData
         gold = data.gold;
         currentHealth = data.currentHealth;
         inventory = data.inventory;
-        this.race = race;
-        this.characterClass = charClass;
+        // Use race/class from CharacterData if available, otherwise use parameters
+        this.race = !string.IsNullOrEmpty(data.race) ? data.race : race;
+        this.characterClass = !string.IsNullOrEmpty(data.characterClass) ? data.characterClass : charClass;
         lastPlayedDate = DateTime.Now;
         isEmpty = false;
     }
@@ -48,6 +49,8 @@ public class SavedCharacterData
         data.gold = gold;
         data.currentHealth = currentHealth;
         data.inventory = inventory;
+        data.race = race; // Load race
+        data.characterClass = characterClass; // Load class
     }
     
     // Get display string for slot (e.g., "Level 5 Troll Hunter")

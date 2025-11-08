@@ -9,7 +9,7 @@ public class CharacterInfoDisplay : MonoBehaviour
 {
     [Header("UI References")]
     public TextMeshProUGUI nameText;
-    public TextMeshProUGUI levelText;
+    public TextMeshProUGUI levelText; // Can show "Level X" or "Level X Race Class"
     public TextMeshProUGUI xpText;
     public TextMeshProUGUI goldText;
     public TextMeshProUGUI healthText;
@@ -20,6 +20,23 @@ public class CharacterInfoDisplay : MonoBehaviour
     
     void Start()
     {
+        // Use coroutine to wait for CharacterManager to be ready (in case it's being created dynamically)
+        StartCoroutine(InitializeAfterDelay());
+    }
+    
+    System.Collections.IEnumerator InitializeAfterDelay()
+    {
+        // Wait a frame to ensure CharacterManager and CharacterLoader have initialized
+        yield return null;
+        
+        // Try to find CharacterManager - wait a bit if it's being created
+        int attempts = 0;
+        while (CharacterManager.Instance == null && attempts < 10)
+        {
+            yield return new WaitForSeconds(0.1f);
+            attempts++;
+        }
+        
         // Subscribe to all character data changes
         if (CharacterManager.Instance != null)
         {
@@ -29,7 +46,7 @@ public class CharacterInfoDisplay : MonoBehaviour
             CharacterManager.Instance.OnGoldChanged += UpdateGoldDisplay;
             CharacterManager.Instance.OnHealthChanged += UpdateHealthDisplay;
             
-            // Initialize displays with current values
+            // Initialize displays with current values (after character has been loaded)
             UpdateNameDisplay(CharacterManager.Instance.GetName());
             UpdateLevelDisplay(CharacterManager.Instance.GetLevel());
             UpdateXPDisplay(CharacterManager.Instance.GetCurrentXP());
@@ -38,7 +55,6 @@ public class CharacterInfoDisplay : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("CharacterInfoDisplay: CharacterManager.Instance is null! Make sure CharacterManager exists in the scene.");
         }
     }
     
@@ -64,7 +80,27 @@ public class CharacterInfoDisplay : MonoBehaviour
     void UpdateLevelDisplay(int level)
     {
         if (levelText != null)
-            levelText.text = "Level: " + level;
+        {
+            // Show level with race/class combo if available
+            if (CharacterManager.Instance != null)
+            {
+                string race = CharacterManager.Instance.GetRace();
+                string charClass = CharacterManager.Instance.GetCharacterClass();
+                
+                if (!string.IsNullOrEmpty(race) && !string.IsNullOrEmpty(charClass))
+                {
+                    levelText.text = $"Level {level} {race} {charClass}";
+                }
+                else
+                {
+                    levelText.text = "Level: " + level;
+                }
+            }
+            else
+            {
+                levelText.text = "Level: " + level;
+            }
+        }
     }
     
     void UpdateXPDisplay(int xp)

@@ -93,7 +93,6 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
             if (currentItem != null && !currentItem.IsEmpty() && currentItem.icon != null)
             {
                 itemIcon.sprite = currentItem.icon;
-                Debug.Log($"Slot {slotIndex}: Setting icon to {currentItem.icon.name}");
                 // Set alpha to 255 (fully visible)
                 Color iconColor = itemIcon.color;
                 iconColor.a = 1f;
@@ -177,9 +176,6 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
             SellItem();
             return;
         }
-        
-        Debug.Log($"OnRightClick: {currentItem.itemName}, itemType={currentItem.itemType}, equipmentData={(currentItem.equipmentData != null ? "EXISTS" : "NULL")}, equipmentAssetName='{currentItem.equipmentAssetName}'");
-        
         // Check if item is equipment
         if (currentItem.IsEquipment())
         {
@@ -188,7 +184,6 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         else
         {
             // Future: Handle consumables or other item types
-            Debug.Log($"Right-clicked {currentItem.itemName} - not equipment (itemType={currentItem.itemType}, equipmentData is null={currentItem.equipmentData == null})");
         }
     }
     
@@ -213,13 +208,11 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     {
         if (currentItem.equipmentData == null)
         {
-            Debug.LogWarning("Equipment item has no equipment data!");
             return;
         }
         
         if (EquipmentManager.Instance == null)
         {
-            Debug.LogWarning("EquipmentManager not found!");
             return;
         }
         
@@ -244,8 +237,6 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
                     inventoryUI.RefreshDisplay();
                 }
             }
-            
-            Debug.Log($"Equipped {itemName} to {equipSlot}");
         }
     }
     

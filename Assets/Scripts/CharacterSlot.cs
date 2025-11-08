@@ -27,6 +27,7 @@ public class CharacterSlot : MonoBehaviour
     private SavedCharacterData characterData;
     private bool isLocked = true;
     private bool isSelected = false;
+    private int unlockLevel = 0; // Store the unlock level for this slot
     
     public event Action<CharacterSlot> OnSlotClicked;
     
@@ -38,15 +39,15 @@ public class CharacterSlot : MonoBehaviour
         }
     }
     
-    public void Initialize(int index, SavedCharacterData data, bool locked)
+    public void Initialize(int index, SavedCharacterData data, bool locked, int unlockLevelRequired = 0)
     {
         slotIndex = index;
         characterData = data;
         isLocked = locked;
+        unlockLevel = unlockLevelRequired;
         
         if (!locked && !data.isEmpty)
         {
-            Debug.Log($"Slot {index} initialized: {data.characterName} - Level {data.level} {data.race} {data.characterClass}");
         }
         
         UpdateDisplay();
@@ -99,16 +100,13 @@ public class CharacterSlot : MonoBehaviour
     
     string GetUnlockRequirement()
     {
-        // Slot unlock requirements based on slot index
-        switch (slotIndex)
+        if (unlockLevel == 0)
         {
-            case 0: return "Available";
-            case 1: return "Unlocks at Account Level 15";
-            case 2: return "Unlocks at Account Level 30";
-            case 3: return "Unlocks at Account Level 50";
-            case 4: return "Unlocks at Account Level 75";
-            case 5: return "Unlocks at Account Level 100";
-            default: return "Locked";
+            return "Available";
+        }
+        else
+        {
+            return $"Unlocks at Account Level {unlockLevel}";
         }
     }
     
