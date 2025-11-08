@@ -2,22 +2,17 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 
 /// <summary>
 /// UI panel that displays auto-battle combat.
-/// Shows player health, monster health, attack progress bars, and combat results.
+/// Shows player health, attack progress bars, combat log, and buttons.
+/// Monster information is displayed via TargetFrame and per-monster containers above enemies.
 /// </summary>
 public class CombatPanel : MonoBehaviour
 {
     [Header("Panel References")]
     public GameObject combatPanel; // The main panel to show/hide
-    
-    [Header("Monster Display")]
-    public Image monsterSprite;
-    public TextMeshProUGUI monsterNameText;
-    public Slider monsterHealthBar;
-    public TextMeshProUGUI monsterHealthText;
-    public Slider monsterAttackProgressBar;
     
     [Header("Player Display")]
     public Image playerSprite; // Optional
@@ -33,28 +28,38 @@ public class CombatPanel : MonoBehaviour
     public Button retreatButton;
     public Button continueButton; // Button to continue after defeat
     
+    [Header("Mob Count Selector")]
+    [Tooltip("Mob count selector. If not assigned, will try to find it in the scene.")]
+    public MobCountSelector mobCountSelector; // Selector for number of mobs to fight
+    
     [Header("Damage Display")]
-    public TextMeshProUGUI playerDamageText; // Floating damage numbers
-    public TextMeshProUGUI monsterDamageText; // Floating damage numbers
+    [Tooltip("Prefab for player damage text. Required for showing damage numbers.")]
+    public GameObject playerDamageTextPrefab; // Prefab for floating damage numbers
+    [Tooltip("Parent container for damage text instances")]
+    public RectTransform damageTextContainer; // Container for damage text instances
     public float damageAnimationDuration = 1f; // How long damage numbers animate
     public float damageRiseDistance = 50f; // How far damage numbers rise (pixels)
+    [Tooltip("Horizontal spread for multiple damage texts (pixels)")]
+    public float damageTextSpread = 30f; // Spread damage texts horizontally to avoid overlap
     
-    private Coroutine playerDamageAnimation;
-    private Coroutine monsterDamageAnimation;
+    private List<GameObject> activeDamageTexts = new List<GameObject>(); // Track active damage text instances
+    private int damageTextCounter = 0; // Counter for positioning multiple damage texts
     
     void Start()
     {
+        // Find mob count selector if not assigned
+        if (mobCountSelector == null)
+        {
+            mobCountSelector = FindObjectOfType<MobCountSelector>();
+        }
+        
         // Subscribe to combat events
         if (CombatManager.Instance != null)
         {
             CombatManager.Instance.OnCombatStateChanged += OnCombatStateChanged;
             CombatManager.Instance.OnPlayerHealthChanged += UpdatePlayerHealth;
-            CombatManager.Instance.OnMonsterHealthChanged += UpdateMonsterHealth;
-            CombatManager.Instance.OnMonsterChanged += OnMonsterChanged;
             CombatManager.Instance.OnPlayerAttackProgress += UpdatePlayerAttackProgress;
-            CombatManager.Instance.OnMonsterAttackProgress += UpdateMonsterAttackProgress;
-            CombatManager.Instance.OnPlayerDamageDealt += ShowPlayerDamage;
-            CombatManager.Instance.OnMonsterDamageDealt += ShowMonsterDamage;
+            CombatManager.Instance.OnPlayerDamageTaken += ShowPlayerDamage;
         }
         
         // Setup buttons
@@ -71,11 +76,15 @@ public class CombatPanel : MonoBehaviour
         if (combatPanel != null)
             combatPanel.SetActive(false);
         
-        // Hide damage text initially
-        if (playerDamageText != null)
-            playerDamageText.gameObject.SetActive(false);
-        if (monsterDamageText != null)
-            monsterDamageText.gameObject.SetActive(false);
+        // Setup damage text container if not assigned
+        if (damageTextContainer == null && playerDamageTextPrefab != null)
+        {
+            // Use prefab's parent as container if it exists in scene
+            if (playerDamageTextPrefab.transform.parent != null)
+            {
+                damageTextContainer = playerDamageTextPrefab.transform.parent.GetComponent<RectTransform>();
+            }
+        }
     }
     
     void OnDestroy()
@@ -85,12 +94,8 @@ public class CombatPanel : MonoBehaviour
         {
             CombatManager.Instance.OnCombatStateChanged -= OnCombatStateChanged;
             CombatManager.Instance.OnPlayerHealthChanged -= UpdatePlayerHealth;
-            CombatManager.Instance.OnMonsterHealthChanged -= UpdateMonsterHealth;
-            CombatManager.Instance.OnMonsterChanged -= OnMonsterChanged;
             CombatManager.Instance.OnPlayerAttackProgress -= UpdatePlayerAttackProgress;
-            CombatManager.Instance.OnMonsterAttackProgress -= UpdateMonsterAttackProgress;
-            CombatManager.Instance.OnPlayerDamageDealt -= ShowPlayerDamage;
-            CombatManager.Instance.OnMonsterDamageDealt -= ShowMonsterDamage;
+            CombatManager.Instance.OnPlayerDamageTaken -= ShowPlayerDamage;
         }
     }
     
@@ -104,7 +109,6 @@ public class CombatPanel : MonoBehaviour
                     continueButton.gameObject.SetActive(false);
                 // Clear damage numbers when leaving combat
                 HidePlayerDamage();
-                HideMonsterDamage();
                 break;
                 
             case CombatManager.CombatState.Fighting:
@@ -115,7 +119,6 @@ public class CombatPanel : MonoBehaviour
                     continueButton.gameObject.SetActive(false);
                 // Clear damage numbers when starting combat
                 HidePlayerDamage();
-                HideMonsterDamage();
                 UpdateCombatLog("Battle started!");
                 break;
                 
@@ -128,23 +131,6 @@ public class CombatPanel : MonoBehaviour
                 UpdateCombatLog("Defeat! You have been respawned. Click Continue to resume combat.");
                 break;
         }
-    }
-    
-    void OnMonsterChanged(MonsterData monster)
-    {
-        if (monster == null) return;
-        
-        // Clear damage numbers when monster changes
-        HideMonsterDamage();
-        
-        // Update monster display
-        if (monsterNameText != null)
-            monsterNameText.text = monster.monsterName;
-        
-        if (monsterSprite != null && monster.monsterSprite != null)
-            monsterSprite.sprite = monster.monsterSprite;
-        
-        UpdateCombatLog($"Fighting {monster.monsterName}!");
     }
     
     void UpdatePlayerHealth(float current, float max)
@@ -162,71 +148,62 @@ public class CombatPanel : MonoBehaviour
             playerHealthText.text = $"{displayCurrent:F0} / {max:F0}";
     }
     
-    void UpdateMonsterHealth(float current, float max)
-    {
-        // Clamp health to 0 minimum for display
-        float displayCurrent = Mathf.Max(0f, current);
-        
-        if (monsterHealthBar != null)
-        {
-            monsterHealthBar.maxValue = max;
-            monsterHealthBar.value = displayCurrent;
-        }
-        
-        if (monsterHealthText != null)
-            monsterHealthText.text = $"{displayCurrent:F0} / {max:F0}";
-    }
-    
     void UpdatePlayerAttackProgress(float progress)
     {
         if (playerAttackProgressBar != null)
             playerAttackProgressBar.value = progress;
     }
     
-    void UpdateMonsterAttackProgress(float progress)
-    {
-        if (monsterAttackProgressBar != null)
-            monsterAttackProgressBar.value = progress;
-    }
-    
     void ShowPlayerDamage(float damage)
     {
-        if (playerDamageText != null)
+        // Get or create damage text instance
+        TextMeshProUGUI damageTextInstance = GetOrCreateDamageText();
+        
+        if (damageTextInstance != null)
         {
-            playerDamageText.text = $"-{damage:F0}";
+            // Calculate offset for this damage text (spread horizontally)
+            float xOffset = (damageTextCounter % 3 - 1) * damageTextSpread; // -spread, 0, +spread pattern
+            damageTextCounter++;
             
-            // Stop any existing animation
-            if (playerDamageAnimation != null)
-            {
-                StopCoroutine(playerDamageAnimation);
-            }
+            // Set damage value
+            damageTextInstance.text = $"-{damage:F0}";
             
-            // Start new animation
-            playerDamageAnimation = StartCoroutine(AnimateDamageNumber(playerDamageText, damageRiseDistance, damageAnimationDuration));
+            // Start animation with offset
+            StartCoroutine(AnimateDamageNumber(damageTextInstance, damageRiseDistance, damageAnimationDuration, xOffset));
         }
     }
     
-    void ShowMonsterDamage(float damage)
+    /// <summary>
+    /// Get or create a damage text instance
+    /// </summary>
+    TextMeshProUGUI GetOrCreateDamageText()
     {
-        if (monsterDamageText != null)
+        if (playerDamageTextPrefab == null)
         {
-            monsterDamageText.text = $"-{damage:F0}";
-            
-            // Stop any existing animation
-            if (monsterDamageAnimation != null)
-            {
-                StopCoroutine(monsterDamageAnimation);
-            }
-            
-            // Start new animation
-            monsterDamageAnimation = StartCoroutine(AnimateDamageNumber(monsterDamageText, damageRiseDistance, damageAnimationDuration));
+            Debug.LogWarning("CombatPanel: playerDamageTextPrefab is not assigned! Cannot show damage numbers.");
+            return null;
         }
+        
+        Transform parent = damageTextContainer != null ? damageTextContainer : transform;
+        GameObject damageObj = Instantiate(playerDamageTextPrefab, parent);
+        TextMeshProUGUI text = damageObj.GetComponent<TextMeshProUGUI>();
+        if (text == null)
+            text = damageObj.GetComponentInChildren<TextMeshProUGUI>();
+        
+        if (text != null && damageObj != null)
+        {
+            activeDamageTexts.Add(damageObj);
+            return text;
+        }
+        
+        Debug.LogWarning("CombatPanel: playerDamageTextPrefab does not contain a TextMeshProUGUI component!");
+        return null;
     }
     
     /// <summary>
     /// Animate a damage number rising up and fading out
     /// </summary>
-    IEnumerator AnimateDamageNumber(TextMeshProUGUI damageText, float riseDistance, float duration)
+    IEnumerator AnimateDamageNumber(TextMeshProUGUI damageText, float riseDistance, float duration, float xOffset = 0f)
     {
         if (damageText == null) yield break;
         
@@ -237,8 +214,32 @@ public class CombatPanel : MonoBehaviour
             canvasGroup = damageText.gameObject.AddComponent<CanvasGroup>();
         }
         
-        // Store starting position
-        Vector2 startPosition = rectTransform.anchoredPosition;
+        // Get base position (from player health bar, player sprite, or damage text container)
+        Vector2 basePosition = Vector2.zero;
+        RectTransform referenceRect = null;
+        
+        if (playerHealthBar != null)
+        {
+            referenceRect = playerHealthBar.GetComponent<RectTransform>();
+        }
+        else if (playerSprite != null)
+        {
+            referenceRect = playerSprite.GetComponent<RectTransform>();
+        }
+        else if (damageTextContainer != null)
+        {
+            referenceRect = damageTextContainer;
+        }
+        
+        if (referenceRect != null)
+        {
+            basePosition = referenceRect.anchoredPosition;
+            // Offset upward from the reference (above health bar/sprite)
+            basePosition += new Vector2(0f, 20f);
+        }
+        
+        // Store starting position with X offset
+        Vector2 startPosition = basePosition + new Vector2(xOffset, 0f);
         Vector2 endPosition = startPosition + new Vector2(0, riseDistance);
         
         // Reset alpha and position
@@ -250,6 +251,10 @@ public class CombatPanel : MonoBehaviour
         
         while (elapsed < duration)
         {
+            // Check if text was destroyed
+            if (damageText == null || damageText.gameObject == null)
+                yield break;
+                
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
             
@@ -257,47 +262,45 @@ public class CombatPanel : MonoBehaviour
             float easedT = 1f - Mathf.Pow(1f - t, 3f);
             
             // Interpolate position (rise up)
-            rectTransform.anchoredPosition = Vector2.Lerp(startPosition, endPosition, easedT);
+            if (rectTransform != null)
+            {
+                rectTransform.anchoredPosition = Vector2.Lerp(startPosition, endPosition, easedT);
+            }
             
             // Interpolate alpha (fade out)
-            canvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
+            }
             
             yield return null;
         }
         
-        // Ensure final state
-        rectTransform.anchoredPosition = endPosition;
-        canvasGroup.alpha = 0f;
-        damageText.gameObject.SetActive(false);
-        
-        // Reset position for next use
-        rectTransform.anchoredPosition = startPosition;
+        // Clean up: destroy if it was instantiated, otherwise just hide
+        if (damageText != null && damageText.gameObject != null)
+        {
+            GameObject damageObj = damageText.gameObject;
+            
+            // Remove from active list
+            activeDamageTexts.Remove(damageObj);
+            
+            // Always destroy instantiated instances (they're all dynamically created)
+            Destroy(damageObj);
+        }
     }
     
     void HidePlayerDamage()
     {
-        if (playerDamageText != null)
+        // Clean up all active damage text instances
+        foreach (GameObject damageObj in activeDamageTexts)
         {
-            if (playerDamageAnimation != null)
+            if (damageObj != null)
             {
-                StopCoroutine(playerDamageAnimation);
-                playerDamageAnimation = null;
+                Destroy(damageObj);
             }
-            playerDamageText.gameObject.SetActive(false);
         }
-    }
-    
-    void HideMonsterDamage()
-    {
-        if (monsterDamageText != null)
-        {
-            if (monsterDamageAnimation != null)
-            {
-                StopCoroutine(monsterDamageAnimation);
-                monsterDamageAnimation = null;
-            }
-            monsterDamageText.gameObject.SetActive(false);
-        }
+        activeDamageTexts.Clear();
+        damageTextCounter = 0;
     }
     
     void UpdateCombatLog(string message)
@@ -310,6 +313,23 @@ public class CombatPanel : MonoBehaviour
     {
         if (combatPanel != null)
             combatPanel.SetActive(true);
+    }
+    
+    /// <summary>
+    /// Reset mob count selector to default value of 1
+    /// </summary>
+    void ResetMobCountSelector()
+    {
+        // Try to find selector if not assigned
+        if (mobCountSelector == null)
+        {
+            mobCountSelector = FindObjectOfType<MobCountSelector>();
+        }
+        
+        if (mobCountSelector != null)
+        {
+            mobCountSelector.SetMobCount(1);
+        }
     }
     
     void HideCombatPanel()
@@ -325,6 +345,9 @@ public class CombatPanel : MonoBehaviour
         {
             CombatManager.Instance.EndCombat();
         }
+        
+        // Reset mob count selector to 1 when retreating
+        ResetMobCountSelector();
         
         HideCombatPanel();
     }

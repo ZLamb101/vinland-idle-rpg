@@ -1,6 +1,40 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
+
+/// <summary>
+/// Represents a single monster instance in combat
+/// </summary>
+[System.Serializable]
+public class CombatMonsterInstance
+{
+    public MonsterData monsterData;
+    public float currentHealth;
+    public float maxHealth;
+    public float attackDamage;
+    public float attackSpeed;
+    public float attackTimer;
+    public bool isAttackInProgress;
+    public int index; // Index in the active monsters list
+    
+    public CombatMonsterInstance(MonsterData data, int idx)
+    {
+        monsterData = data;
+        index = idx;
+        maxHealth = data.health;
+        currentHealth = maxHealth;
+        attackDamage = data.attackDamage;
+        attackSpeed = data.attackSpeed;
+        attackTimer = 0f;
+        isAttackInProgress = false;
+    }
+    
+    public bool IsAlive()
+    {
+        return currentHealth > 0f;
+    }
+}
 
 /// <summary>
 /// Singleton manager for auto-battle combat system.
@@ -12,7 +46,8 @@ public class CombatManager : MonoBehaviour
     
     [Header("Combat State")]
     private CombatState currentState = CombatState.Idle;
-    private MonsterData currentMonster;
+    private List<CombatMonsterInstance> activeMonsters = new List<CombatMonsterInstance>();
+    private int currentTargetIndex = 0; // Index of currently targeted monster
     private MonsterData[] zoneMonsters;
     
     [Header("Combat Stats")]
@@ -23,28 +58,29 @@ public class CombatManager : MonoBehaviour
     private float playerAttackDamage; // Includes equipment bonuses
     private float playerAttackSpeed; // Includes equipment bonuses
     
-    private float monsterCurrentHealth;
-    private float monsterMaxHealth;
-    private float monsterAttackDamage;
-    private float monsterAttackSpeed;
-    
     [Header("Attack Timers")]
     private float playerAttackTimer = 0f;
-    private float monsterAttackTimer = 0f;
     
     [Header("Visual Combat")]
     public CombatVisualManager visualManager;
-    private bool isMonsterAttackInProgress = false; // Track if monster attack animation is playing
+    
+    [Header("Mob Count")]
+    [Tooltip("Mob count selector. If not assigned, will try to find it in the scene.")]
+    public MobCountSelector mobCountSelector; // Selector for number of mobs to fight
     
     // Events for UI updates
     public event Action<CombatState> OnCombatStateChanged;
     public event Action<float, float> OnPlayerHealthChanged; // (current, max)
-    public event Action<float, float> OnMonsterHealthChanged; // (current, max)
-    public event Action<MonsterData> OnMonsterChanged;
+    public event Action<float, float, int> OnMonsterHealthChanged; // (current, max, index)
+    public event Action<List<MonsterData>> OnMonstersChanged; // Called when monsters spawn
+    public event Action<int> OnTargetChanged; // Called when target changes (index)
+    public event Action<int> OnMonsterSpawned; // Called when a monster spawns (index)
+    public event Action<int> OnMonsterDied; // Called when a monster dies (index)
     public event Action<float> OnPlayerAttackProgress; // 0 to 1
-    public event Action<float> OnMonsterAttackProgress; // 0 to 1
-    public event Action<float> OnPlayerDamageDealt; // Visual feedback
-    public event Action<float> OnMonsterDamageDealt; // Visual feedback
+    public event Action<float, int> OnMonsterAttackProgress; // (progress 0-1, index)
+    public event Action<float> OnPlayerDamageDealt; // Damage dealt BY player TO monsters (for showing above enemies)
+    public event Action<float> OnPlayerDamageTaken; // Damage dealt TO player BY monsters (for showing player damage)
+    public event Action<float> OnMonsterDamageDealt; // Visual feedback (legacy, may be unused)
     
     public enum CombatState
     {
@@ -77,6 +113,31 @@ public class CombatManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // Find mob count selector if not assigned
+        if (mobCountSelector == null)
+        {
+            mobCountSelector = FindObjectOfType<MobCountSelector>();
+        }
+    }
+    
+    /// <summary>
+    /// Get the current mob count from the selector (defaults to 1 if not found)
+    /// </summary>
+    int GetMobCountFromSelector()
+    {
+        // Try to find selector if not assigned
+        if (mobCountSelector == null)
+        {
+            mobCountSelector = FindObjectOfType<MobCountSelector>();
+        }
+        
+        if (mobCountSelector != null)
+        {
+            return mobCountSelector.GetMobCount();
+        }
+        
+        return 1; // Default to 1 if selector not found
     }
     
     void Update()
@@ -84,15 +145,21 @@ public class CombatManager : MonoBehaviour
         if (currentState == CombatState.Fighting)
         {
             UpdateCombat();
+            
+            // Handle Tab key for target cycling (using new Input System)
+            if (Keyboard.current != null && Keyboard.current.tabKey.wasPressedThisFrame)
+            {
+                CycleTarget();
+            }
         }
     }
     
     /// <summary>
     /// Start combat with monsters from the current zone
     /// </summary>
-    public void StartCombat(MonsterData[] monsters)
+    public void StartCombat(MonsterData[] monsters, int mobCount = 1)
     {
-        Debug.Log($"CombatManager.StartCombat called with {monsters?.Length ?? 0} monsters");
+        Debug.Log($"CombatManager.StartCombat called with {monsters?.Length ?? 0} monsters, mobCount: {mobCount}");
         
         if (monsters == null || monsters.Length == 0)
         {
@@ -107,8 +174,8 @@ public class CombatManager : MonoBehaviour
         
         Debug.Log($"Starting combat - player health: {playerCurrentHealth}/{playerMaxHealth}, attack: {playerAttackDamage}");
         
-        // Load first random monster (will log combat start in LoadRandomMonster)
-        LoadRandomMonster();
+        // Spawn monster group (all at once)
+        SpawnMonsterGroup(mobCount);
     }
     
     /// <summary>
@@ -162,23 +229,48 @@ public class CombatManager : MonoBehaviour
         }
     }
     
-    void LoadRandomMonster()
+    /// <summary>
+    /// Spawn a group of monsters (all at once)
+    /// </summary>
+    void SpawnMonsterGroup(int count)
     {
+        Debug.Log($"CombatManager.SpawnMonsterGroup called with count: {count}");
+        
         if (zoneMonsters == null || zoneMonsters.Length == 0)
         {
             Debug.LogWarning("No monsters available in zone!");
             return;
         }
         
-        // Randomly select a monster from the zone's available monsters
-        int randomIndex = UnityEngine.Random.Range(0, zoneMonsters.Length);
-        currentMonster = zoneMonsters[randomIndex];
+        // Clear existing monsters
+        activeMonsters.Clear();
         
-        // Initialize monster stats (fixed, no scaling with player level)
-        monsterMaxHealth = currentMonster.health;
-        monsterCurrentHealth = monsterMaxHealth;
-        monsterAttackDamage = currentMonster.attackDamage;
-        monsterAttackSpeed = currentMonster.attackSpeed;
+        // Create list of monster data to spawn
+        List<MonsterData> monstersToSpawn = new List<MonsterData>();
+        
+        Debug.Log($"Spawning {count} monster(s)...");
+        for (int i = 0; i < count; i++)
+        {
+            // Randomly select a monster from the zone's available monsters
+            int randomIndex = UnityEngine.Random.Range(0, zoneMonsters.Length);
+            MonsterData selectedMonster = zoneMonsters[randomIndex];
+            
+            // Create combat instance
+            CombatMonsterInstance instance = new CombatMonsterInstance(selectedMonster, i);
+            activeMonsters.Add(instance);
+            monstersToSpawn.Add(selectedMonster);
+            
+            // Log monster spawn
+            if (GameLog.Instance != null)
+            {
+                GameLog.Instance.AddCombatLogEntry($"Monster {i + 1}: {selectedMonster.monsterName} spawned!", LogType.Info);
+            }
+            
+            OnMonsterSpawned?.Invoke(i);
+        }
+        
+        // Set first monster as target
+        currentTargetIndex = 0;
         
         // Initialize visual combat
         if (visualManager != null)
@@ -187,30 +279,98 @@ public class CombatManager : MonoBehaviour
             Sprite heroSprite = null;
             // TODO: Get hero sprite from CharacterManager or CharacterData if available
             
-            visualManager.InitializeCombat(heroSprite, currentMonster);
+            visualManager.InitializeCombat(heroSprite, monstersToSpawn);
         }
         
-        // Log combat start when monster is loaded
-        if (GameLog.Instance != null && currentMonster != null)
+        // Log combat start
+        if (GameLog.Instance != null && monstersToSpawn.Count > 0)
         {
-            GameLog.Instance.AddCombatLogEntry($"Combat started against {currentMonster.monsterName}!", LogType.Info);
+            string monsterNames = string.Join(", ", monstersToSpawn.ConvertAll(m => m.monsterName));
+            GameLog.Instance.AddCombatLogEntry($"Combat started against {monstersToSpawn.Count} monster(s): {monsterNames}!", LogType.Info);
         }
         
         // Reset timers
         playerAttackTimer = 0f;
-        monsterAttackTimer = 0f;
-        isMonsterAttackInProgress = false;
+        foreach (var monster in activeMonsters)
+        {
+            monster.attackTimer = 0f;
+            monster.isAttackInProgress = false;
+        }
         
         // Immediately update UI to show reset progress bars
         OnPlayerAttackProgress?.Invoke(0f);
-        OnMonsterAttackProgress?.Invoke(0f);
+        for (int i = 0; i < activeMonsters.Count; i++)
+        {
+            OnMonsterAttackProgress?.Invoke(0f, i);
+        }
         
         // Update state
         currentState = CombatState.Fighting;
         OnCombatStateChanged?.Invoke(currentState);
-        OnMonsterChanged?.Invoke(currentMonster);
+        OnMonstersChanged?.Invoke(monstersToSpawn);
+        OnTargetChanged?.Invoke(currentTargetIndex);
         OnPlayerHealthChanged?.Invoke(playerCurrentHealth, playerMaxHealth);
-        OnMonsterHealthChanged?.Invoke(monsterCurrentHealth, monsterMaxHealth);
+        
+        // Update health for all monsters
+        for (int i = 0; i < activeMonsters.Count; i++)
+        {
+            var monster = activeMonsters[i];
+            OnMonsterHealthChanged?.Invoke(monster.currentHealth, monster.maxHealth, i);
+        }
+    }
+    
+    /// <summary>
+    /// Cycle to next target (Tab key)
+    /// </summary>
+    public void CycleTarget()
+    {
+        if (activeMonsters.Count == 0) return;
+        
+        // Find next alive monster
+        int startIndex = currentTargetIndex;
+        do
+        {
+            currentTargetIndex = (currentTargetIndex + 1) % activeMonsters.Count;
+            if (activeMonsters[currentTargetIndex].IsAlive())
+            {
+                OnTargetChanged?.Invoke(currentTargetIndex);
+                return;
+            }
+        } while (currentTargetIndex != startIndex);
+        
+        // If we looped back, just update anyway
+        OnTargetChanged?.Invoke(currentTargetIndex);
+    }
+    
+    /// <summary>
+    /// Set target by index
+    /// </summary>
+    public void SetTarget(int index)
+    {
+        if (index >= 0 && index < activeMonsters.Count && activeMonsters[index].IsAlive())
+        {
+            currentTargetIndex = index;
+            OnTargetChanged?.Invoke(currentTargetIndex);
+        }
+    }
+    
+    /// <summary>
+    /// Get current target monster instance
+    /// </summary>
+    public CombatMonsterInstance GetCurrentTarget()
+    {
+        if (activeMonsters.Count == 0 || currentTargetIndex < 0 || currentTargetIndex >= activeMonsters.Count)
+            return null;
+        
+        return activeMonsters[currentTargetIndex];
+    }
+    
+    /// <summary>
+    /// Get all active monsters
+    /// </summary>
+    public List<CombatMonsterInstance> GetActiveMonsters()
+    {
+        return new List<CombatMonsterInstance>(activeMonsters);
     }
     
     void UpdateCombat()
@@ -225,25 +385,29 @@ public class CombatManager : MonoBehaviour
             playerAttackTimer = 0f;
         }
         
-        // Update monster attack timer - but only attack if in attack range and not already attacking
-        if (!isMonsterAttackInProgress)
+        // Update each monster's attack timer independently
+        for (int i = 0; i < activeMonsters.Count; i++)
         {
-            // Check if enemy is in attack range (if visual combat is active)
+            var monster = activeMonsters[i];
+            if (!monster.IsAlive() || monster.isAttackInProgress)
+                continue;
+            
+            // Check if this specific enemy is in attack range
             bool canAttack = true;
             if (visualManager != null)
             {
-                canAttack = visualManager.IsEnemyInAttackRange();
+                canAttack = visualManager.IsEnemyInAttackRange(i);
             }
             
             if (canAttack)
             {
-                monsterAttackTimer += Time.deltaTime;
-                OnMonsterAttackProgress?.Invoke(Mathf.Clamp01(monsterAttackTimer / monsterAttackSpeed));
+                monster.attackTimer += Time.deltaTime;
+                OnMonsterAttackProgress?.Invoke(Mathf.Clamp01(monster.attackTimer / monster.attackSpeed), i);
                 
-                if (monsterAttackTimer >= monsterAttackSpeed)
+                if (monster.attackTimer >= monster.attackSpeed)
                 {
-                    MonsterAttack();
-                    monsterAttackTimer = 0f;
+                    MonsterAttack(i);
+                    monster.attackTimer = 0f;
                 }
             }
         }
@@ -295,6 +459,26 @@ public class CombatManager : MonoBehaviour
     
     void PlayerAttack()
     {
+        // Get current target
+        var target = GetCurrentTarget();
+        if (target == null || !target.IsAlive())
+        {
+            // No valid target, try to find one
+            for (int i = 0; i < activeMonsters.Count; i++)
+            {
+                if (activeMonsters[i].IsAlive())
+                {
+                    currentTargetIndex = i;
+                    target = activeMonsters[i];
+                    OnTargetChanged?.Invoke(currentTargetIndex);
+                    break;
+                }
+            }
+            
+            if (target == null || !target.IsAlive())
+                return; // No alive monsters
+        }
+        
         float damage = playerAttackDamage;
         
         // Get combined stats from equipment and talents
@@ -306,25 +490,32 @@ public class CombatManager : MonoBehaviour
             damage *= stats.critDamage; // Critical hit damage
         }
         
-        // Visual combat: spawn projectile
+        // Visual combat: spawn projectile targeting current target
         if (visualManager != null)
         {
-            visualManager.HeroAttack(damage, (dealtDamage) => {
-                ApplyPlayerDamage(dealtDamage, stats.lifesteal);
+            visualManager.HeroAttack(damage, currentTargetIndex, (dealtDamage, targetIndex) => {
+                ApplyPlayerDamage(dealtDamage, stats.lifesteal, targetIndex);
             });
         }
         else
         {
             // Fallback: apply damage immediately if no visual manager
-            ApplyPlayerDamage(damage, stats.lifesteal);
+            ApplyPlayerDamage(damage, stats.lifesteal, currentTargetIndex);
         }
     }
     
     /// <summary>
     /// Apply damage dealt by player (called after projectile hits)
     /// </summary>
-    void ApplyPlayerDamage(float damage, float totalLifesteal)
+    void ApplyPlayerDamage(float damage, float totalLifesteal, int targetIndex)
     {
+        if (targetIndex < 0 || targetIndex >= activeMonsters.Count)
+            return;
+        
+        var target = activeMonsters[targetIndex];
+        if (!target.IsAlive())
+            return;
+        
         // Apply lifesteal
         if (totalLifesteal > 0)
         {
@@ -333,54 +524,68 @@ public class CombatManager : MonoBehaviour
             OnPlayerHealthChanged?.Invoke(playerCurrentHealth, playerMaxHealth);
         }
         
-        monsterCurrentHealth -= damage;
-        OnMonsterHealthChanged?.Invoke(monsterCurrentHealth, monsterMaxHealth);
-        OnPlayerDamageDealt?.Invoke(damage);
+        target.currentHealth -= damage;
+        OnMonsterHealthChanged?.Invoke(target.currentHealth, target.maxHealth, targetIndex);
+        OnPlayerDamageDealt?.Invoke(damage); // Fire event for damage dealt BY player TO monsters (shows above enemies)
         
         // Log combat message
-        if (GameLog.Instance != null && currentMonster != null)
+        if (GameLog.Instance != null && target.monsterData != null)
         {
             string critText = (damage > playerAttackDamage) ? " (Critical!)" : "";
-            GameLog.Instance.AddCombatLogEntry($"You deal {damage:F0} damage to {currentMonster.monsterName}{critText}", LogType.Info);
+            GameLog.Instance.AddCombatLogEntry($"You deal {damage:F0} damage to {target.monsterData.monsterName}{critText}", LogType.Info);
         }
         
-        if (monsterCurrentHealth <= 0)
+        if (target.currentHealth <= 0)
         {
             // Capture enemy position at moment of death before any cleanup
             Vector2 deathPosition = Vector2.zero;
-            if (visualManager != null && visualManager.CurrentEnemy != null)
+            if (visualManager != null)
             {
-                deathPosition = visualManager.CurrentEnemy.GetPosition();
+                deathPosition = visualManager.GetEnemyPosition(targetIndex);
             }
-            OnMonsterDefeated(deathPosition);
+            OnMonsterDefeated(targetIndex, deathPosition);
         }
     }
     
-    void MonsterAttack()
+    void MonsterAttack(int monsterIndex)
     {
+        if (monsterIndex < 0 || monsterIndex >= activeMonsters.Count)
+            return;
+        
+        var monster = activeMonsters[monsterIndex];
+        if (!monster.IsAlive() || monster.isAttackInProgress)
+            return;
+        
         // Visual combat: play attack animation first, then apply damage
         if (visualManager != null)
         {
-            isMonsterAttackInProgress = true;
-            visualManager.EnemyAttack(() => {
+            monster.isAttackInProgress = true;
+            visualManager.EnemyAttack(monsterIndex, () => {
                 // Attack animation complete, apply damage
-                ApplyMonsterDamage();
-                isMonsterAttackInProgress = false;
+                ApplyMonsterDamage(monsterIndex);
+                monster.isAttackInProgress = false;
             });
         }
         else
         {
             // Fallback: apply damage immediately if no visual manager
-            ApplyMonsterDamage();
+            ApplyMonsterDamage(monsterIndex);
         }
     }
     
     /// <summary>
     /// Apply damage dealt by monster (called after attack animation completes)
     /// </summary>
-    void ApplyMonsterDamage()
+    void ApplyMonsterDamage(int monsterIndex)
     {
-        float damage = monsterAttackDamage;
+        if (monsterIndex < 0 || monsterIndex >= activeMonsters.Count)
+            return;
+        
+        var monster = activeMonsters[monsterIndex];
+        if (!monster.IsAlive())
+            return;
+        
+        float damage = monster.attackDamage;
         
         // Get combined stats from equipment and talents
         CombatStats stats = GetCombatStats();
@@ -391,9 +596,9 @@ public class CombatManager : MonoBehaviour
             OnMonsterDamageDealt?.Invoke(0); // Show "MISS" or "DODGE"
             
             // Log dodge message
-            if (GameLog.Instance != null && currentMonster != null)
+            if (GameLog.Instance != null && monster.monsterData != null)
             {
-                GameLog.Instance.AddCombatLogEntry($"{currentMonster.monsterName} attacks, but you dodge!", LogType.Success);
+                GameLog.Instance.AddCombatLogEntry($"{monster.monsterData.monsterName} attacks, but you dodge!", LogType.Success);
             }
             
             return; // Attack dodged, no damage taken
@@ -407,12 +612,12 @@ public class CombatManager : MonoBehaviour
         
         playerCurrentHealth -= damage;
         OnPlayerHealthChanged?.Invoke(playerCurrentHealth, playerMaxHealth);
-        OnMonsterDamageDealt?.Invoke(damage);
+        OnPlayerDamageTaken?.Invoke(damage); // Fire event for damage dealt TO player BY monsters (shows player damage)
         
         // Log combat message
-        if (GameLog.Instance != null && currentMonster != null)
+        if (GameLog.Instance != null && monster.monsterData != null)
         {
-            GameLog.Instance.AddCombatLogEntry($"{currentMonster.monsterName} hits you for {damage:F0} damage", LogType.Warning);
+            GameLog.Instance.AddCombatLogEntry($"{monster.monsterData.monsterName} hits you for {damage:F0} damage", LogType.Warning);
         }
         
         // Sync with CharacterManager
@@ -431,19 +636,26 @@ public class CombatManager : MonoBehaviour
         }
     }
     
-    void OnMonsterDefeated(Vector2 deathPosition)
+    void OnMonsterDefeated(int monsterIndex, Vector2 deathPosition)
     {
+        if (monsterIndex < 0 || monsterIndex >= activeMonsters.Count)
+            return;
+        
+        var defeatedMonster = activeMonsters[monsterIndex];
+        if (defeatedMonster.monsterData == null)
+            return;
+        
         // Log victory message
-        if (GameLog.Instance != null && currentMonster != null)
+        if (GameLog.Instance != null)
         {
-            GameLog.Instance.AddCombatLogEntry($"You defeated {currentMonster.monsterName}!", LogType.Success);
+            GameLog.Instance.AddCombatLogEntry($"You defeated {defeatedMonster.monsterData.monsterName}!", LogType.Success);
         }
         
         // Give rewards with equipment bonuses
-        if (CharacterManager.Instance != null && currentMonster != null)
+        if (CharacterManager.Instance != null)
         {
-            int xpReward = currentMonster.xpReward;
-            int goldReward = currentMonster.goldReward;
+            int xpReward = defeatedMonster.monsterData.xpReward;
+            int goldReward = defeatedMonster.monsterData.goldReward;
             
             // Get bonus stats
             CombatStats stats = GetCombatStats();
@@ -456,9 +668,9 @@ public class CombatManager : MonoBehaviour
             
             // Process drop table - roll for each item independently
             List<MonsterDropEntry> droppedItems = new List<MonsterDropEntry>();
-            if (currentMonster.dropTable != null && currentMonster.dropTable.Count > 0)
+            if (defeatedMonster.monsterData.dropTable != null && defeatedMonster.monsterData.dropTable.Count > 0)
             {
-                foreach (MonsterDropEntry dropEntry in currentMonster.dropTable)
+                foreach (MonsterDropEntry dropEntry in defeatedMonster.monsterData.dropTable)
                 {
                     if (dropEntry.item != null && UnityEngine.Random.value <= dropEntry.dropChance)
                     {
@@ -472,23 +684,80 @@ public class CombatManager : MonoBehaviour
                 }
             }
             
-            // Show visual drop effect if items were dropped
+            // Show visual drop effect if items were dropped (at this monster's death position)
             if (droppedItems.Count > 0 && visualManager != null)
             {
-                visualManager.ShowItemDrops(droppedItems, deathPosition);
+                visualManager.ShowItemDrops(droppedItems, deathPosition, monsterIndex);
             }
         }
         
-        // Load a new random monster immediately (combat continues forever)
-        Invoke(nameof(LoadRandomMonster), 0.5f);
+        // Notify that this monster died
+        OnMonsterDied?.Invoke(monsterIndex);
+        
+        // Clean up visual for dead enemy
+        if (visualManager != null)
+        {
+            visualManager.CleanupEnemyVisual(monsterIndex);
+        }
+        
+        // Remove from active list (or mark as dead - we'll keep it for now but check IsAlive)
+        // Actually, we'll keep it in the list but it's marked as dead via health <= 0
+        
+        // Check if all monsters are dead - if so, respawn new group
+        bool allDead = true;
+        for (int i = 0; i < activeMonsters.Count; i++)
+        {
+            if (activeMonsters[i].IsAlive())
+            {
+                allDead = false;
+                break;
+            }
+        }
+        
+        if (allDead)
+        {
+            // All monsters defeated - respawn new group after a delay
+            // Get mob count from selector (read current value, not cached)
+            int mobCount = GetMobCountFromSelector();
+            Debug.Log($"CombatManager: All monsters dead, respawning with mob count from selector: {mobCount}");
+            StartCoroutine(RespawnMonsterGroupAfterDelay(mobCount, 0.5f));
+        }
+        else
+        {
+            // Some monsters still alive - switch target if current target died
+            if (currentTargetIndex == monsterIndex)
+            {
+                // Find next alive monster
+                for (int i = 0; i < activeMonsters.Count; i++)
+                {
+                    if (activeMonsters[i].IsAlive())
+                    {
+                        currentTargetIndex = i;
+                        OnTargetChanged?.Invoke(currentTargetIndex);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Coroutine to respawn monster group after delay
+    /// </summary>
+    System.Collections.IEnumerator RespawnMonsterGroupAfterDelay(int mobCount, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        SpawnMonsterGroup(mobCount);
     }
     
     void OnPlayerDefeated()
     {
         // Log defeat message
-        if (GameLog.Instance != null && currentMonster != null)
+        if (GameLog.Instance != null && activeMonsters.Count > 0)
         {
-            GameLog.Instance.AddCombatLogEntry($"You were defeated by {currentMonster.monsterName}!", LogType.Error);
+            var target = GetCurrentTarget();
+            string monsterName = target != null && target.monsterData != null ? target.monsterData.monsterName : "monsters";
+            GameLog.Instance.AddCombatLogEntry($"You were defeated by {monsterName}!", LogType.Error);
         }
         
         currentState = CombatState.Defeat;
@@ -516,8 +785,9 @@ public class CombatManager : MonoBehaviour
                 CalculatePlayerStats();
             }
             
-            // Load a new random monster and continue combat
-            LoadRandomMonster();
+            // Spawn a new monster group (use same count as before, or default to 1)
+            int mobCount = activeMonsters.Count > 0 ? activeMonsters.Count : 1;
+            SpawnMonsterGroup(mobCount);
         }
     }
     
@@ -527,9 +797,9 @@ public class CombatManager : MonoBehaviour
     public void EndCombat()
     {
         currentState = CombatState.Idle;
-        currentMonster = null;
+        activeMonsters.Clear();
         zoneMonsters = null;
-        isMonsterAttackInProgress = false;
+        currentTargetIndex = 0;
         
         // Clean up visual combat
         if (visualManager != null)
@@ -542,10 +812,29 @@ public class CombatManager : MonoBehaviour
     
     // Getters
     public CombatState GetCombatState() => currentState;
-    public MonsterData GetCurrentMonster() => currentMonster;
+    public CombatMonsterInstance GetCurrentTargetInstance() => GetCurrentTarget();
+    public int GetCurrentTargetIndex() => currentTargetIndex;
     public float GetPlayerCurrentHealth() => playerCurrentHealth;
     public float GetPlayerMaxHealth() => playerMaxHealth;
-    public float GetMonsterCurrentHealth() => monsterCurrentHealth;
-    public float GetMonsterMaxHealth() => monsterMaxHealth;
+    
+    /// <summary>
+    /// Get monster health by index
+    /// </summary>
+    public float GetMonsterCurrentHealth(int index)
+    {
+        if (index >= 0 && index < activeMonsters.Count)
+            return activeMonsters[index].currentHealth;
+        return 0f;
+    }
+    
+    /// <summary>
+    /// Get monster max health by index
+    /// </summary>
+    public float GetMonsterMaxHealth(int index)
+    {
+        if (index >= 0 && index < activeMonsters.Count)
+            return activeMonsters[index].maxHealth;
+        return 0f;
+    }
 }
 

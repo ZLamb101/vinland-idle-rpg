@@ -15,6 +15,8 @@ public class MonsterPanel : MonoBehaviour
     [Header("Combat")]
     [Tooltip("Optional fight button on this monster panel. If not assigned, the panel itself will be clickable.")]
     public Button fightButton; // Button to start combat (optional - can click panel or button)
+    [Tooltip("Mob count selector. If not assigned, will try to find it in the scene.")]
+    public MobCountSelector mobCountSelector; // Selector for number of mobs to fight
     
     private MonsterData monsterData;
     private RectTransform rectTransform;
@@ -22,6 +24,12 @@ public class MonsterPanel : MonoBehaviour
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
+        
+        // Find mob count selector if not assigned
+        if (mobCountSelector == null)
+        {
+            mobCountSelector = FindObjectOfType<MobCountSelector>();
+        }
         
         // Setup fight button if assigned
         if (fightButton != null)
@@ -108,6 +116,24 @@ public class MonsterPanel : MonoBehaviour
             return;
         }
         
+        // Get mob count from selector (default to 1 if not found)
+        // Try to find selector again if not assigned (in case it wasn't found in Awake)
+        if (mobCountSelector == null)
+        {
+            mobCountSelector = FindObjectOfType<MobCountSelector>();
+        }
+        
+        int mobCount = 1;
+        if (mobCountSelector != null)
+        {
+            mobCount = mobCountSelector.GetMobCount();
+            Debug.Log($"MonsterPanel: Retrieved mob count from selector '{mobCountSelector.name}': {mobCount}");
+        }
+        else
+        {
+            Debug.LogWarning("MonsterPanel: mobCountSelector is null, using default count of 1");
+        }
+        
         // Get all monsters from current zone for combat
         if (ZoneManager.Instance != null)
         {
@@ -117,8 +143,8 @@ public class MonsterPanel : MonoBehaviour
                 MonsterData[] allMonsters = currentZone.GetMonsters();
                 if (allMonsters != null && allMonsters.Length > 0)
                 {
-                    Debug.Log($"Starting combat with {allMonsters.Length} monsters from {currentZone.zoneName}");
-                    CombatManager.Instance.StartCombat(allMonsters);
+                    Debug.Log($"MonsterPanel: Starting combat with {mobCount} mob(s) from {currentZone.zoneName}");
+                    CombatManager.Instance.StartCombat(allMonsters, mobCount);
                 }
             }
         }

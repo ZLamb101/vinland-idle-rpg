@@ -1,16 +1,20 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 /// <summary>
 /// Visual representation of an enemy in combat.
 /// Handles movement toward hero, attack animations, and health bar positioning.
 /// </summary>
-public class EnemyVisual : MonoBehaviour
+public class EnemyVisual : MonoBehaviour, IPointerClickHandler
 {
     [Header("Visual")]
     public Image enemyImage;
     public RectTransform rectTransform;
+    
+    [Header("Target Indicator")]
+    public Image targetArrow; // Red arrow pointing at targeted enemy
     
     [Header("Movement")]
     public float moveSpeed = 200f; // pixels per second
@@ -21,7 +25,7 @@ public class EnemyVisual : MonoBehaviour
     public float attackAnimationDuration = 0.5f;
     
     [Header("Health Bar")]
-    public RectTransform healthBarContainer; // Container that follows enemy
+    public RectTransform monsterDetailsContainer; // Container that follows enemy (contains health bar, name, swing timer, etc.)
     
     private Vector2 spawnPosition; // Where enemy starts
     private Vector2 targetPosition; // Hero position
@@ -29,11 +33,14 @@ public class EnemyVisual : MonoBehaviour
     private bool isMoving = false;
     private bool isInAttackRange = false;
     private bool isRangedEnemy = false; // If true, enemy doesn't need to move to attack
+    private int monsterIndex = -1; // Index in the active monsters list
     
     private System.Action onReachAttackRange; // Called when enemy reaches attack range
     private System.Action onAttackComplete; // Called when attack animation completes
+    private System.Action onClickCallback; // Called when enemy is clicked
     private Coroutine attackAnimationCoroutine;
     private CanvasGroup swipeCanvasGroup;
+    private Button clickButton; // Button component for click detection
     
     void Awake()
     {
@@ -49,6 +56,20 @@ public class EnemyVisual : MonoBehaviour
             if (swipeCanvasGroup == null)
                 swipeCanvasGroup = attackSwipeEffect.gameObject.AddComponent<CanvasGroup>();
         }
+        
+        // Setup click detection - add Button component if it doesn't exist
+        clickButton = GetComponent<Button>();
+        if (clickButton == null)
+        {
+            clickButton = gameObject.AddComponent<Button>();
+        }
+        clickButton.onClick.AddListener(OnEnemyClicked);
+        
+        // Hide target arrow initially
+        if (targetArrow != null)
+        {
+            targetArrow.gameObject.SetActive(false);
+        }
     }
     
     /// <summary>
@@ -60,15 +81,18 @@ public class EnemyVisual : MonoBehaviour
         {
             enemyImage.sprite = enemySprite;
             
-            // Flip sprite if needed
+            // Flip only the image sprite, not the whole transform (to avoid flipping children like UI containers)
             if (flipSprite)
             {
-                rectTransform.localScale = new Vector3(-1f, 1f, 1f);
+                enemyImage.transform.localScale = new Vector3(-1f, 1f, 1f);
             }
             else
             {
-                rectTransform.localScale = new Vector3(1f, 1f, 1f);
+                enemyImage.transform.localScale = new Vector3(1f, 1f, 1f);
             }
+            
+            // Ensure main transform scale is normal (children will use their own scales)
+            rectTransform.localScale = Vector3.one;
         }
         
         spawnPosition = spawnPos;
@@ -102,9 +126,91 @@ public class EnemyVisual : MonoBehaviour
             if (swipeCanvasGroup != null)
                 swipeCanvasGroup.alpha = 0f;
         }
-        
-        // Update health bar position
-        UpdateHealthBarPosition();
+    }
+    
+    /// <summary>
+    /// Set monster index for identification
+    /// </summary>
+    public void SetMonsterIndex(int index)
+    {
+        monsterIndex = index;
+    }
+    
+    /// <summary>
+    /// Get monster index
+    /// </summary>
+    public int GetMonsterIndex()
+    {
+        return monsterIndex;
+    }
+    
+    /// <summary>
+    /// Show or hide target indicator (red arrow)
+    /// </summary>
+    public void ShowTargetIndicator(bool show)
+    {
+        if (targetArrow != null)
+        {
+            targetArrow.gameObject.SetActive(show);
+            
+            // Position arrow above enemy
+            if (show && rectTransform != null)
+            {
+                RectTransform arrowRect = targetArrow.rectTransform;
+                if (arrowRect != null)
+                {
+                    // Position arrow relative to its parent (should be same parent as enemy or enemy itself)
+                    if (arrowRect.parent == rectTransform.parent)
+                    {
+                        // Same parent - use local position
+                        arrowRect.anchoredPosition = rectTransform.anchoredPosition + new Vector2(0, 100f);
+                    }
+                    else if (arrowRect.parent == rectTransform)
+                    {
+                        // Arrow is child of enemy - use local position (0, 100)
+                        arrowRect.anchoredPosition = new Vector2(0, 100f);
+                    }
+                    else
+                    {
+                        // Different parents - convert position
+                        Vector2 enemyWorldPos = GetPosition();
+                        if (arrowRect.parent != null && arrowRect.parent is RectTransform arrowParentRect)
+                        {
+                            Vector2 localPos = enemyWorldPos - arrowParentRect.anchoredPosition;
+                            arrowRect.anchoredPosition = localPos + new Vector2(0, 100f);
+                        }
+                        else
+                        {
+                            arrowRect.anchoredPosition = enemyWorldPos + new Vector2(0, 100f);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Set callback for when enemy is clicked
+    /// </summary>
+    public void SetOnClickCallback(System.Action callback)
+    {
+        onClickCallback = callback;
+    }
+    
+    /// <summary>
+    /// Handle click on enemy
+    /// </summary>
+    void OnEnemyClicked()
+    {
+        onClickCallback?.Invoke();
+    }
+    
+    /// <summary>
+    /// IPointerClickHandler implementation (alternative click detection)
+    /// </summary>
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        OnEnemyClicked();
     }
     
     void Update()
@@ -144,8 +250,39 @@ public class EnemyVisual : MonoBehaviour
             }
         }
         
-        // Always update health bar position (even when not moving)
-        UpdateHealthBarPosition();
+        // Update target arrow position if visible
+        if (targetArrow != null && targetArrow.gameObject.activeSelf)
+        {
+            RectTransform arrowRect = targetArrow.rectTransform;
+            if (arrowRect != null)
+            {
+                // Position arrow relative to its parent
+                if (arrowRect.parent == rectTransform.parent)
+                {
+                    // Same parent - use local position
+                    arrowRect.anchoredPosition = rectTransform.anchoredPosition + new Vector2(0, 100f);
+                }
+                else if (arrowRect.parent == rectTransform)
+                {
+                    // Arrow is child of enemy - use local position
+                    arrowRect.anchoredPosition = new Vector2(0, 100f);
+                }
+                else
+                {
+                    // Different parents - convert position
+                    Vector2 enemyWorldPos = GetPosition();
+                    if (arrowRect.parent != null && arrowRect.parent is RectTransform arrowParentRect)
+                    {
+                        Vector2 localPos = enemyWorldPos - arrowParentRect.anchoredPosition;
+                        arrowRect.anchoredPosition = localPos + new Vector2(0, 100f);
+                    }
+                    else
+                    {
+                        arrowRect.anchoredPosition = enemyWorldPos + new Vector2(0, 100f);
+                    }
+                }
+            }
+        }
     }
     
     /// <summary>
@@ -233,19 +370,6 @@ public class EnemyVisual : MonoBehaviour
     }
     
     /// <summary>
-    /// Update health bar position to follow enemy
-    /// </summary>
-    void UpdateHealthBarPosition()
-    {
-        if (healthBarContainer != null)
-        {
-            // Position health bar above enemy using world position
-            Vector2 enemyPos = GetPosition();
-            healthBarContainer.anchoredPosition = enemyPos + new Vector2(0, 80f); // 80 pixels above
-        }
-    }
-    
-    /// <summary>
     /// Set callback for when enemy reaches attack range
     /// </summary>
     public void SetOnReachAttackRange(System.Action callback)
@@ -302,7 +426,6 @@ public class EnemyVisual : MonoBehaviour
             StopCoroutine(attackAnimationCoroutine);
             attackAnimationCoroutine = null;
         }
-        UpdateHealthBarPosition();
     }
     
     /// <summary>
