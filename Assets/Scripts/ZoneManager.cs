@@ -40,19 +40,29 @@ public class ZoneManager : MonoBehaviour
     
     void LoadCurrentZone()
     {
-        // Try to load from save data
-        if (PlayerPrefs.HasKey("CurrentZoneIndex"))
+        // Try to load zone for current character slot
+        int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+        int savedIndex = -1;
+        
+        if (currentSlot >= 0)
         {
-            int savedIndex = PlayerPrefs.GetInt("CurrentZoneIndex", 0);
-            if (savedIndex < allZones.Length)
+            // Try to load per-character zone
+            if (PlayerPrefs.HasKey($"Character_{currentSlot}_ZoneIndex"))
             {
-                currentZoneIndex = savedIndex;
-                currentZone = allZones[currentZoneIndex];
+                savedIndex = PlayerPrefs.GetInt($"Character_{currentSlot}_ZoneIndex", -1);
             }
-            else
-            {
-                SetCurrentZone(startingZone);
-            }
+        }
+        
+        // Fallback to global zone if no per-character zone found
+        if (savedIndex < 0 && PlayerPrefs.HasKey("CurrentZoneIndex"))
+        {
+            savedIndex = PlayerPrefs.GetInt("CurrentZoneIndex", 0);
+        }
+        
+        if (savedIndex >= 0 && savedIndex < allZones.Length)
+        {
+            currentZoneIndex = savedIndex;
+            currentZone = allZones[currentZoneIndex];
         }
         else
         {
@@ -78,7 +88,14 @@ public class ZoneManager : MonoBehaviour
             }
         }
         
-        // Save current zone
+        // Save current zone per character slot
+        int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+        if (currentSlot >= 0)
+        {
+            PlayerPrefs.SetInt($"Character_{currentSlot}_ZoneIndex", currentZoneIndex);
+        }
+        
+        // Also save globally as fallback
         PlayerPrefs.SetInt("CurrentZoneIndex", currentZoneIndex);
         PlayerPrefs.Save();
         

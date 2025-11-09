@@ -21,6 +21,7 @@ public class CharacterSelectionManager : MonoBehaviour
     public GameObject selectedHeroPanel; // Panel showing currently selected hero info
     public TextMeshProUGUI selectedHeroNameText; // Name of selected hero
     public TextMeshProUGUI selectedHeroLevelText; // Level of selected hero
+    public TextMeshProUGUI selectedHeroActivityText; // Current activity (e.g., "Currently Mining")
     
     [Header("Action Button")]
     public Button actionButton;
@@ -50,6 +51,13 @@ public class CharacterSelectionManager : MonoBehaviour
     
     void Start()
     {
+        // Ensure AwayActivityManager exists (for checking activity status)
+        if (AwayActivityManager.Instance == null)
+        {
+            GameObject awayManagerObj = new GameObject("AwayActivityManager");
+            awayManagerObj.AddComponent<AwayActivityManager>();
+        }
+        
         InitializeSlots();
         LoadAllCharacters();
         LoadSlotUnlockStates(); // Load which slots have been unlocked before
@@ -81,6 +89,29 @@ public class CharacterSelectionManager : MonoBehaviour
         
         // Initialize selected hero display
         UpdateSelectedHeroDisplay();
+        
+        // Start coroutine to update last played time display every minute
+        StartCoroutine(UpdateLastPlayedTimeCoroutine());
+    }
+    
+    /// <summary>
+    /// Coroutine to update last played time display every minute
+    /// </summary>
+    System.Collections.IEnumerator UpdateLastPlayedTimeCoroutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(60f); // Wait 60 seconds (1 minute)
+            
+            // Update all character slots' last played time display
+            foreach (CharacterSlot slot in characterSlots)
+            {
+                if (slot != null && !slot.IsEmpty())
+                {
+                    slot.UpdateDisplay();
+                }
+            }
+        }
     }
     
     void InitializeSlots()
@@ -449,6 +480,17 @@ public class CharacterSelectionManager : MonoBehaviour
                 {
                     selectedHeroLevelText.text = $"Level {charData.level}";
                 }
+                
+                // Update activity (if AwayActivityManager exists)
+                if (selectedHeroActivityText != null)
+                {
+                    string activityText = "";
+                    if (AwayActivityManager.Instance != null)
+                    {
+                        activityText = AwayActivityManager.Instance.GetActivityDisplayString(selectedSlotIndex);
+                    }
+                    selectedHeroActivityText.text = activityText;
+                }
             }
             else
             {
@@ -457,6 +499,8 @@ public class CharacterSelectionManager : MonoBehaviour
                     selectedHeroNameText.text = "";
                 if (selectedHeroLevelText != null)
                     selectedHeroLevelText.text = "";
+                if (selectedHeroActivityText != null)
+                    selectedHeroActivityText.text = "";
             }
         }
     }

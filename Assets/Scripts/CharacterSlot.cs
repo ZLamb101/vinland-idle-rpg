@@ -12,6 +12,8 @@ public class CharacterSlot : MonoBehaviour
     [Header("UI References")]
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI descriptionText;
+    public TextMeshProUGUI activityText; // Current activity (e.g., "Currently Mining")
+    public TextMeshProUGUI lastPlayedText; // Last played time (e.g., "2 hours ago")
     public Image portraitImage;
     public Button slotButton;
     
@@ -53,7 +55,7 @@ public class CharacterSlot : MonoBehaviour
         UpdateDisplay();
     }
     
-    void UpdateDisplay()
+    public void UpdateDisplay()
     {
         // Update locked state
         if (lockedOverlay != null)
@@ -76,6 +78,16 @@ public class CharacterSlot : MonoBehaviour
                 descriptionText.text = GetUnlockRequirement();
                 descriptionText.color = lockedTextColor;
             }
+            
+            // Hide activity and last played text for locked slots
+            if (activityText != null)
+            {
+                activityText.text = "";
+            }
+            if (lastPlayedText != null)
+            {
+                lastPlayedText.text = "";
+            }
         }
         else
         {
@@ -90,6 +102,45 @@ public class CharacterSlot : MonoBehaviour
             {
                 descriptionText.text = characterData.GetDescription();
                 descriptionText.color = unlockedTextColor;
+            }
+            
+            // Update activity display (only for non-empty characters)
+            if (activityText != null)
+            {
+                if (!characterData.isEmpty)
+                {
+                    // Get activity from AwayActivityManager if available
+                    string activityDisplay = "";
+                    if (AwayActivityManager.Instance != null)
+                    {
+                        activityDisplay = AwayActivityManager.Instance.GetActivityDisplayString(slotIndex);
+                    }
+                    activityText.text = activityDisplay;
+                    activityText.color = unlockedTextColor;
+                }
+                else
+                {
+                    activityText.text = "";
+                }
+            }
+            
+            // Update last played time display (only for non-empty characters)
+            if (lastPlayedText != null)
+            {
+                if (!characterData.isEmpty)
+                {
+                    string lastPlayedDisplay = "";
+                    if (AwayActivityManager.Instance != null)
+                    {
+                        lastPlayedDisplay = AwayActivityManager.Instance.GetTimeSinceLastPlayed(slotIndex);
+                    }
+                    lastPlayedText.text = $"Last played: {lastPlayedDisplay}";
+                    lastPlayedText.color = unlockedTextColor;
+                }
+                else
+                {
+                    lastPlayedText.text = "";
+                }
             }
         }
         

@@ -155,6 +155,13 @@ public class CombatPanel : MonoBehaviour
     
     void ShowPlayerDamage(float damage)
     {
+        // Only show damage if the panel GameObject is active (can't start coroutines on inactive objects)
+        // Also check if combatPanel is active since that controls visibility
+        if (!gameObject.activeInHierarchy || (combatPanel != null && !combatPanel.activeInHierarchy))
+        {
+            return;
+        }
+        
         // Get or create damage text instance
         TextMeshProUGUI damageTextInstance = GetOrCreateDamageText();
         

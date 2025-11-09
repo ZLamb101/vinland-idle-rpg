@@ -39,6 +39,13 @@ public class CharacterManager : MonoBehaviour
         
         // Ensure game runs in background (essential for idle games)
         Application.runInBackground = true;
+        
+        // Ensure AwayActivityManager exists
+        if (AwayActivityManager.Instance == null)
+        {
+            GameObject awayManagerObj = new GameObject("AwayActivityManager");
+            awayManagerObj.AddComponent<AwayActivityManager>();
+        }
     }
     
     void Start()
@@ -225,8 +232,8 @@ public class CharacterManager : MonoBehaviour
             return false;
         }
         
-        bool success = characterData.inventory.AddItem(item);
-        if (success)
+        InventoryData.AddItemResult result = characterData.inventory.AddItem(item);
+        if (result.itemsAdded > 0)
         {
             // Refresh inventory UI if it exists
             InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
@@ -235,7 +242,38 @@ public class CharacterManager : MonoBehaviour
                 inventoryUI.RefreshDisplay();
             }
         }
-        return success;
+        
+        // Warn if some items couldn't be added
+        if (!result.success && result.itemsRemaining > 0)
+        {
+            Debug.LogWarning($"[Inventory] Inventory full! Could only add {result.itemsAdded} of {result.itemsAdded + result.itemsRemaining} {item.itemName}. {result.itemsRemaining} items were lost.");
+        }
+        
+        return result.success;
+    }
+    
+    /// <summary>
+    /// Add an item to inventory and get detailed result
+    /// </summary>
+    public InventoryData.AddItemResult AddItemToInventoryDetailed(InventoryItem item)
+    {
+        if (item == null)
+        {
+            return new InventoryData.AddItemResult(false, 0, 0);
+        }
+        
+        InventoryData.AddItemResult result = characterData.inventory.AddItem(item);
+        if (result.itemsAdded > 0)
+        {
+            // Refresh inventory UI if it exists
+            InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+            if (inventoryUI != null)
+            {
+                inventoryUI.RefreshDisplay();
+            }
+        }
+        
+        return result;
     }
     
     public bool RemoveItemFromInventory(int slotIndex, int quantity = 1)

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -129,6 +131,254 @@ public class CharacterLoader : MonoBehaviour
         {
             CharacterManager.Instance.SetName(savedData.characterName);
         }
+        
+        // Ensure combat and activity are properly reset when entering game scene
+        // Clear any leftover state from previous character/session
+        // IMPORTANT: Do this BEFORE loading character data to ensure ActiveCharacterSlot is correct
+        Debug.Log($"[CharacterLoader] Loading character - ActiveCharacterSlot is currently: {PlayerPrefs.GetInt("ActiveCharacterSlot", -1)}");
+        
+        if (CombatManager.Instance != null)
+        {
+            // End any existing combat from previous character/session
+            // This will trigger OnCombatStateChanged event which will hide the combat panel
+            if (CombatManager.Instance.GetCombatState() != CombatManager.CombatState.Idle)
+            {
+                Debug.Log("[CharacterLoader] Ending combat from previous character");
+                CombatManager.Instance.EndCombat();
+            }
+            // Note: visualManager reference is cleared in EndCombat() and will be re-found when combat starts
+        }
+        
+        // Stop any gathering from previous character
+        if (ResourceManager.Instance != null)
+        {
+            Debug.Log($"[CharacterLoader] Stopping gathering from previous character");
+            ResourceManager.Instance.StopGathering();
+        }
+        
+        // Clear any leftover activity state from previous character
+        // The activity for THIS character will be loaded in CheckForAwayRewards()
+        if (AwayActivityManager.Instance != null)
+        {
+            Debug.Log($"[CharacterLoader] Clearing activity state before loading character {currentSlotIndex}");
+            AwayActivityManager.Instance.StopActivity();
+        }
+        
+        // Check for away rewards after character is loaded
+        // This will load the saved activity state for THIS character
+        // IMPORTANT: Do this BEFORE marking session start, so we don't overwrite the saved start time
+        CheckForAwayRewards();
+        
+        // Mark new game session start AFTER loading away state
+        // This ensures we have the correct session start time for "doing Nothing" tracking
+        if (AwayActivityManager.Instance != null)
+        {
+            AwayActivityManager.Instance.MarkGameSessionStart();
+            
+            // If no saved activity was loaded, ensure we start with "None" activity
+            if (AwayActivityManager.Instance.GetCurrentActivity() == AwayActivityType.None)
+            {
+                // This is fine - "None" activity will be saved when leaving
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Check if player was away and calculate rewards
+    /// </summary>
+    void CheckForAwayRewards()
+    {
+        // Ensure AwayActivityManager exists
+        if (AwayActivityManager.Instance == null)
+        {
+            GameObject managerObj = new GameObject("AwayActivityManager");
+            managerObj.AddComponent<AwayActivityManager>();
+        }
+        
+        // Load away state for the current character slot
+        int currentSlotIndex = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+        Debug.Log($"[AwayRewards] Checking rewards for slot {currentSlotIndex}");
+        
+        bool hadAwayActivity = AwayActivityManager.Instance.LoadAwayState(currentSlotIndex);
+        
+        if (!hadAwayActivity)
+        {
+            Debug.Log($"[AwayRewards] No away activity found for slot {currentSlotIndex}");
+            return; // No away activity to process
+        }
+        
+        AwayActivityType activityType = AwayActivityManager.Instance.GetCurrentActivity();
+        DateTime activityStartTime = AwayActivityManager.Instance.GetActivityStartTime();
+        
+        Debug.Log($"[AwayRewards] Found activity for slot {currentSlotIndex}: {activityType}, started at: {activityStartTime}, time away: {DateTime.Now - activityStartTime}");
+        
+        // Calculate rewards
+        AwayRewards rewards = null;
+        
+        if (activityType == AwayActivityType.Mining)
+        {
+            ResourceData resource = AwayActivityManager.Instance.GetCurrentResource();
+            if (resource != null)
+            {
+                rewards = AwayRewardsCalculator.CalculateRewards(activityStartTime, activityType, resource);
+            }
+        }
+        else if (activityType == AwayActivityType.Fighting)
+        {
+            MonsterData[] monsters = AwayActivityManager.Instance.GetCurrentMonsters();
+            int mobCount = AwayActivityManager.Instance.GetMobCount();
+            
+            Debug.Log($"[AwayRewards] Fighting activity - Loaded monsters: {(monsters != null ? monsters.Length : 0)}, Mob count: {mobCount}");
+            
+            // Even if monsters array is null/empty (ScriptableObjects not found),
+            // we can still calculate rewards using saved data
+            if (monsters == null || monsters.Length == 0)
+            {
+                Debug.LogWarning($"[AwayRewards] Monsters array is null or empty, attempting to load from saved names");
+                // Try to load monsters from saved names for reward calculation
+                // If that fails, we'll still show the panel with empty rewards
+                if (currentSlotIndex >= 0)
+                {
+                    string slotPrefix = $"AwayActivity_Slot_{currentSlotIndex}_";
+                    if (PlayerPrefs.HasKey(slotPrefix + "MonsterNames"))
+                    {
+                        string monsterNamesString = PlayerPrefs.GetString(slotPrefix + "MonsterNames");
+                        string[] monsterNames = monsterNamesString.Split(',');
+                        
+                        Debug.Log($"[AwayRewards] Found saved monster names: {monsterNamesString}");
+                        
+                        // Try to find at least one monster for reward calculation
+                        List<MonsterData> foundMonsters = new List<MonsterData>();
+                        foreach (string name in monsterNames)
+                        {
+                            MonsterData m = AwayActivityManager.Instance.FindMonsterByNamePublic(name);
+                            if (m != null)
+                            {
+                                foundMonsters.Add(m);
+                                Debug.Log($"[AwayRewards] Found monster: {m.monsterName} (health: {m.health}, xp: {m.xpReward}, gold: {m.goldReward})");
+                                break; // Just need one for calculation
+                            }
+                        }
+                        
+                        if (foundMonsters.Count > 0)
+                        {
+                            monsters = foundMonsters.ToArray();
+                            Debug.Log($"[AwayRewards] Successfully loaded {monsters.Length} monster(s) from saved names");
+                        }
+                        else
+                        {
+                            Debug.LogError($"[AwayRewards] Failed to find any monsters by saved names");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError($"[AwayRewards] No saved monster names found in PlayerPrefs");
+                    }
+                }
+            }
+            
+            if (monsters != null && monsters.Length > 0)
+            {
+                Debug.Log($"[AwayRewards] Calculating fighting rewards - Monsters: {monsters.Length}, Mob count: {mobCount}, Start time: {activityStartTime}");
+                rewards = AwayRewardsCalculator.CalculateRewards(activityStartTime, activityType, null, monsters, mobCount);
+                Debug.Log($"[AwayRewards] Calculated rewards - XP: {rewards?.xpEarned ?? 0}, Gold: {rewards?.goldEarned ?? 0}, Monsters killed: {rewards?.monstersKilled ?? 0}, Items: {rewards?.itemsDropped?.Count ?? 0}");
+            }
+            else
+            {
+                // Can't calculate rewards without monster data, but still show panel with correct name
+                // Get monster display name from saved data
+                string monsterDisplayName = "Unknown Monster";
+                if (currentSlotIndex >= 0)
+                {
+                    string slotPrefix = $"AwayActivity_Slot_{currentSlotIndex}_";
+                    if (PlayerPrefs.HasKey(slotPrefix + "MonsterDisplayNames"))
+                    {
+                        string displayNamesString = PlayerPrefs.GetString(slotPrefix + "MonsterDisplayNames");
+                        string[] displayNames = displayNamesString.Split(',');
+                        if (displayNames.Length > 0 && !string.IsNullOrEmpty(displayNames[0]))
+                        {
+                            monsterDisplayName = displayNames[0];
+                        }
+                    }
+                }
+                
+                rewards = new AwayRewards
+                {
+                    activityType = activityType,
+                    timeAway = DateTime.Now - activityStartTime,
+                    activityName = $"Fighting {monsterDisplayName}"
+                };
+            }
+        }
+        else if (activityType == AwayActivityType.None)
+        {
+            // Calculate rewards for "doing Nothing"
+            rewards = AwayRewardsCalculator.CalculateRewards(activityStartTime, activityType);
+        }
+        
+        // Show rewards panel only if player was away for at least 60 seconds
+        if (rewards != null && rewards.timeAway.TotalSeconds >= 60)
+        {
+            Debug.Log($"[AwayRewards] Showing panel - Time away: {rewards.timeAway.TotalSeconds} seconds");
+            
+            // Find existing AwayRewardsPanel (including inactive ones)
+            AwayRewardsPanel rewardsPanel = FindObjectOfType<AwayRewardsPanel>(true);
+            
+            if (rewardsPanel == null)
+            {
+                Debug.LogWarning("[AwayRewards] No AwayRewardsPanel found in scene. Please add one to the scene or it will be created programmatically.");
+                // Create the panel if it doesn't exist (fallback)
+                // Try to find a Canvas to parent it to
+                Canvas canvas = FindObjectOfType<Canvas>();
+                GameObject panelObj = new GameObject("AwayRewardsPanel");
+                
+                if (canvas != null)
+                {
+                    panelObj.transform.SetParent(canvas.transform, false);
+                    Debug.Log("[AwayRewards] Created new AwayRewardsPanel and parented to Canvas");
+                }
+                else
+                {
+                    Debug.LogWarning("[AwayRewards] No Canvas found - panel may not be visible");
+                }
+                
+                rewardsPanel = panelObj.AddComponent<AwayRewardsPanel>();
+            }
+            else
+            {
+                Debug.Log("[AwayRewards] Found existing AwayRewardsPanel in scene");
+            }
+            
+            if (rewardsPanel != null)
+            {
+                Debug.Log("[AwayRewards] Calling ShowRewards");
+                rewardsPanel.ShowRewards(rewards);
+            }
+            else
+            {
+                Debug.LogError("[AwayRewards] Failed to create or find AwayRewardsPanel");
+            }
+        }
+        else
+        {
+            if (rewards == null)
+            {
+                Debug.Log("[AwayRewards] Rewards is null");
+            }
+            else
+            {
+                Debug.Log($"[AwayRewards] Time away too short: {rewards.timeAway.TotalSeconds} seconds (need 60+)");
+            }
+            
+            // Clear away state if not away long enough or no valid rewards
+            AwayActivityManager.Instance.ClearAwayState(currentSlotIndex);
+        }
+        
+        // Mark new game session start for next time
+        if (AwayActivityManager.Instance != null)
+        {
+            AwayActivityManager.Instance.MarkGameSessionStart();
+        }
     }
     
     System.Collections.IEnumerator RetryLoadAfterDelay()
@@ -188,19 +438,38 @@ public class CharacterLoader : MonoBehaviour
             {
                 CharacterManager.Instance.SetName(savedData.characterName);
             }
+            
+            // Check for away rewards after character is loaded
+            CheckForAwayRewards();
         }
     }
     
     // Call this before returning to character select to save progress
     void OnApplicationQuit()
     {
+        // Save away activity state
+        if (AwayActivityManager.Instance != null)
+        {
+            AwayActivityManager.Instance.SaveAwayState();
+        }
         SaveCurrentCharacter();
     }
     
     void OnDestroy()
     {
-        // Save when leaving the scene
-        SaveCurrentCharacter();
+        // Don't save away activity state here - it's saved when:
+        // 1. Returning to character select (ReturnToCharacterSelect)
+        // 2. Application quits (OnApplicationQuit)
+        // 3. Starting/stopping activities (ResourceManager, CombatManager)
+        // Saving here causes issues when entering the world because the instance state
+        // might be stale from a previous character
+        
+        // Only save character data if we're in a game scene (not character select)
+        // CharacterManager only exists in game scenes
+        if (CharacterManager.Instance != null)
+        {
+            SaveCurrentCharacter();
+        }
     }
     
     public void SaveCurrentCharacter()

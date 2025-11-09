@@ -336,13 +336,19 @@ public class InventoryUI : MonoBehaviour
     {
         if (inventoryData == null) return false;
         
-        bool success = inventoryData.AddItem(item);
-        if (success)
+        InventoryData.AddItemResult result = inventoryData.AddItem(item);
+        if (result.itemsAdded > 0)
         {
             RefreshDisplay();
         }
         
-        return success;
+        // Warn if some items couldn't be added
+        if (!result.success && result.itemsRemaining > 0)
+        {
+            Debug.LogWarning($"[InventoryUI] Inventory full! Could only add {result.itemsAdded} of {result.itemsAdded + result.itemsRemaining} {item.itemName}. {result.itemsRemaining} items were lost.");
+        }
+        
+        return result.success;
     }
     
     /// <summary>

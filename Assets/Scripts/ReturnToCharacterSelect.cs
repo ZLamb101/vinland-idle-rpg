@@ -25,6 +25,40 @@ public class ReturnToCharacterSelect : MonoBehaviour
     
     public void ReturnToSelect()
     {
+        // Save away activity state BEFORE ending anything (so we save the current activity)
+        if (AwayActivityManager.Instance != null)
+        {
+            AwayActivityManager.Instance.SaveAwayState();
+            
+            // Save last played time for this character
+            int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+            if (currentSlot >= 0)
+            {
+                AwayActivityManager.Instance.SaveLastPlayedTime(currentSlot);
+            }
+        }
+        
+        // Stop gathering when leaving (to prevent gathering continuing in background)
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.StopGathering();
+        }
+        
+        // Don't end combat/activity here - just save the state
+        // Combat/activity will be cleared when entering a new character
+        
+        // Save current zone per character slot before leaving
+        if (ZoneManager.Instance != null)
+        {
+            int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+            if (currentSlot >= 0)
+            {
+                int zoneIndex = ZoneManager.Instance.GetCurrentZoneIndex();
+                PlayerPrefs.SetInt($"Character_{currentSlot}_ZoneIndex", zoneIndex);
+                PlayerPrefs.Save();
+            }
+        }
+        
         // Save current character if needed
         if (saveBeforeReturning)
         {

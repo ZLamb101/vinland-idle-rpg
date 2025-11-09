@@ -40,14 +40,33 @@ public class InventoryData
     }
     
     /// <summary>
-    /// Add an item to the inventory. Returns true if successful.
+    /// Result of adding an item to inventory
     /// </summary>
-    public bool AddItem(InventoryItem newItem)
+    public class AddItemResult
+    {
+        public bool success; // True if all items were added
+        public int itemsAdded; // Number of items successfully added
+        public int itemsRemaining; // Number of items that couldn't be added (0 if success)
+        
+        public AddItemResult(bool success, int added, int remaining)
+        {
+            this.success = success;
+            this.itemsAdded = added;
+            this.itemsRemaining = remaining;
+        }
+    }
+    
+    /// <summary>
+    /// Add an item to the inventory. Returns result with success status and quantities.
+    /// </summary>
+    public AddItemResult AddItem(InventoryItem newItem)
     {
         if (newItem == null || newItem.IsEmpty()) 
         {
-            return false;
+            return new AddItemResult(false, 0, newItem != null ? newItem.quantity : 0);
         }
+        
+        int originalQuantity = newItem.quantity;
         
         // Create a copy to avoid modifying the original item
         InventoryItem itemToAdd = new InventoryItem(newItem.itemName, newItem.quantity, newItem.icon);
@@ -67,24 +86,58 @@ public class InventoryData
                 items[i].quantity += canAdd;
                 itemToAdd.quantity -= canAdd;
                 
-                if (itemToAdd.quantity <= 0) return true;
-            }
-        }
-        
-        // If there's still quantity left, find an empty slot
-        if (itemToAdd.quantity > 0)
-        {
-            for (int i = 0; i < maxSlots; i++)
-            {
-                if (items[i].IsEmpty())
+                if (itemToAdd.quantity <= 0)
                 {
-                    items[i] = itemToAdd;
-                    return true;
+                    return new AddItemResult(true, originalQuantity, 0);
                 }
             }
         }
         
-        return false; // Inventory is full
+        // If there's still quantity left, find empty slots and split into multiple stacks
+        while (itemToAdd.quantity > 0)
+        {
+            // Find an empty slot
+            int emptySlotIndex = -1;
+            for (int i = 0; i < maxSlots; i++)
+            {
+                if (items[i].IsEmpty())
+                {
+                    emptySlotIndex = i;
+                    break;
+                }
+            }
+            
+            // No empty slots available
+            if (emptySlotIndex == -1)
+            {
+                int itemsAdded = originalQuantity - itemToAdd.quantity;
+                return new AddItemResult(false, itemsAdded, itemToAdd.quantity);
+            }
+            
+            // Create a new stack with up to maxStackSize items
+            int stackSize = Mathf.Min(itemToAdd.quantity, itemToAdd.maxStackSize);
+            InventoryItem newStack = new InventoryItem(itemToAdd.itemName, stackSize, itemToAdd.icon);
+            newStack.description = itemToAdd.description;
+            newStack.maxStackSize = itemToAdd.maxStackSize;
+            newStack.itemType = itemToAdd.itemType;
+            newStack.baseValue = itemToAdd.baseValue;
+            newStack.equipmentAssetName = itemToAdd.equipmentAssetName;
+            newStack.equipmentData = itemToAdd.equipmentData;
+            
+            items[emptySlotIndex] = newStack;
+            itemToAdd.quantity -= stackSize;
+        }
+        
+        return new AddItemResult(true, originalQuantity, 0);
+    }
+    
+    /// <summary>
+    /// Add an item to the inventory. Returns true if successful (for backwards compatibility).
+    /// </summary>
+    public bool AddItemLegacy(InventoryItem newItem)
+    {
+        AddItemResult result = AddItem(newItem);
+        return result.success;
     }
     
     /// <summary>

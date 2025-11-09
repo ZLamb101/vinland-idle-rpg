@@ -188,7 +188,7 @@ public class CombatManager : MonoBehaviour
     /// <summary>
     /// Calculate player stats including equipment and talent bonuses
     /// </summary>
-    void CalculatePlayerStats()
+    public void CalculatePlayerStats()
     {
         // Base stats from character
         if (CharacterManager.Instance != null)
@@ -311,6 +311,27 @@ public class CombatManager : MonoBehaviour
         for (int i = 0; i < activeMonsters.Count; i++)
         {
             OnMonsterAttackProgress?.Invoke(0f, i);
+        }
+        
+        // Register activity with AwayActivityManager - use unique monster types for display
+        if (AwayActivityManager.Instance != null)
+        {
+            // Get unique monster types (no duplicates)
+            List<MonsterData> uniqueMonsters = new List<MonsterData>();
+            foreach (MonsterData monster in monstersToSpawn)
+            {
+                if (!uniqueMonsters.Contains(monster))
+                {
+                    uniqueMonsters.Add(monster);
+                }
+            }
+            
+            // Convert to array for AwayActivityManager
+            MonsterData[] uniqueMonstersArray = uniqueMonsters.ToArray();
+            AwayActivityManager.Instance.StartFighting(uniqueMonstersArray, count);
+            
+            // Save activity immediately so it shows on character screen
+            AwayActivityManager.Instance.SaveAwayState();
         }
         
         // Update state
@@ -807,6 +828,12 @@ public class CombatManager : MonoBehaviour
         zoneMonsters = null;
         currentTargetIndex = 0;
         
+        // Stop tracking activity in AwayActivityManager
+        if (AwayActivityManager.Instance != null)
+        {
+            AwayActivityManager.Instance.StopActivity();
+        }
+        
         // Clean up visual combat
         if (visualManager != null)
         {
@@ -825,6 +852,8 @@ public class CombatManager : MonoBehaviour
     public int GetCurrentTargetIndex() => currentTargetIndex;
     public float GetPlayerCurrentHealth() => playerCurrentHealth;
     public float GetPlayerMaxHealth() => playerMaxHealth;
+    public float GetPlayerAttackDamage() => playerAttackDamage;
+    public float GetPlayerAttackSpeed() => playerAttackSpeed;
     
     /// <summary>
     /// Get monster health by index

@@ -65,6 +65,15 @@ public class ResourceManager : MonoBehaviour
         gatherProgress = 0f;
         gatherTimer = 0f;
         
+        // Register activity with AwayActivityManager
+        if (AwayActivityManager.Instance != null)
+        {
+            AwayActivityManager.Instance.StartMining(resource);
+            
+            // Save activity immediately so it shows on character screen
+            AwayActivityManager.Instance.SaveAwayState();
+        }
+        
         OnGatheringStateChanged?.Invoke(isGathering);
         OnResourceChanged?.Invoke(currentResource);
         OnGatherProgressChanged?.Invoke(0f);
@@ -98,10 +107,22 @@ public class ResourceManager : MonoBehaviour
     {
         if (!isGathering) return;
         
+        // Save activity state BEFORE stopping (so we save the mining activity, not "None")
+        if (AwayActivityManager.Instance != null)
+        {
+            AwayActivityManager.Instance.SaveAwayState();
+        }
+        
         isGathering = false;
         gatherProgress = 0f;
         gatherTimer = 0f;
         currentResource = null;
+        
+        // Stop tracking activity in AwayActivityManager (after saving)
+        if (AwayActivityManager.Instance != null)
+        {
+            AwayActivityManager.Instance.StopActivity();
+        }
         
         OnGatheringStateChanged?.Invoke(isGathering);
         OnGatherProgressChanged?.Invoke(0f);
