@@ -134,7 +134,7 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             UpdateDisplay();
             
             // Refresh inventory if needed
-            InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+            InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
             if (inventoryUI != null)
             {
                 inventoryUI.RefreshDisplay();

@@ -137,7 +137,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     {
         if (currentItem != null && !currentItem.IsEmpty())
         {
-            InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+            InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
             if (inventoryUI != null)
             {
                 inventoryUI.ShowTooltip(currentItem);
@@ -147,7 +147,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     
     void OnHoverEnd()
     {
-        InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+        InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
         if (inventoryUI != null)
         {
             inventoryUI.HideTooltip();
@@ -196,7 +196,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         if (ShopManager.Instance.SellItem(currentItem, slotIndex))
         {
             // Refresh inventory UI
-            InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+            InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
             if (inventoryUI != null)
             {
                 inventoryUI.RefreshDisplay();
@@ -231,7 +231,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
                 CharacterManager.Instance.RemoveItemFromInventory(slotIndex, 1);
                 
                 // Refresh inventory UI
-                InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+                InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
                 if (inventoryUI != null)
                 {
                     inventoryUI.RefreshDisplay();
@@ -258,7 +258,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         dragCanvas = GetComponentInParent<Canvas>();
         if (dragCanvas == null)
         {
-            dragCanvas = FindObjectOfType<Canvas>();
+            dragCanvas = FindAnyObjectByType<Canvas>();
         }
         
         if (dragCanvas != null && itemIcon != null && itemIcon.sprite != null)
@@ -285,7 +285,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         }
         
         // Notify UI that drag started
-        InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+        InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
         if (inventoryUI != null)
         {
             inventoryUI.OnDragStart(slotIndex);
@@ -381,7 +381,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         }
         
         // Notify UI that drag ended
-        InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+        InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
         if (inventoryUI != null)
         {
             inventoryUI.OnDragEnd();

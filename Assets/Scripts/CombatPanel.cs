@@ -49,7 +49,7 @@ public class CombatPanel : MonoBehaviour
         // Find mob count selector if not assigned
         if (mobCountSelector == null)
         {
-            mobCountSelector = FindObjectOfType<MobCountSelector>();
+            mobCountSelector = FindAnyObjectByType<MobCountSelector>();
         }
         
         // Subscribe to combat events
@@ -326,7 +326,7 @@ public class CombatPanel : MonoBehaviour
         // Try to find selector if not assigned
         if (mobCountSelector == null)
         {
-            mobCountSelector = FindObjectOfType<MobCountSelector>();
+            mobCountSelector = FindAnyObjectByType<MobCountSelector>();
         }
         
         if (mobCountSelector != null)

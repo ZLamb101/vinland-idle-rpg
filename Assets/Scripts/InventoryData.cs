@@ -132,15 +132,6 @@ public class InventoryData
     }
     
     /// <summary>
-    /// Add an item to the inventory. Returns true if successful (for backwards compatibility).
-    /// </summary>
-    public bool AddItemLegacy(InventoryItem newItem)
-    {
-        AddItemResult result = AddItem(newItem);
-        return result.success;
-    }
-    
-    /// <summary>
     /// Remove an item from the inventory at the specified slot.
     /// </summary>
     public bool RemoveItem(int slotIndex, int quantity = 1)

@@ -417,7 +417,7 @@ public class GameLog : MonoBehaviour
         {
             textComponent.text = FormatLogMessage(message, logType);
             textComponent.alignment = TextAlignmentOptions.TopLeft;
-            textComponent.enableWordWrapping = true;
+            textComponent.textWrappingMode = TextWrappingModes.Normal;
             textComponent.maskable = true;
             
             switch (logType)
@@ -518,7 +518,7 @@ public class GameLog : MonoBehaviour
         
         text.fontSize = 18;
         text.alignment = TextAlignmentOptions.TopLeft;
-        text.enableWordWrapping = true;
+        text.textWrappingMode = TextWrappingModes.Normal;
         text.overflowMode = TextOverflowModes.Overflow;
         text.color = Color.white;
         text.raycastTarget = false;
@@ -729,7 +729,7 @@ public class GameLog : MonoBehaviour
         {
             textComponent.text = FormatLogMessage(message, logType);
             textComponent.alignment = TextAlignmentOptions.TopLeft;
-            textComponent.enableWordWrapping = true;
+            textComponent.textWrappingMode = TextWrappingModes.Normal;
             textComponent.maskable = true;
             
             switch (logType)

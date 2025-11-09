@@ -22,6 +22,7 @@ public class CharacterSelectionManager : MonoBehaviour
     public TextMeshProUGUI selectedHeroNameText; // Name of selected hero
     public TextMeshProUGUI selectedHeroLevelText; // Level of selected hero
     public TextMeshProUGUI selectedHeroActivityText; // Current activity (e.g., "Currently Mining")
+    public TextMeshProUGUI selectedHeroZoneText; // Current zone (e.g., "Zone 1-1")
     
     [Header("Action Button")]
     public Button actionButton;
@@ -56,6 +57,13 @@ public class CharacterSelectionManager : MonoBehaviour
         {
             GameObject awayManagerObj = new GameObject("AwayActivityManager");
             awayManagerObj.AddComponent<AwayActivityManager>();
+        }
+        
+        // Ensure ZoneManager exists (for checking zone information)
+        if (ZoneManager.Instance == null)
+        {
+            GameObject zoneManagerObj = new GameObject("ZoneManager");
+            zoneManagerObj.AddComponent<ZoneManager>();
         }
         
         InitializeSlots();
@@ -392,6 +400,18 @@ public class CharacterSelectionManager : MonoBehaviour
         // Save character
         SaveCharacter(selectedSlotIndex, newChar);
         
+        // Set default zone to zone 1-1 (index 0) for new characters
+        if (ZoneManager.Instance != null)
+        {
+            ZoneManager.Instance.SetDefaultZoneForSlot(selectedSlotIndex);
+        }
+        else
+        {
+            // If ZoneManager doesn't exist yet, save zone index directly
+            PlayerPrefs.SetInt($"Character_{selectedSlotIndex}_ZoneIndex", 0);
+            PlayerPrefs.Save();
+        }
+        
         // Mark this slot as unlocked (has had a character created)
         SaveSlotUnlockState(selectedSlotIndex);
         
@@ -491,6 +511,17 @@ public class CharacterSelectionManager : MonoBehaviour
                     }
                     selectedHeroActivityText.text = activityText;
                 }
+                
+                // Update zone (if ZoneManager exists)
+                if (selectedHeroZoneText != null)
+                {
+                    string zoneText = "";
+                    if (ZoneManager.Instance != null)
+                    {
+                        zoneText = ZoneManager.Instance.GetZoneNameForSlot(selectedSlotIndex);
+                    }
+                    selectedHeroZoneText.text = !string.IsNullOrEmpty(zoneText) ? $"Zone: {zoneText}" : "";
+                }
             }
             else
             {
@@ -501,6 +532,8 @@ public class CharacterSelectionManager : MonoBehaviour
                     selectedHeroLevelText.text = "";
                 if (selectedHeroActivityText != null)
                     selectedHeroActivityText.text = "";
+                if (selectedHeroZoneText != null)
+                    selectedHeroZoneText.text = "";
             }
         }
     }

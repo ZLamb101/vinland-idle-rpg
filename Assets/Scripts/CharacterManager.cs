@@ -236,7 +236,7 @@ public class CharacterManager : MonoBehaviour
         if (result.itemsAdded > 0)
         {
             // Refresh inventory UI if it exists
-            InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+            InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
             if (inventoryUI != null)
             {
                 inventoryUI.RefreshDisplay();
@@ -266,7 +266,7 @@ public class CharacterManager : MonoBehaviour
         if (result.itemsAdded > 0)
         {
             // Refresh inventory UI if it exists
-            InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+            InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
             if (inventoryUI != null)
             {
                 inventoryUI.RefreshDisplay();

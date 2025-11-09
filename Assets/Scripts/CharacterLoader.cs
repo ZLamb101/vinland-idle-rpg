@@ -43,7 +43,7 @@ public class CharacterLoader : MonoBehaviour
         }
         
         // Try to find it in the scene first
-        CharacterManager existingManager = FindObjectOfType<CharacterManager>();
+        CharacterManager existingManager = FindAnyObjectByType<CharacterManager>();
         if (existingManager != null)
         {
             // It exists but Instance might not be set yet (Awake hasn't run)
@@ -71,7 +71,7 @@ public class CharacterLoader : MonoBehaviour
         currentSlotIndex = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
         
         // Check if we're on the character selection screen - if so, don't load here
-        CharacterSelectionManager charSelectManager = FindObjectOfType<CharacterSelectionManager>();
+        CharacterSelectionManager charSelectManager = FindAnyObjectByType<CharacterSelectionManager>();
         if (charSelectManager != null)
         {
             return;
@@ -181,6 +181,26 @@ public class CharacterLoader : MonoBehaviour
                 // This is fine - "None" activity will be saved when leaving
             }
         }
+        
+        // Load the zone for this character after character is loaded
+        // This ensures ActiveCharacterSlot is set correctly
+        if (ZoneManager.Instance != null)
+        {
+            // Check if character has a saved zone, if not set default to zone 1-1
+            int savedZoneIndex = -1;
+            if (currentSlotIndex >= 0 && PlayerPrefs.HasKey($"Character_{currentSlotIndex}_ZoneIndex"))
+            {
+                savedZoneIndex = PlayerPrefs.GetInt($"Character_{currentSlotIndex}_ZoneIndex", -1);
+            }
+            
+            // If no saved zone, set default zone 1-1
+            if (savedZoneIndex < 0)
+            {
+                ZoneManager.Instance.SetDefaultZoneForSlot(currentSlotIndex);
+            }
+            
+            ZoneManager.Instance.LoadCurrentZone();
+        }
     }
     
     /// <summary>
@@ -231,49 +251,13 @@ public class CharacterLoader : MonoBehaviour
             Debug.Log($"[AwayRewards] Fighting activity - Loaded monsters: {(monsters != null ? monsters.Length : 0)}, Mob count: {mobCount}");
             
             // Even if monsters array is null/empty (ScriptableObjects not found),
-            // we can still calculate rewards using saved data
+            // try to load from saved names as fallback
             if (monsters == null || monsters.Length == 0)
             {
-                Debug.LogWarning($"[AwayRewards] Monsters array is null or empty, attempting to load from saved names");
-                // Try to load monsters from saved names for reward calculation
-                // If that fails, we'll still show the panel with empty rewards
-                if (currentSlotIndex >= 0)
+                monsters = AwayActivityManager.Instance.TryLoadMonstersFromSavedNames(currentSlotIndex);
+                if (monsters.Length > 0)
                 {
-                    string slotPrefix = $"AwayActivity_Slot_{currentSlotIndex}_";
-                    if (PlayerPrefs.HasKey(slotPrefix + "MonsterNames"))
-                    {
-                        string monsterNamesString = PlayerPrefs.GetString(slotPrefix + "MonsterNames");
-                        string[] monsterNames = monsterNamesString.Split(',');
-                        
-                        Debug.Log($"[AwayRewards] Found saved monster names: {monsterNamesString}");
-                        
-                        // Try to find at least one monster for reward calculation
-                        List<MonsterData> foundMonsters = new List<MonsterData>();
-                        foreach (string name in monsterNames)
-                        {
-                            MonsterData m = AwayActivityManager.Instance.FindMonsterByNamePublic(name);
-                            if (m != null)
-                            {
-                                foundMonsters.Add(m);
-                                Debug.Log($"[AwayRewards] Found monster: {m.monsterName} (health: {m.health}, xp: {m.xpReward}, gold: {m.goldReward})");
-                                break; // Just need one for calculation
-                            }
-                        }
-                        
-                        if (foundMonsters.Count > 0)
-                        {
-                            monsters = foundMonsters.ToArray();
-                            Debug.Log($"[AwayRewards] Successfully loaded {monsters.Length} monster(s) from saved names");
-                        }
-                        else
-                        {
-                            Debug.LogError($"[AwayRewards] Failed to find any monsters by saved names");
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogError($"[AwayRewards] No saved monster names found in PlayerPrefs");
-                    }
+                    Debug.Log($"[AwayRewards] Successfully loaded {monsters.Length} monster(s) from saved names");
                 }
             }
             
@@ -287,19 +271,10 @@ public class CharacterLoader : MonoBehaviour
             {
                 // Can't calculate rewards without monster data, but still show panel with correct name
                 // Get monster display name from saved data
-                string monsterDisplayName = "Unknown Monster";
-                if (currentSlotIndex >= 0)
+                string monsterDisplayName = AwayActivityManager.Instance.GetMonsterDisplayNameFromPlayerPrefs(currentSlotIndex);
+                if (string.IsNullOrEmpty(monsterDisplayName))
                 {
-                    string slotPrefix = $"AwayActivity_Slot_{currentSlotIndex}_";
-                    if (PlayerPrefs.HasKey(slotPrefix + "MonsterDisplayNames"))
-                    {
-                        string displayNamesString = PlayerPrefs.GetString(slotPrefix + "MonsterDisplayNames");
-                        string[] displayNames = displayNamesString.Split(',');
-                        if (displayNames.Length > 0 && !string.IsNullOrEmpty(displayNames[0]))
-                        {
-                            monsterDisplayName = displayNames[0];
-                        }
-                    }
+                    monsterDisplayName = "Unknown Monster";
                 }
                 
                 rewards = new AwayRewards
@@ -322,14 +297,14 @@ public class CharacterLoader : MonoBehaviour
             Debug.Log($"[AwayRewards] Showing panel - Time away: {rewards.timeAway.TotalSeconds} seconds");
             
             // Find existing AwayRewardsPanel (including inactive ones)
-            AwayRewardsPanel rewardsPanel = FindObjectOfType<AwayRewardsPanel>(true);
+            AwayRewardsPanel rewardsPanel = FindFirstObjectByType<AwayRewardsPanel>(FindObjectsInactive.Include);
             
             if (rewardsPanel == null)
             {
                 Debug.LogWarning("[AwayRewards] No AwayRewardsPanel found in scene. Please add one to the scene or it will be created programmatically.");
                 // Create the panel if it doesn't exist (fallback)
                 // Try to find a Canvas to parent it to
-                Canvas canvas = FindObjectOfType<Canvas>();
+                Canvas canvas = FindAnyObjectByType<Canvas>();
                 GameObject panelObj = new GameObject("AwayRewardsPanel");
                 
                 if (canvas != null)
@@ -387,7 +362,7 @@ public class CharacterLoader : MonoBehaviour
         yield return new WaitForSeconds(0.2f);
         
         // Double-check we're not on character selection screen
-        CharacterSelectionManager charSelectManager = FindObjectOfType<CharacterSelectionManager>();
+        CharacterSelectionManager charSelectManager = FindAnyObjectByType<CharacterSelectionManager>();
         if (charSelectManager != null)
         {
             yield break;
@@ -441,6 +416,25 @@ public class CharacterLoader : MonoBehaviour
             
             // Check for away rewards after character is loaded
             CheckForAwayRewards();
+            
+            // Load the zone for this character after character is loaded
+            if (ZoneManager.Instance != null)
+            {
+                // Check if character has a saved zone, if not set default to zone 1-1
+                int savedZoneIndex = -1;
+                if (currentSlotIndex >= 0 && PlayerPrefs.HasKey($"Character_{currentSlotIndex}_ZoneIndex"))
+                {
+                    savedZoneIndex = PlayerPrefs.GetInt($"Character_{currentSlotIndex}_ZoneIndex", -1);
+                }
+                
+                // If no saved zone, set default zone 1-1
+                if (savedZoneIndex < 0)
+                {
+                    ZoneManager.Instance.SetDefaultZoneForSlot(currentSlotIndex);
+                }
+                
+                ZoneManager.Instance.LoadCurrentZone();
+            }
         }
     }
     
@@ -452,6 +446,19 @@ public class CharacterLoader : MonoBehaviour
         {
             AwayActivityManager.Instance.SaveAwayState();
         }
+        
+        // Save current zone before quitting
+        if (ZoneManager.Instance != null)
+        {
+            int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+            if (currentSlot >= 0)
+            {
+                int zoneIndex = ZoneManager.Instance.GetCurrentZoneIndex();
+                PlayerPrefs.SetInt($"Character_{currentSlot}_ZoneIndex", zoneIndex);
+                PlayerPrefs.Save();
+            }
+        }
+        
         SaveCurrentCharacter();
     }
     
@@ -468,6 +475,18 @@ public class CharacterLoader : MonoBehaviour
         // CharacterManager only exists in game scenes
         if (CharacterManager.Instance != null)
         {
+            // Save current zone before leaving scene
+            if (ZoneManager.Instance != null)
+            {
+                int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+                if (currentSlot >= 0)
+                {
+                    int zoneIndex = ZoneManager.Instance.GetCurrentZoneIndex();
+                    PlayerPrefs.SetInt($"Character_{currentSlot}_ZoneIndex", zoneIndex);
+                    PlayerPrefs.Save();
+                }
+            }
+            
             SaveCurrentCharacter();
         }
     }
