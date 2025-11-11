@@ -33,7 +33,8 @@ public class CharacterLoader : MonoBehaviour
             return;
         }
         
-        CharacterSelectionManager charSelectManager = FindAnyObjectByType<CharacterSelectionManager>();
+        // Check if we're in character selection scene (don't load if we are)
+        CharacterSelectionManager charSelectManager = ComponentInjector.GetOrFind<CharacterSelectionManager>();
         if (charSelectManager != null)
         {
             return;
@@ -67,7 +68,7 @@ public class CharacterLoader : MonoBehaviour
         if (Services.IsRegistered<ICharacterService>()) return;
         if (CharacterManager.Instance != null) return;
         
-        CharacterManager existingManager = FindAnyObjectByType<CharacterManager>();
+        CharacterManager existingManager = ComponentInjector.GetOrFind<CharacterManager>();
         if (existingManager != null) return;
         
         GameObject managerObj = new GameObject("CharacterManager");
@@ -78,7 +79,7 @@ public class CharacterLoader : MonoBehaviour
     {
         yield return new WaitForSeconds(0.2f);
         
-        CharacterSelectionManager charSelectManager = FindAnyObjectByType<CharacterSelectionManager>();
+        CharacterSelectionManager charSelectManager = ComponentInjector.GetOrFind<CharacterSelectionManager>();
         if (charSelectManager != null) yield break;
         
         var characterService = ServiceMigrationHelper.GetCharacterService();
@@ -210,7 +211,17 @@ public class CharacterLoader : MonoBehaviour
         Debug.Log($"[CharacterLoader] Searching for AwayRewardsPanel in scene...");
         
         // Find the AwayRewardsPanel in the scene (searches active and inactive objects)
-        AwayRewardsPanel panel = FindAnyObjectByType<AwayRewardsPanel>(FindObjectsInactive.Include);
+        AwayRewardsPanel panel = ComponentInjector.GetOrFind<AwayRewardsPanel>();
+        
+        // If not found, try searching inactive objects
+        if (panel == null)
+        {
+            AwayRewardsPanel[] allPanels = Resources.FindObjectsOfTypeAll<AwayRewardsPanel>();
+            if (allPanels != null && allPanels.Length > 0)
+            {
+                panel = allPanels[0];
+            }
+        }
         
         if (panel != null)
         {

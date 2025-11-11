@@ -19,6 +19,9 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     private ShopItemEntry entry;
     private ShopPanel shopPanel;
     
+    // Cached reference to InventoryUI
+    private InventoryUI inventoryUI;
+    
     void Start()
     {
         if (buyButton != null)
@@ -50,10 +53,20 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     /// <summary>
     /// Initialize this shop item slot with entry data
     /// </summary>
-    public void Initialize(ShopItemEntry shopEntry, ShopPanel panel)
+    public void Initialize(ShopItemEntry shopEntry, ShopPanel panel, InventoryUI ui = null)
     {
         entry = shopEntry;
         shopPanel = panel;
+        
+        // Use provided InventoryUI reference, or find it if not provided
+        if (ui != null)
+        {
+            inventoryUI = ui;
+        }
+        else if (inventoryUI == null)
+        {
+            inventoryUI = ComponentInjector.GetOrFind<InventoryUI>();
+        }
         
         UpdateDisplay();
     }
@@ -134,7 +147,6 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             UpdateDisplay();
             
             // Refresh inventory if needed
-            InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
             if (inventoryUI != null)
             {
                 inventoryUI.RefreshDisplay();

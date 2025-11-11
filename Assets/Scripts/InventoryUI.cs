@@ -37,6 +37,10 @@ public class InventoryUI : MonoBehaviour
         LoadEquipmentReferences();
         RefreshDisplay();
         
+        // Subscribe to inventory events for auto-refresh
+        EventBus.Subscribe<ItemAddedEvent>(OnItemAdded);
+        EventBus.Subscribe<ItemRemovedEvent>(OnItemRemoved);
+        
         // Setup tooltip
         if (tooltipPanel != null)
         {
@@ -71,6 +75,23 @@ public class InventoryUI : MonoBehaviour
                 graphic.raycastTarget = false;
             }
         }
+    }
+    
+    void OnDestroy()
+    {
+        // Unsubscribe from events
+        EventBus.Unsubscribe<ItemAddedEvent>(OnItemAdded);
+        EventBus.Unsubscribe<ItemRemovedEvent>(OnItemRemoved);
+    }
+    
+    void OnItemAdded(ItemAddedEvent e)
+    {
+        RefreshDisplay();
+    }
+    
+    void OnItemRemoved(ItemRemovedEvent e)
+    {
+        RefreshDisplay();
     }
     
     void Update()
@@ -208,6 +229,9 @@ public class InventoryUI : MonoBehaviour
             }
             
             inventorySlots[i].Initialize(i);
+            
+            // Set InventoryUI reference for the slot
+            inventorySlots[i].SetInventoryUI(this);
         }
     }
     

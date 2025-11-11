@@ -119,7 +119,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Find mob count selector if not assigned
         if (mobCountSelector == null)
         {
-            mobCountSelector = FindAnyObjectByType<MobCountSelector>();
+            mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
         }
     }
     
@@ -136,7 +136,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Try to find selector if not assigned
         if (mobCountSelector == null)
         {
-            mobCountSelector = FindAnyObjectByType<MobCountSelector>();
+            mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
         }
         
         if (mobCountSelector != null)
@@ -175,7 +175,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         // CombatManager persists between scenes, but CombatVisualManager is recreated
         if (visualManager == null)
         {
-            visualManager = FindAnyObjectByType<CombatVisualManager>();
+            visualManager = ComponentInjector.GetOrFind<CombatVisualManager>();
         }
         
         // Ensure we're not in combat already (clean up any stale state)
@@ -287,7 +287,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Re-find visual manager if it's null (scene might have been reloaded)
         if (visualManager == null)
         {
-            visualManager = FindAnyObjectByType<CombatVisualManager>();
+            visualManager = ComponentInjector.GetOrFind<CombatVisualManager>();
         }
         
         if (visualManager != null)

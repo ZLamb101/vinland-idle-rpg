@@ -274,12 +274,13 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         InventoryData.AddItemResult result = characterData.inventory.AddItem(item);
         if (result.itemsAdded > 0)
         {
-            // Refresh inventory UI if it exists
-            InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
-            if (inventoryUI != null)
-            {
-                inventoryUI.RefreshDisplay();
-            }
+            // Notify inventory UI to refresh via EventBus
+            EventBus.Publish(new ItemAddedEvent 
+            { 
+                item = item,
+                quantity = result.itemsAdded,
+                wasSuccessful = result.success
+            });
         }
         
         // Warn if some items couldn't be added
@@ -304,12 +305,13 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         InventoryData.AddItemResult result = characterData.inventory.AddItem(item);
         if (result.itemsAdded > 0)
         {
-            // Refresh inventory UI if it exists
-            InventoryUI inventoryUI = FindAnyObjectByType<InventoryUI>();
-            if (inventoryUI != null)
-            {
-                inventoryUI.RefreshDisplay();
-            }
+            // Notify inventory UI to refresh via EventBus
+            EventBus.Publish(new ItemAddedEvent 
+            { 
+                item = item,
+                quantity = result.itemsAdded,
+                wasSuccessful = result.success
+            });
         }
         
         return result;

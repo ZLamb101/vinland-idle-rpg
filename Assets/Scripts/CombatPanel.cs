@@ -49,7 +49,7 @@ public class CombatPanel : MonoBehaviour
         // Find mob count selector if not assigned
         if (mobCountSelector == null)
         {
-            mobCountSelector = FindAnyObjectByType<MobCountSelector>();
+            mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
         }
         
         // Subscribe to combat events
@@ -326,7 +326,7 @@ public class CombatPanel : MonoBehaviour
         // Try to find selector if not assigned
         if (mobCountSelector == null)
         {
-            mobCountSelector = FindAnyObjectByType<MobCountSelector>();
+            mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
         }
         
         if (mobCountSelector != null)
