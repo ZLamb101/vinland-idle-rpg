@@ -215,9 +215,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         playerAttackSpeed = playerBaseAttackSpeed;
         
         // Add equipment bonuses
-        if (EquipmentManager.Instance != null)
+        var equipmentService = Services.Get<IEquipmentService>();
+        if (equipmentService != null)
         {
-            EquipmentStats equipStats = EquipmentManager.Instance.GetTotalStats();
+            EquipmentStats equipStats = equipmentService.GetTotalStats();
             
             playerMaxHealth += equipStats.maxHealth;
             playerAttackDamage += equipStats.attackDamage;
@@ -225,9 +226,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // Add talent bonuses
-        if (TalentManager.Instance != null)
+        var talentService = Services.Get<ITalentService>();
+        if (talentService != null)
         {
-            TalentBonuses talents = TalentManager.Instance.GetTotalBonuses();
+            TalentBonuses talents = talentService.GetTotalBonuses();
             
             // Additive bonuses
             playerAttackDamage += talents.attackDamage;
@@ -468,9 +470,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         };
         
         // Add equipment bonuses
-        if (EquipmentManager.Instance != null)
+        var equipmentService = Services.Get<IEquipmentService>();
+        if (equipmentService != null)
         {
-            EquipmentStats equipStats = EquipmentManager.Instance.GetTotalStats();
+            EquipmentStats equipStats = equipmentService.GetTotalStats();
             stats.critChance += equipStats.criticalChance;
             stats.lifesteal += equipStats.lifesteal;
             stats.dodge += equipStats.dodge;
@@ -480,9 +483,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // Add talent bonuses
-        if (TalentManager.Instance != null)
+        var talentService = Services.Get<ITalentService>();
+        if (talentService != null)
         {
-            TalentBonuses talents = TalentManager.Instance.GetTotalBonuses();
+            TalentBonuses talents = talentService.GetTotalBonuses();
             stats.critChance += talents.criticalChance;
             stats.critDamage += talents.criticalDamage;
             stats.lifesteal += talents.lifesteal;

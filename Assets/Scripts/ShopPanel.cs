@@ -45,19 +45,23 @@ public class ShopPanel : MonoBehaviour
     private RectTransform canvasRect;
     private float refreshTimerUpdateInterval = 1f; // Update timer every second
     private float lastTimerUpdate = 0f;
+    private IShopService shopService; // Cached shop service reference
     
     void Start()
     {
         // Cache InventoryUI reference once
         inventoryUI = ComponentInjector.GetOrFind<InventoryUI>();
         
+        // Get shop service
+        shopService = Services.Get<IShopService>();
+        
         // Subscribe to shop events
-        if (ShopManager.Instance != null)
+        if (shopService != null)
         {
-            ShopManager.Instance.OnShopOpened += OnShopOpened;
-            ShopManager.Instance.OnShopClosed += OnShopClosed;
-            ShopManager.Instance.OnStockChanged += OnStockChanged;
-            ShopManager.Instance.OnBuyBackChanged += OnBuyBackChanged;
+            shopService.OnShopOpened += OnShopOpened;
+            shopService.OnShopClosed += OnShopClosed;
+            shopService.OnStockChanged += OnStockChanged;
+            shopService.OnBuyBackChanged += OnBuyBackChanged;
         }
         
         // Setup buttons
@@ -156,12 +160,12 @@ public class ShopPanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (ShopManager.Instance != null)
+        if (shopService != null)
         {
-            ShopManager.Instance.OnShopOpened -= OnShopOpened;
-            ShopManager.Instance.OnShopClosed -= OnShopClosed;
-            ShopManager.Instance.OnStockChanged -= OnStockChanged;
-            ShopManager.Instance.OnBuyBackChanged -= OnBuyBackChanged;
+            shopService.OnShopOpened -= OnShopOpened;
+            shopService.OnShopClosed -= OnShopClosed;
+            shopService.OnStockChanged -= OnStockChanged;
+            shopService.OnBuyBackChanged -= OnBuyBackChanged;
         }
     }
     
@@ -188,7 +192,7 @@ public class ShopPanel : MonoBehaviour
     
     void OnStockChanged(int itemIndex)
     {
-        RefreshShopItems(ShopManager.Instance?.GetCurrentShop());
+        RefreshShopItems(shopService?.GetCurrentShop());
     }
     
     void OnBuyBackChanged()
@@ -250,9 +254,9 @@ public class ShopPanel : MonoBehaviour
     /// </summary>
     void UpdateRefreshTimer()
     {
-        if (refreshTimerText == null || ShopManager.Instance == null) return;
+        if (refreshTimerText == null || shopService == null) return;
         
-        float timeRemaining = ShopManager.Instance.GetTimeUntilRefresh();
+        float timeRemaining = shopService.GetTimeUntilRefresh();
         
         if (timeRemaining <= 0f)
         {
@@ -273,14 +277,14 @@ public class ShopPanel : MonoBehaviour
     {
         if (buyBackSection == null) return;
         
-        bool hasBuyBack = ShopManager.Instance != null && ShopManager.Instance.HasBuyBack();
+        bool hasBuyBack = shopService != null && shopService.HasBuyBack();
         
         buyBackSection.SetActive(hasBuyBack);
         
-        if (hasBuyBack && ShopManager.Instance != null)
+        if (hasBuyBack && shopService != null)
         {
-            InventoryItem buyBackItem = ShopManager.Instance.GetBuyBackItem();
-            int buyBackPrice = ShopManager.Instance.GetBuyBackPrice();
+            InventoryItem buyBackItem = shopService.GetBuyBackItem();
+            int buyBackPrice = shopService.GetBuyBackPrice();
             
             if (buyBackItem != null)
             {
@@ -384,17 +388,17 @@ public class ShopPanel : MonoBehaviour
     
     void OnCloseClicked()
     {
-        if (ShopManager.Instance != null)
+        if (shopService != null)
         {
-            ShopManager.Instance.CloseShop();
+            shopService.CloseShop();
         }
     }
     
     void OnBuyBackClicked()
     {
-        if (ShopManager.Instance != null)
+        if (shopService != null)
         {
-            ShopManager.Instance.BuyBackItem();
+            shopService.BuyBackItem();
         }
     }
 }

@@ -56,9 +56,10 @@ public class DialogueManager : MonoBehaviour, IDialogueService
         }
         
         // Close shop if open
-        if (ShopManager.Instance != null && ShopManager.Instance.IsShopOpen())
+        var shopService = Services.Get<IShopService>();
+        if (shopService != null && shopService.IsShopOpen())
         {
-            ShopManager.Instance.CloseShop();
+            shopService.CloseShop();
         }
         
         currentNPC = npc;

@@ -135,9 +135,10 @@ public class NPCPanel : MonoBehaviour
             return;
         }
         
-        if (ShopManager.Instance != null)
+        var shopService = Services.Get<IShopService>();
+        if (shopService != null)
         {
-            ShopManager.Instance.OpenShop(npcData.shopData);
+            shopService.OpenShop(npcData.shopData);
         }
         else
         {

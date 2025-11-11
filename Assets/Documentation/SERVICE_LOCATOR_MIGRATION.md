@@ -406,10 +406,31 @@ public class MyPanel : Injectable
   - [x] Migrated MonsterPanel.cs (one-off service calls)
   - [x] Migrated TargetFrame.cs (cached service reference)
   - [x] Migrated CombatLogic.cs (static class, one-off service calls)
-- [ ] Phase 2.2: Migrate Character System
-- [ ] Phase 3.1: Migrate Equipment System
-- [ ] Phase 3.2: Migrate Talent System
-- [ ] Phase 3.3: Migrate Shop System
+- [x] Phase 2.2: Migrate Character System ✅ **COMPLETE**
+  - [x] Migrated CharacterInfoDisplay.cs (cached service reference)
+  - [x] Migrated ReturnToCharacterSelect.cs (one-off service calls)
+  - [x] Migrated SaveData.cs (static methods, one-off service calls)
+  - [x] Migrated InventoryUI.cs (one-off service calls)
+  - [x] Migrated GameLog.cs (cached service reference)
+  - [x] Migrated CharacterLoader.cs (service check)
+- [x] Phase 3.1: Migrate Equipment System ✅ **COMPLETE**
+  - [x] Migrated EquipmentPanel.cs (cached service reference)
+  - [x] Migrated InventorySlot.cs (one-off service calls)
+  - [x] Migrated CombatManager.cs (one-off service calls)
+  - [x] Migrated SaveData.cs (static methods, one-off service calls)
+- [x] Phase 3.2: Migrate Talent System ✅ **COMPLETE**
+  - [x] Migrated TalentPanel.cs (cached service reference)
+  - [x] Migrated TalentButton.cs (access via TalentPanel.GetTalentService())
+  - [x] Migrated CharacterManager.cs (one-off service calls)
+  - [x] Migrated CombatManager.cs (one-off service calls)
+  - [x] Migrated SaveData.cs (static methods, one-off service calls)
+- [x] Phase 3.3: Migrate Shop System ✅ **COMPLETE**
+  - [x] Migrated ShopPanel.cs (cached service reference)
+  - [x] Migrated ShopItemSlot.cs (one-off service calls)
+  - [x] Migrated InventorySlot.cs (one-off service calls)
+  - [x] Migrated DialogueManager.cs (one-off service calls)
+  - [x] Migrated NPCPanel.cs (one-off service calls)
+  - [x] Migrated ZonePanel.cs (one-off service calls)
 - [ ] Phase 4.1: Migrate Zone System
 - [ ] Phase 4.2: Migrate Resource System
 - [ ] Phase 4.3: Migrate Away Activity System

@@ -18,6 +18,8 @@ public class CharacterInfoDisplay : MonoBehaviour
     public bool showXPToNextLevel = true;
     public bool showMaxHealth = true;
     
+    private ICharacterService characterService; // Cached character service reference
+    
     void Start()
     {
         // Use coroutine to wait for CharacterManager to be ready (in case it's being created dynamically)
@@ -29,29 +31,33 @@ public class CharacterInfoDisplay : MonoBehaviour
         // Wait a frame to ensure CharacterManager and CharacterLoader have initialized
         yield return null;
         
-        // Try to find CharacterManager - wait a bit if it's being created
+        // Get character service
+        characterService = Services.Get<ICharacterService>();
+        
+        // Try to find CharacterService - wait a bit if it's being created
         int attempts = 0;
-        while (CharacterManager.Instance == null && attempts < 10)
+        while (characterService == null && attempts < 10)
         {
             yield return new WaitForSeconds(0.1f);
+            characterService = Services.Get<ICharacterService>();
             attempts++;
         }
         
         // Subscribe to all character data changes
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            CharacterManager.Instance.OnNameChanged += UpdateNameDisplay;
-            CharacterManager.Instance.OnLevelChanged += UpdateLevelDisplay;
-            CharacterManager.Instance.OnXPChanged += UpdateXPDisplay;
-            CharacterManager.Instance.OnGoldChanged += UpdateGoldDisplay;
-            CharacterManager.Instance.OnHealthChanged += UpdateHealthDisplay;
+            characterService.OnNameChanged += UpdateNameDisplay;
+            characterService.OnLevelChanged += UpdateLevelDisplay;
+            characterService.OnXPChanged += UpdateXPDisplay;
+            characterService.OnGoldChanged += UpdateGoldDisplay;
+            characterService.OnHealthChanged += UpdateHealthDisplay;
             
             // Initialize displays with current values (after character has been loaded)
-            UpdateNameDisplay(CharacterManager.Instance.GetName());
-            UpdateLevelDisplay(CharacterManager.Instance.GetLevel());
-            UpdateXPDisplay(CharacterManager.Instance.GetCurrentXP());
-            UpdateGoldDisplay(CharacterManager.Instance.GetGold());
-            UpdateHealthDisplay(CharacterManager.Instance.GetCurrentHealth(), CharacterManager.Instance.GetMaxHealth());
+            UpdateNameDisplay(characterService.GetName());
+            UpdateLevelDisplay(characterService.GetLevel());
+            UpdateXPDisplay(characterService.GetCurrentXP());
+            UpdateGoldDisplay(characterService.GetGold());
+            UpdateHealthDisplay(characterService.GetCurrentHealth(), characterService.GetMaxHealth());
         }
         else
         {
@@ -61,13 +67,13 @@ public class CharacterInfoDisplay : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            CharacterManager.Instance.OnNameChanged -= UpdateNameDisplay;
-            CharacterManager.Instance.OnLevelChanged -= UpdateLevelDisplay;
-            CharacterManager.Instance.OnXPChanged -= UpdateXPDisplay;
-            CharacterManager.Instance.OnGoldChanged -= UpdateGoldDisplay;
-            CharacterManager.Instance.OnHealthChanged -= UpdateHealthDisplay;
+            characterService.OnNameChanged -= UpdateNameDisplay;
+            characterService.OnLevelChanged -= UpdateLevelDisplay;
+            characterService.OnXPChanged -= UpdateXPDisplay;
+            characterService.OnGoldChanged -= UpdateGoldDisplay;
+            characterService.OnHealthChanged -= UpdateHealthDisplay;
         }
     }
     
@@ -82,10 +88,10 @@ public class CharacterInfoDisplay : MonoBehaviour
         if (levelText != null)
         {
             // Show level with race/class combo if available
-            if (CharacterManager.Instance != null)
+            if (characterService != null)
             {
-                string race = CharacterManager.Instance.GetRace();
-                string charClass = CharacterManager.Instance.GetCharacterClass();
+                string race = characterService.GetRace();
+                string charClass = characterService.GetCharacterClass();
                 
                 if (!string.IsNullOrEmpty(race) && !string.IsNullOrEmpty(charClass))
                 {
@@ -107,9 +113,9 @@ public class CharacterInfoDisplay : MonoBehaviour
     {
         if (xpText != null)
         {
-            if (showXPToNextLevel && CharacterManager.Instance != null)
+            if (showXPToNextLevel && characterService != null)
             {
-                int xpNeeded = CharacterManager.Instance.GetXPRequiredForNextLevel();
+                int xpNeeded = characterService.GetXPRequiredForNextLevel();
                 xpText.text = $"XP: {xp} / {xpNeeded}";
             }
             else

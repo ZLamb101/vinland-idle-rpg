@@ -30,18 +30,20 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         }
         
         // Subscribe to gold changes to update buy button state
-        if (CharacterManager.Instance != null)
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService != null)
         {
-            CharacterManager.Instance.OnGoldChanged += OnGoldChanged;
+            characterService.OnGoldChanged += OnGoldChanged;
         }
     }
     
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (CharacterManager.Instance != null)
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService != null)
         {
-            CharacterManager.Instance.OnGoldChanged -= OnGoldChanged;
+            characterService.OnGoldChanged -= OnGoldChanged;
         }
     }
     
@@ -128,9 +130,10 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         buyButton.interactable = entry.IsInStock();
         
         // Check if player has enough gold
-        if (entry.IsInStock() && CharacterManager.Instance != null)
+        var characterService = Services.Get<ICharacterService>();
+        if (entry.IsInStock() && characterService != null)
         {
-            if (CharacterManager.Instance.GetGold() < entry.price)
+            if (characterService.GetGold() < entry.price)
             {
                 buyButton.interactable = false;
             }
@@ -139,9 +142,12 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     
     void OnBuyClicked()
     {
-        if (entry == null || ShopManager.Instance == null) return;
+        if (entry == null) return;
         
-        if (ShopManager.Instance.BuyItem(entry, 1))
+        var shopService = Services.Get<IShopService>();
+        if (shopService == null) return;
+        
+        if (shopService.BuyItem(entry, 1))
         {
             // Refresh display after purchase
             UpdateDisplay();

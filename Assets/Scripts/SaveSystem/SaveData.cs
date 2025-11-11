@@ -57,9 +57,10 @@ public class SaveData
         data.saveTime = DateTime.Now.Ticks.ToString();
         
         // Character data
-        if (CharacterManager.Instance != null)
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService != null)
         {
-            CharacterData charData = CharacterManager.Instance.GetCharacterData();
+            CharacterData charData = characterService.GetCharacterData();
             data.characterName = charData.characterName;
             data.race = charData.race;
             data.characterClass = charData.characterClass;
@@ -90,9 +91,10 @@ public class SaveData
         }
         
         // Equipment
-        if (EquipmentManager.Instance != null)
+        var equipmentService = Services.Get<IEquipmentService>();
+        if (equipmentService != null)
         {
-            var equipData = EquipmentManager.Instance.GetEquipmentSaveData();
+            var equipData = equipmentService.GetEquipmentSaveData();
             foreach (var kvp in equipData)
             {
                 data.equippedItems[kvp.Key.ToString()] = kvp.Value;
@@ -100,12 +102,13 @@ public class SaveData
         }
         
         // Talents
-        if (TalentManager.Instance != null)
+        var talentService = Services.Get<ITalentService>();
+        if (talentService != null)
         {
-            data.unspentTalentPoints = TalentManager.Instance.GetUnspentPoints();
-            data.totalTalentPoints = TalentManager.Instance.GetTotalPoints();
+            data.unspentTalentPoints = talentService.GetUnspentPoints();
+            data.totalTalentPoints = talentService.GetTotalPoints();
             
-            var talents = TalentManager.Instance.GetAllUnlockedTalents();
+            var talents = talentService.GetAllUnlockedTalents();
             foreach (var kvp in talents)
             {
                 if (kvp.Key != null)
@@ -156,7 +159,8 @@ public class SaveData
     public void ApplyToGameState()
     {
         // Character data
-        if (CharacterManager.Instance != null)
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService != null)
         {
             CharacterData charData = new CharacterData();
             charData.characterName = characterName;
@@ -190,11 +194,12 @@ public class SaveData
                 charData.inventory.LoadAllEquipmentReferences();
             }
             
-            CharacterManager.Instance.LoadCharacterData(charData);
+            characterService.LoadCharacterData(charData);
         }
         
         // Equipment
-        if (EquipmentManager.Instance != null && equippedItems != null)
+        var equipmentService = Services.Get<IEquipmentService>();
+        if (equipmentService != null && equippedItems != null)
         {
             Dictionary<EquipmentSlot, string> equipDict = new Dictionary<EquipmentSlot, string>();
             foreach (var kvp in equippedItems)
@@ -204,7 +209,7 @@ public class SaveData
                     equipDict[slot] = kvp.Value;
                 }
             }
-            EquipmentManager.Instance.LoadEquipmentData(equipDict);
+            equipmentService.LoadEquipmentData(equipDict);
         }
         
         // Talents (would need to implement LoadTalentData in TalentManager)

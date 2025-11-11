@@ -62,8 +62,9 @@ public class ReturnToCharacterSelect : MonoBehaviour
         // Save current character if needed
         if (saveBeforeReturning)
         {
-            // Get current character data directly from CharacterManager
-            if (CharacterManager.Instance != null)
+            // Get current character data directly from CharacterService
+            var characterService = Services.Get<ICharacterService>();
+            if (characterService != null)
             {
                 // Try to find CharacterLoader, but don't worry if it's not found
                 CharacterLoader loader = ComponentInjector.GetOrFind<CharacterLoader>();
@@ -88,8 +89,11 @@ public class ReturnToCharacterSelect : MonoBehaviour
     
     void SaveCharacterManually()
     {
-        // Get current character data from CharacterManager
-        CharacterData currentData = CharacterManager.Instance.GetCharacterData();
+        // Get current character data from CharacterService
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService == null) return;
+        
+        CharacterData currentData = characterService.GetCharacterData();
         
         // Get character info from CharacterData (preferred) or PlayerPrefs (fallback)
         string currentRace = !string.IsNullOrEmpty(currentData.race) ? currentData.race : PlayerPrefs.GetString("ActiveCharacterRace", "Human");

@@ -115,15 +115,17 @@ public class ZonePanel : MonoBehaviour
     void OnZoneChanged(ZoneData zone)
     {
         // Stop gathering when switching zones
-        if (ResourceManager.Instance != null && ResourceManager.Instance.IsGathering())
+        var resourceService = Services.Get<IResourceService>();
+        if (resourceService != null && resourceService.IsGathering())
         {
-            ResourceManager.Instance.StopGathering();
+            resourceService.StopGathering();
         }
         
         // Close shop when switching zones
-        if (ShopManager.Instance != null && ShopManager.Instance.IsShopOpen())
+        var shopService = Services.Get<IShopService>();
+        if (shopService != null && shopService.IsShopOpen())
         {
-            ShopManager.Instance.CloseShop();
+            shopService.CloseShop();
         }
 
         UpdateZoneDisplay();

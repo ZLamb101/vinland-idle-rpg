@@ -34,13 +34,18 @@ public class EquipmentPanel : MonoBehaviour
     public TextMeshProUGUI critChanceText;
     public TextMeshProUGUI dodgeText;
     
+    private IEquipmentService equipmentService; // Cached equipment service reference
+    
     void Start()
     {
+        // Get equipment service
+        equipmentService = Services.Get<IEquipmentService>();
+        
         // Subscribe to equipment changes
-        if (EquipmentManager.Instance != null)
+        if (equipmentService != null)
         {
-            EquipmentManager.Instance.OnEquipmentChanged += OnEquipmentChanged;
-            EquipmentManager.Instance.OnStatsRecalculated += UpdateStatsDisplay;
+            equipmentService.OnEquipmentChanged += OnEquipmentChanged;
+            equipmentService.OnStatsRecalculated += UpdateStatsDisplay;
         }
         
         // Initialize all slots
@@ -54,10 +59,10 @@ public class EquipmentPanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (EquipmentManager.Instance != null)
+        if (equipmentService != null)
         {
-            EquipmentManager.Instance.OnEquipmentChanged -= OnEquipmentChanged;
-            EquipmentManager.Instance.OnStatsRecalculated -= UpdateStatsDisplay;
+            equipmentService.OnEquipmentChanged -= OnEquipmentChanged;
+            equipmentService.OnStatsRecalculated -= UpdateStatsDisplay;
         }
     }
     
@@ -104,7 +109,7 @@ public class EquipmentPanel : MonoBehaviour
         EquipmentSlotUI slotUI = GetSlotUI(slotType);
         if (slotUI == null) return;
         
-        EquipmentData equipment = EquipmentManager.Instance?.GetEquipment(slotType);
+        EquipmentData equipment = equipmentService?.GetEquipment(slotType);
         
         if (equipment != null)
         {
@@ -144,14 +149,15 @@ public class EquipmentPanel : MonoBehaviour
     void OnSlotClicked(EquipmentSlot slotType)
     {
         // Unequip item from this slot
-        if (EquipmentManager.Instance != null)
+        if (equipmentService != null)
         {
-            EquipmentData unequipped = EquipmentManager.Instance.UnequipItem(slotType);
+            EquipmentData unequipped = equipmentService.UnequipItem(slotType);
             
             if (unequipped != null)
             {
                 // Try to add back to inventory
-                if (CharacterManager.Instance != null)
+                var characterService = Services.Get<ICharacterService>();
+                if (characterService != null)
                 {
                     InventoryItem item = new InventoryItem
                     {
@@ -164,11 +170,11 @@ public class EquipmentPanel : MonoBehaviour
                         equipmentData = unequipped
                     };
                     
-                    bool added = CharacterManager.Instance.AddItemToInventory(item);
+                    bool added = characterService.AddItemToInventory(item);
                     if (!added)
                     {
                         // Re-equip the item
-                        EquipmentManager.Instance.EquipItem(unequipped);
+                        equipmentService.EquipItem(unequipped);
                     }
                 }
             }
@@ -177,9 +183,9 @@ public class EquipmentPanel : MonoBehaviour
     
     void UpdateStatsDisplay()
     {
-        if (EquipmentManager.Instance == null) return;
+        if (equipmentService == null) return;
         
-        EquipmentStats stats = EquipmentManager.Instance.GetTotalStats();
+        EquipmentStats stats = equipmentService.GetTotalStats();
         
         // Update stat text displays
         if (attackDamageText != null)

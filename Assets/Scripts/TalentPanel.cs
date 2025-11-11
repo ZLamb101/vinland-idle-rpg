@@ -43,14 +43,18 @@ public class TalentPanel : MonoBehaviour
     
     private Dictionary<TalentData, TalentButton> talentButtons = new Dictionary<TalentData, TalentButton>();
     private RectTransform tooltipRect;
+    private ITalentService talentService; // Cached talent service reference
     
     void Start()
     {
+        // Get talent service
+        talentService = Services.Get<ITalentService>();
+        
         // Subscribe to events
-        if (TalentManager.Instance != null)
+        if (talentService != null)
         {
-            TalentManager.Instance.OnTalentPointsChanged += UpdatePointsDisplay;
-            TalentManager.Instance.OnTalentUnlocked += OnTalentUnlocked;
+            talentService.OnTalentPointsChanged += UpdatePointsDisplay;
+            talentService.OnTalentUnlocked += OnTalentUnlocked;
         }
         
         // Setup tab buttons
@@ -92,7 +96,7 @@ public class TalentPanel : MonoBehaviour
         
         // Initialize
         CreateTalentButtons();
-        UpdatePointsDisplay(TalentManager.Instance?.GetUnspentPoints() ?? 0);
+        UpdatePointsDisplay(talentService?.GetUnspentPoints() ?? 0);
     }
     
     void Update()
@@ -135,10 +139,10 @@ public class TalentPanel : MonoBehaviour
     
     void OnDestroy()
     {
-        if (TalentManager.Instance != null)
+        if (talentService != null)
         {
-            TalentManager.Instance.OnTalentPointsChanged -= UpdatePointsDisplay;
-            TalentManager.Instance.OnTalentUnlocked -= OnTalentUnlocked;
+            talentService.OnTalentPointsChanged -= UpdatePointsDisplay;
+            talentService.OnTalentUnlocked -= OnTalentUnlocked;
         }
     }
     
@@ -214,9 +218,9 @@ public class TalentPanel : MonoBehaviour
     /// </summary>
     public void OnTalentButtonClicked(TalentData talent)
     {
-        if (talent == null || TalentManager.Instance == null) return;
+        if (talent == null || talentService == null) return;
         
-        bool success = TalentManager.Instance.UnlockTalent(talent);
+        bool success = talentService.UnlockTalent(talent);
         
         if (success)
         {
@@ -238,7 +242,7 @@ public class TalentPanel : MonoBehaviour
     {
         if (tooltipPanel == null || talent == null) return;
         
-        int currentRank = TalentManager.Instance?.GetTalentRank(talent) ?? 0;
+        int currentRank = talentService?.GetTalentRank(talent) ?? 0;
         
         if (tooltipNameText != null)
             tooltipNameText.text = talent.talentName;
@@ -280,26 +284,27 @@ public class TalentPanel : MonoBehaviour
     
     void UpdateTreeSummary()
     {
-        if (treeSummaryText == null || TalentManager.Instance == null) return;
+        if (treeSummaryText == null || talentService == null) return;
         
-        int pointsInTree = TalentManager.Instance.GetTotalPointsInTree(currentTree);
+        int pointsInTree = talentService.GetTotalPointsInTree(currentTree);
         treeSummaryText.text = $"{currentTree} Tree: {pointsInTree} points spent";
     }
     
     void ResetTalents()
     {
-        if (CharacterManager.Instance == null || TalentManager.Instance == null) return;
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService == null || talentService == null) return;
         
         // Check if player has enough gold
-        int currentGold = CharacterManager.Instance.GetGold();
+        int currentGold = characterService.GetGold();
         if (currentGold < resetCost)
         {
             return;
         }
         
         // Spend gold and reset
-        CharacterManager.Instance.SpendGold(resetCost);
-        TalentManager.Instance.ResetTalents();
+        characterService.SpendGold(resetCost);
+        talentService.ResetTalents();
         
         RefreshAllButtons();
         HideTooltip();
@@ -318,6 +323,11 @@ public class TalentPanel : MonoBehaviour
             }
         }
     }
+    
+    /// <summary>
+    /// Get the talent service (for TalentButton access)
+    /// </summary>
+    public ITalentService GetTalentService() => talentService;
 }
 
 /// <summary>
@@ -391,7 +401,7 @@ public class TalentButton : MonoBehaviour
             icon.sprite = talent.icon;
         
         // Update rank display
-        int currentRank = TalentManager.Instance?.GetTalentRank(talent) ?? 0;
+        int currentRank = panel?.GetTalentService()?.GetTalentRank(talent) ?? 0;
         if (rankText != null)
         {
             if (talent.maxRanks > 1)
@@ -412,11 +422,12 @@ public class TalentButton : MonoBehaviour
         // Update border color and button state
         if (border != null && button != null)
         {
-            int pointsInTree = TalentManager.Instance?.GetTotalPointsInTree(talent.talentTree) ?? 0;
+            var service = panel?.GetTalentService();
+            int pointsInTree = service?.GetTotalPointsInTree(talent.talentTree) ?? 0;
             bool hasPrereq = talent.prerequisiteTalent == null || 
-                           (TalentManager.Instance?.GetTalentRank(talent.prerequisiteTalent) ?? 0) > 0;
+                           (service?.GetTalentRank(talent.prerequisiteTalent) ?? 0) > 0;
             bool canUnlock = talent.CanUnlock(currentRank, pointsInTree, hasPrereq ? talent.prerequisiteTalent : null);
-            bool hasPoints = (TalentManager.Instance?.GetUnspentPoints() ?? 0) > 0;
+            bool hasPoints = (service?.GetUnspentPoints() ?? 0) > 0;
             
             if (currentRank >= talent.maxRanks)
             {

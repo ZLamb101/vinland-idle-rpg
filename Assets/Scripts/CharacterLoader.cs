@@ -66,7 +66,9 @@ public class CharacterLoader : MonoBehaviour
     void EnsureCharacterManagerExists()
     {
         if (Services.IsRegistered<ICharacterService>()) return;
-        if (CharacterManager.Instance != null) return;
+        
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService != null) return;
         
         CharacterManager existingManager = ComponentInjector.GetOrFind<CharacterManager>();
         if (existingManager != null) return;

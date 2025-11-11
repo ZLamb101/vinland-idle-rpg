@@ -37,6 +37,7 @@ public class GameLog : MonoBehaviour, IGameLogService
     private List<GameObject> logEntries = new List<GameObject>();
     private List<GameObject> combatLogEntries = new List<GameObject>();
     private bool isShowingCombatLog = false;
+    private ICharacterService characterService; // Cached character service reference
     
     void Awake()
     {
@@ -75,8 +76,10 @@ public class GameLog : MonoBehaviour, IGameLogService
         // Start with game log tab
         SwitchToTab(false);
         
-        if (CharacterManager.Instance != null)
-            CharacterManager.Instance.OnLevelUp += OnLevelUp;
+        // Get character service and subscribe to events
+        characterService = Services.Get<ICharacterService>();
+        if (characterService != null)
+            characterService.OnLevelUp += OnLevelUp;
     }
     
     void OnDestroy()
@@ -85,8 +88,8 @@ public class GameLog : MonoBehaviour, IGameLogService
         Services.Unregister<IGameLogService>();
         
         // Unsubscribe from CharacterManager events
-        if (CharacterManager.Instance != null)
-            CharacterManager.Instance.OnLevelUp -= OnLevelUp;
+        if (characterService != null)
+            characterService.OnLevelUp -= OnLevelUp;
     }
     
     private void SetupContentContainer()
@@ -658,20 +661,20 @@ public class GameLog : MonoBehaviour, IGameLogService
     {
         List<StatChange> changes = new List<StatChange>();
         
-        if (CharacterManager.Instance == null) return changes;
+        if (characterService == null) return changes;
         
-        float oldHealth = CharacterManager.Instance.GetMaxHealthAtLevel(oldLevel);
-        float newHealth = CharacterManager.Instance.GetMaxHealthAtLevel(newLevel);
+        float oldHealth = characterService.GetMaxHealthAtLevel(oldLevel);
+        float newHealth = characterService.GetMaxHealthAtLevel(newLevel);
         if (oldHealth != newHealth)
             changes.Add(new StatChange("Health", oldHealth, newHealth, "{0:F0}"));
         
-        float oldAttack = CharacterManager.Instance.GetBaseAttackAtLevel(oldLevel);
-        float newAttack = CharacterManager.Instance.GetBaseAttackAtLevel(newLevel);
+        float oldAttack = characterService.GetBaseAttackAtLevel(oldLevel);
+        float newAttack = characterService.GetBaseAttackAtLevel(newLevel);
         if (oldAttack != newAttack)
             changes.Add(new StatChange("Attack", oldAttack, newAttack, "{0:F0}"));
         
-        float oldCritChance = CharacterManager.Instance.GetBaseCritChanceAtLevel(oldLevel);
-        float newCritChance = CharacterManager.Instance.GetBaseCritChanceAtLevel(newLevel);
+        float oldCritChance = characterService.GetBaseCritChanceAtLevel(oldLevel);
+        float newCritChance = characterService.GetBaseCritChanceAtLevel(newLevel);
         if (oldCritChance != newCritChance)
             changes.Add(new StatChange("Crit Chance", oldCritChance * 100f, newCritChance * 100f, "{0:F1}%"));
         

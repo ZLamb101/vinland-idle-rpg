@@ -190,9 +190,10 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     {
         float baseHealth = characterData.GetMaxHealth();
         
-        if (TalentManager.Instance != null)
+        var talentService = Services.Get<ITalentService>();
+        if (talentService != null)
         {
-            TalentBonuses talents = TalentManager.Instance.GetTotalBonuses();
+            TalentBonuses talents = talentService.GetTotalBonuses();
             baseHealth += talents.maxHealth; // Additive
             baseHealth *= (1f + talents.healthMultiplier); // Percentage
         }

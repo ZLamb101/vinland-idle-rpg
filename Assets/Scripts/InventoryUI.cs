@@ -163,10 +163,11 @@ public class InventoryUI : MonoBehaviour
     
     void InitializeInventory()
     {
-        // Get inventory data from CharacterManager
-        if (CharacterManager.Instance != null)
+        // Get inventory data from CharacterService
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService != null)
         {
-            inventoryData = CharacterManager.Instance.GetInventoryData();
+            inventoryData = characterService.GetInventoryData();
         }
         
         // If no inventory data exists, create new one

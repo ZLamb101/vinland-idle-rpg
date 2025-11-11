@@ -187,7 +187,8 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         if (currentItem == null || currentItem.IsEmpty()) return;
         
         // Check if shop is open - if so, sell the item
-        if (ShopManager.Instance != null && ShopManager.Instance.IsShopOpen())
+        var shopService = Services.Get<IShopService>();
+        if (shopService != null && shopService.IsShopOpen())
         {
             SellItem();
             return;
@@ -206,10 +207,12 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     void SellItem()
     {
         if (currentItem == null || currentItem.IsEmpty()) return;
-        if (ShopManager.Instance == null) return;
+        
+        var shopService = Services.Get<IShopService>();
+        if (shopService == null) return;
         
         // Sell the item
-        if (ShopManager.Instance.SellItem(currentItem, slotIndex))
+        if (shopService.SellItem(currentItem, slotIndex))
         {
             // Refresh inventory UI
             if (inventoryUI != null)
@@ -226,7 +229,8 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
             return;
         }
         
-        if (EquipmentManager.Instance == null)
+        var equipmentService = Services.Get<IEquipmentService>();
+        if (equipmentService == null)
         {
             return;
         }
@@ -236,14 +240,15 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         EquipmentSlot equipSlot = currentItem.equipmentData.slot;
         
         // Try to equip the item
-        bool equipped = EquipmentManager.Instance.EquipItem(currentItem.equipmentData);
+        bool equipped = equipmentService.EquipItem(currentItem.equipmentData);
         
         if (equipped)
         {
             // Remove from inventory
-            if (CharacterManager.Instance != null)
+            var characterService = Services.Get<ICharacterService>();
+            if (characterService != null)
             {
-                CharacterManager.Instance.RemoveItemFromInventory(slotIndex, 1);
+                characterService.RemoveItemFromInventory(slotIndex, 1);
                 
                 // Refresh inventory UI
                 if (inventoryUI != null)
