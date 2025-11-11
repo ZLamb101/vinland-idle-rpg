@@ -101,13 +101,14 @@ public class MonsterPanel : MonoBehaviour
             return;
         }
         
-        if (CombatManager.Instance == null)
+        var combatService = Services.Get<ICombatService>();
+        if (combatService == null)
         {
             return;
         }
         
         // Check if combat is already active
-        if (CombatManager.Instance.GetCombatState() != CombatManager.CombatState.Idle)
+        if (combatService.GetCombatState() != CombatManager.CombatState.Idle)
         {
             return;
         }
@@ -139,7 +140,7 @@ public class MonsterPanel : MonoBehaviour
                 MonsterData[] allMonsters = currentZone.GetMonsters();
                 if (allMonsters != null && allMonsters.Length > 0)
                 {
-                    CombatManager.Instance.StartCombat(allMonsters, mobCount);
+                    combatService.StartCombat(allMonsters, mobCount);
                 }
             }
         }

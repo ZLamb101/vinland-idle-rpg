@@ -12,10 +12,11 @@ public static class CombatLogic
     public static void CalculatePlayerStats(out float maxHealth, out float currentHealth, out float attackDamage, out float attackSpeed)
     {
         // Base stats from character
-        if (CharacterManager.Instance != null)
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService != null)
         {
-            maxHealth = CharacterManager.Instance.GetMaxHealthWithTalents();
-            currentHealth = CharacterManager.Instance.GetCurrentHealth();
+            maxHealth = characterService.GetMaxHealthWithTalents();
+            currentHealth = characterService.GetCurrentHealth();
         }
         else
         {
@@ -28,9 +29,10 @@ public static class CombatLogic
         attackSpeed = 1.5f;
         
         // Add equipment bonuses
-        if (EquipmentManager.Instance != null)
+        var equipmentService = Services.Get<IEquipmentService>();
+        if (equipmentService != null)
         {
-            EquipmentStats equipStats = EquipmentManager.Instance.GetTotalStats();
+            EquipmentStats equipStats = equipmentService.GetTotalStats();
             
             maxHealth += equipStats.maxHealth;
             attackDamage += equipStats.attackDamage;
@@ -38,9 +40,10 @@ public static class CombatLogic
         }
         
         // Add talent bonuses
-        if (TalentManager.Instance != null)
+        var talentService = Services.Get<ITalentService>();
+        if (talentService != null)
         {
-            TalentBonuses talents = TalentManager.Instance.GetTotalBonuses();
+            TalentBonuses talents = talentService.GetTotalBonuses();
             
             // Additive bonuses
             attackDamage += talents.attackDamage;
@@ -74,9 +77,10 @@ public static class CombatLogic
         };
         
         // Add equipment bonuses
-        if (EquipmentManager.Instance != null)
+        var equipmentService = Services.Get<IEquipmentService>();
+        if (equipmentService != null)
         {
-            EquipmentStats equipStats = EquipmentManager.Instance.GetTotalStats();
+            EquipmentStats equipStats = equipmentService.GetTotalStats();
             stats.critChance += equipStats.criticalChance;
             stats.lifesteal += equipStats.lifesteal;
             stats.dodge += equipStats.dodge;
@@ -86,9 +90,10 @@ public static class CombatLogic
         }
         
         // Add talent bonuses
-        if (TalentManager.Instance != null)
+        var talentService = Services.Get<ITalentService>();
+        if (talentService != null)
         {
-            TalentBonuses talents = TalentManager.Instance.GetTotalBonuses();
+            TalentBonuses talents = talentService.GetTotalBonuses();
             stats.critChance += talents.criticalChance;
             stats.critDamage += talents.criticalDamage;
             stats.lifesteal += talents.lifesteal;

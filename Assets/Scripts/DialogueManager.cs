@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// Singleton manager for handling NPC dialogue display and interactions.
 /// </summary>
-public class DialogueManager : MonoBehaviour
+public class DialogueManager : MonoBehaviour, IDialogueService
 {
     public static DialogueManager Instance { get; private set; }
     
@@ -29,6 +29,15 @@ public class DialogueManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // Register with service locator
+        Services.Register<IDialogueService>(this);
+    }
+    
+    void OnDestroy()
+    {
+        // Unregister from service locator
+        Services.Unregister<IDialogueService>();
     }
     
     /// <summary>

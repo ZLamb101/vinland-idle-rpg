@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// Singleton system for displaying game log entries.
 /// Shows important game events like level-ups, quest completions, etc.
 /// </summary>
-public class GameLog : MonoBehaviour
+public class GameLog : MonoBehaviour, IGameLogService
 {
     public static GameLog Instance { get; private set; }
     
@@ -46,6 +46,9 @@ public class GameLog : MonoBehaviour
             return;
         }
         Instance = this;
+        
+        // Register with service locator
+        Services.Register<IGameLogService>(this);
     }
     
     void Start()
@@ -78,6 +81,10 @@ public class GameLog : MonoBehaviour
     
     void OnDestroy()
     {
+        // Unregister from service locator
+        Services.Unregister<IGameLogService>();
+        
+        // Unsubscribe from CharacterManager events
         if (CharacterManager.Instance != null)
             CharacterManager.Instance.OnLevelUp -= OnLevelUp;
     }

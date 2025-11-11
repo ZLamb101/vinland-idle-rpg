@@ -44,6 +44,8 @@ public class CombatPanel : MonoBehaviour
     private List<GameObject> activeDamageTexts = new List<GameObject>(); // Track active damage text instances
     private int damageTextCounter = 0; // Counter for positioning multiple damage texts
     
+    private ICombatService combatService; // Cached combat service reference
+    
     void Start()
     {
         // Find mob count selector if not assigned
@@ -52,13 +54,16 @@ public class CombatPanel : MonoBehaviour
             mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
         }
         
+        // Get combat service
+        combatService = Services.Get<ICombatService>();
+        
         // Subscribe to combat events
-        if (CombatManager.Instance != null)
+        if (combatService != null)
         {
-            CombatManager.Instance.OnCombatStateChanged += OnCombatStateChanged;
-            CombatManager.Instance.OnPlayerHealthChanged += UpdatePlayerHealth;
-            CombatManager.Instance.OnPlayerAttackProgress += UpdatePlayerAttackProgress;
-            CombatManager.Instance.OnPlayerDamageTaken += ShowPlayerDamage;
+            combatService.OnCombatStateChanged += OnCombatStateChanged;
+            combatService.OnPlayerHealthChanged += UpdatePlayerHealth;
+            combatService.OnPlayerAttackProgress += UpdatePlayerAttackProgress;
+            combatService.OnPlayerDamageTaken += ShowPlayerDamage;
         }
         
         // Setup buttons
@@ -89,12 +94,12 @@ public class CombatPanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (CombatManager.Instance != null)
+        if (combatService != null)
         {
-            CombatManager.Instance.OnCombatStateChanged -= OnCombatStateChanged;
-            CombatManager.Instance.OnPlayerHealthChanged -= UpdatePlayerHealth;
-            CombatManager.Instance.OnPlayerAttackProgress -= UpdatePlayerAttackProgress;
-            CombatManager.Instance.OnPlayerDamageTaken -= ShowPlayerDamage;
+            combatService.OnCombatStateChanged -= OnCombatStateChanged;
+            combatService.OnPlayerHealthChanged -= UpdatePlayerHealth;
+            combatService.OnPlayerAttackProgress -= UpdatePlayerAttackProgress;
+            combatService.OnPlayerDamageTaken -= ShowPlayerDamage;
         }
     }
     
@@ -344,9 +349,9 @@ public class CombatPanel : MonoBehaviour
     void OnRetreatClicked()
     {
         // End combat and return to zone
-        if (CombatManager.Instance != null)
+        if (combatService != null)
         {
-            CombatManager.Instance.EndCombat();
+            combatService.EndCombat();
         }
         
         // Reset mob count selector to 1 when retreating
@@ -358,9 +363,9 @@ public class CombatPanel : MonoBehaviour
     void OnContinueClicked()
     {
         // Resume combat after defeat
-        if (CombatManager.Instance != null)
+        if (combatService != null)
         {
-            CombatManager.Instance.ResumeAfterDefeat();
+            combatService.ResumeAfterDefeat();
         }
     }
 }

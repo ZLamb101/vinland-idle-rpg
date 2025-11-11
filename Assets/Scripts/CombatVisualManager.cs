@@ -39,6 +39,8 @@ public class CombatVisualManager : MonoBehaviour
     private Dictionary<int, Coroutine> activeDamageAnimations = new Dictionary<int, Coroutine>(); // Track damage text animations by enemy index
     private Dictionary<int, Vector2> damageTextStartPositions = new Dictionary<int, Vector2>(); // Store original starting positions for damage text
     
+    private ICombatService combatService; // Cached combat service reference
+    
     /// <summary>
     /// Get enemy visual by index
     /// </summary>
@@ -86,13 +88,16 @@ public class CombatVisualManager : MonoBehaviour
     
     void Start()
     {
+        // Get combat service
+        combatService = Services.Get<ICombatService>();
+        
         // Subscribe to combat events for health bar updates
-        if (CombatManager.Instance != null)
+        if (combatService != null)
         {
-            CombatManager.Instance.OnMonsterHealthChanged += UpdateEnemyHealth;
-            CombatManager.Instance.OnMonsterAttackProgress += OnMonsterAttackProgress;
-            CombatManager.Instance.OnTargetChanged += SetTargetIndicator;
-            CombatManager.Instance.OnPlayerDamageDealt += OnPlayerDamageDealt;
+            combatService.OnMonsterHealthChanged += UpdateEnemyHealth;
+            combatService.OnMonsterAttackProgress += OnMonsterAttackProgress;
+            combatService.OnTargetChanged += SetTargetIndicator;
+            combatService.OnPlayerDamageDealt += OnPlayerDamageDealt;
         }
     }
     
@@ -102,12 +107,12 @@ public class CombatVisualManager : MonoBehaviour
         Cleanup();
         
         // Unsubscribe from events
-        if (CombatManager.Instance != null)
+        if (combatService != null)
         {
-            CombatManager.Instance.OnMonsterHealthChanged -= UpdateEnemyHealth;
-            CombatManager.Instance.OnMonsterAttackProgress -= OnMonsterAttackProgress;
-            CombatManager.Instance.OnTargetChanged -= SetTargetIndicator;
-            CombatManager.Instance.OnPlayerDamageDealt -= OnPlayerDamageDealt;
+            combatService.OnMonsterHealthChanged -= UpdateEnemyHealth;
+            combatService.OnMonsterAttackProgress -= OnMonsterAttackProgress;
+            combatService.OnTargetChanged -= SetTargetIndicator;
+            combatService.OnPlayerDamageDealt -= OnPlayerDamageDealt;
         }
     }
     
@@ -125,9 +130,9 @@ public class CombatVisualManager : MonoBehaviour
     void OnPlayerDamageDealt(float damage)
     {
         // Show damage on current target
-        if (CombatManager.Instance != null)
+        if (combatService != null)
         {
-            int targetIndex = CombatManager.Instance.GetCurrentTargetIndex();
+            int targetIndex = combatService.GetCurrentTargetIndex();
             ShowDamageHitText(targetIndex, damage);
         }
     }
@@ -319,7 +324,7 @@ public class CombatVisualManager : MonoBehaviour
                 }
                 
                 // Initialize monster name in monster details container
-                var monsterInstance = CombatManager.Instance?.GetActiveMonsters();
+                var monsterInstance = combatService?.GetActiveMonsters();
                 if (monsterInstance != null && i < monsterInstance.Count && monsterInstance[i].monsterData != null)
                 {
                     foreach (TextMeshProUGUI text in allTexts)
@@ -345,9 +350,9 @@ public class CombatVisualManager : MonoBehaviour
             
             // Set click callback for targeting
             enemyVisual.SetOnClickCallback(() => {
-                if (CombatManager.Instance != null)
+                if (combatService != null)
                 {
-                    CombatManager.Instance.SetTarget(i);
+                    combatService.SetTarget(i);
                 }
             });
             
@@ -527,9 +532,9 @@ public class CombatVisualManager : MonoBehaviour
             }
             
             // Update monster name (if we have access to monster data)
-            if (CombatManager.Instance != null)
+            if (combatService != null)
             {
-                var monsterInstance = CombatManager.Instance.GetActiveMonsters();
+                var monsterInstance = combatService.GetActiveMonsters();
                 if (index < monsterInstance.Count && monsterInstance[index].monsterData != null)
                 {
                     string monsterName = monsterInstance[index].monsterData.monsterName;
@@ -562,10 +567,10 @@ public class CombatVisualManager : MonoBehaviour
         if (enemy == null || enemy.monsterDetailsContainer == null)
             return;
         
-        // Get progress from CombatManager if not provided
-        if (progress < 0f && CombatManager.Instance != null)
+        // Get progress from combat service if not provided
+        if (progress < 0f && combatService != null)
         {
-            var monsters = CombatManager.Instance.GetActiveMonsters();
+            var monsters = combatService.GetActiveMonsters();
             if (index < monsters.Count)
             {
                 var monster = monsters[index];

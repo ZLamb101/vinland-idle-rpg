@@ -17,17 +17,21 @@ public class TargetFrame : MonoBehaviour
     public GameObject targetFramePanel; // The panel container (for showing/hiding)
     
     private int currentTargetIndex = -1;
+    private ICombatService combatService; // Cached combat service reference
     
     void Start()
     {
+        // Get combat service
+        combatService = Services.Get<ICombatService>();
+        
         // Subscribe to combat events
-        if (CombatManager.Instance != null)
+        if (combatService != null)
         {
-            CombatManager.Instance.OnTargetChanged += OnTargetChanged;
-            CombatManager.Instance.OnMonsterHealthChanged += OnMonsterHealthChanged;
-            CombatManager.Instance.OnMonsterAttackProgress += OnMonsterAttackProgress;
-            CombatManager.Instance.OnMonstersChanged += OnMonstersChanged;
-            CombatManager.Instance.OnCombatStateChanged += OnCombatStateChanged;
+            combatService.OnTargetChanged += OnTargetChanged;
+            combatService.OnMonsterHealthChanged += OnMonsterHealthChanged;
+            combatService.OnMonsterAttackProgress += OnMonsterAttackProgress;
+            combatService.OnMonstersChanged += OnMonstersChanged;
+            combatService.OnCombatStateChanged += OnCombatStateChanged;
         }
         
         // Hide initially
@@ -40,13 +44,13 @@ public class TargetFrame : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (CombatManager.Instance != null)
+        if (combatService != null)
         {
-            CombatManager.Instance.OnTargetChanged -= OnTargetChanged;
-            CombatManager.Instance.OnMonsterHealthChanged -= OnMonsterHealthChanged;
-            CombatManager.Instance.OnMonsterAttackProgress -= OnMonsterAttackProgress;
-            CombatManager.Instance.OnMonstersChanged -= OnMonstersChanged;
-            CombatManager.Instance.OnCombatStateChanged -= OnCombatStateChanged;
+            combatService.OnTargetChanged -= OnTargetChanged;
+            combatService.OnMonsterHealthChanged -= OnMonsterHealthChanged;
+            combatService.OnMonsterAttackProgress -= OnMonsterAttackProgress;
+            combatService.OnMonstersChanged -= OnMonstersChanged;
+            combatService.OnCombatStateChanged -= OnCombatStateChanged;
         }
     }
     
@@ -67,9 +71,9 @@ public class TargetFrame : MonoBehaviour
     void OnMonstersChanged(System.Collections.Generic.List<MonsterData> monsters)
     {
         // Update target frame when monsters spawn
-        if (monsters != null && monsters.Count > 0 && CombatManager.Instance != null)
+        if (monsters != null && monsters.Count > 0 && combatService != null)
         {
-            currentTargetIndex = CombatManager.Instance.GetCurrentTargetIndex();
+            currentTargetIndex = combatService.GetCurrentTargetIndex();
             UpdateTargetFrame();
         }
     }
@@ -98,10 +102,10 @@ public class TargetFrame : MonoBehaviour
     
     void UpdateTargetFrame()
     {
-        if (CombatManager.Instance == null)
+        if (combatService == null)
             return;
         
-        var target = CombatManager.Instance.GetCurrentTargetInstance();
+        var target = combatService.GetCurrentTargetInstance();
         if (target == null || target.monsterData == null)
         {
             // Hide target frame if no valid target
