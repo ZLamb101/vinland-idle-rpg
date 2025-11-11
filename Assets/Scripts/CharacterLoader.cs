@@ -141,13 +141,118 @@ public class CharacterLoader : MonoBehaviour
     
     void CheckForAwayRewards()
     {
-        if (AwayActivityManager.Instance == null) return;
+        var awayService = ServiceMigrationHelper.GetAwayActivityService();
+        if (awayService == null) return;
         
-        bool hadAwayActivity = AwayActivityManager.Instance.LoadAwayState(currentSlotIndex);
+        // Load saved away activity state
+        bool hadAwayActivity = awayService.LoadAwayState(currentSlotIndex);
         if (!hadAwayActivity) return;
         
-        // Calculate and show rewards...
-        // (Simplified for brevity - full implementation in actual file)
+        // Get activity details
+        AwayActivityType activity = awayService.GetCurrentActivity();
+        DateTime startTime = awayService.GetActivityStartTime();
+        TimeSpan timeAway = DateTime.Now - startTime;
+        
+        // Need at least 30 seconds away to grant rewards (prevent exploits)
+        if (timeAway.TotalSeconds < 30)
+        {
+            Debug.Log($"[CharacterLoader] Away time too short: {timeAway.TotalSeconds:F0}s (need 30s minimum)");
+            awayService.ClearAwayState(currentSlotIndex);
+            return;
+        }
+        
+        // Cap maximum away time (e.g., 24 hours to prevent overflow)
+        DateTime cappedStartTime = DateTime.Now.AddHours(-24);
+        if (startTime < cappedStartTime)
+        {
+            startTime = cappedStartTime;
+            Debug.Log($"[CharacterLoader] Capped away time to 24 hours maximum");
+        }
+        
+        Debug.Log($"[CharacterLoader] Processing away rewards for {activity} ({timeAway.TotalMinutes:F0} minutes)");
+        
+        // Calculate rewards using the AwayRewardsCalculator
+        AwayRewards rewards = AwayRewardsCalculator.CalculateRewards(
+            startTime,
+            activity,
+            awayService.GetCurrentResource(),
+            awayService.GetCurrentMonsters(),
+            awayService.GetMobCount()
+        );
+        
+        // Show rewards panel after a short delay to ensure scene is fully loaded
+        StartCoroutine(ShowAwayRewardsPanelDelayed(rewards));
+    }
+    
+    /// <summary>
+    /// Show the away rewards panel after a short delay to ensure scene is loaded
+    /// </summary>
+    System.Collections.IEnumerator ShowAwayRewardsPanelDelayed(AwayRewards rewards)
+    {
+        // Wait a frame to ensure all GameObjects are initialized
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForSeconds(0.1f); // Small delay to ensure scene is fully loaded
+        
+        ShowAwayRewardsPanel(rewards);
+    }
+    
+    /// <summary>
+    /// Show the away rewards panel with calculated rewards
+    /// </summary>
+    void ShowAwayRewardsPanel(AwayRewards rewards)
+    {
+        if (rewards == null)
+        {
+            Debug.LogWarning("[CharacterLoader] Cannot show away rewards panel - rewards are null");
+            return;
+        }
+        
+        Debug.Log($"[CharacterLoader] Searching for AwayRewardsPanel in scene...");
+        
+        // Find the AwayRewardsPanel in the scene (searches active and inactive objects)
+        AwayRewardsPanel panel = FindAnyObjectByType<AwayRewardsPanel>(FindObjectsInactive.Include);
+        
+        if (panel != null)
+        {
+            Debug.Log($"[CharacterLoader] ✓ Found AwayRewardsPanel on GameObject '{panel.gameObject.name}'");
+            Debug.Log($"[CharacterLoader] Showing away rewards: {rewards.activityName}, Time: {FormatTimeSpan(rewards.timeAway)}, XP: {rewards.xpEarned}, Gold: {rewards.goldEarned}, Monsters: {rewards.monstersKilled}");
+            panel.ShowRewards(rewards);
+        }
+        else
+        {
+            Debug.LogError("[CharacterLoader] ✗ AwayRewardsPanel component not found in scene!");
+            Debug.LogError("[CharacterLoader] Make sure there's a GameObject with the AwayRewardsPanel component in the questingScene.");
+            Debug.Log($"[Away Rewards] Activity: {rewards.activityName}");
+            Debug.Log($"[Away Rewards] Time away: {FormatTimeSpan(rewards.timeAway)}");
+            Debug.Log($"[Away Rewards] XP: {rewards.xpEarned}, Gold: {rewards.goldEarned}, Monsters Killed: {rewards.monstersKilled}");
+            
+            // Clear away state since we can't show the panel
+            var awayService = ServiceMigrationHelper.GetAwayActivityService();
+            awayService?.ClearAwayState(currentSlotIndex);
+        }
+    }
+    
+    /// <summary>
+    /// Format a TimeSpan into a readable string
+    /// </summary>
+    string FormatTimeSpan(TimeSpan time)
+    {
+        if (time.TotalDays >= 1)
+        {
+            return $"{(int)time.TotalDays}d {time.Hours}h";
+        }
+        else if (time.TotalHours >= 1)
+        {
+            return $"{time.Hours}h {time.Minutes}m";
+        }
+        else if (time.TotalMinutes >= 1)
+        {
+            return $"{time.Minutes}m {time.Seconds}s";
+        }
+        else
+        {
+            return $"{time.Seconds}s";
+        }
     }
     
     public void SaveCurrentCharacter()

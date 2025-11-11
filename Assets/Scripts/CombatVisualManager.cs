@@ -1057,5 +1057,66 @@ public class CombatVisualManager : MonoBehaviour
             }
         }
     }
+    
+    /// <summary>
+    /// Spawn a new enemy with new monster data at the spawn position
+    /// Reuses an existing enemy slot for continuous combat spawning
+    /// </summary>
+    public void SpawnNewEnemy(int enemyIndex, MonsterData newMonsterData, float currentHealth, float maxHealth)
+    {
+        if (enemyIndex < 0 || enemyIndex >= activeEnemies.Count)
+            return;
+        
+        EnemyVisual enemy = activeEnemies[enemyIndex];
+        if (enemy == null)
+            return;
+        
+        // Calculate spawn position (same logic as InitializeCombat)
+        float yOffset = 0f;
+        float xOffset = 0f;
+        
+        // If there are multiple enemies, offset them vertically
+        if (activeEnemies.Count > 1)
+        {
+            float totalHeight = 150f * (activeEnemies.Count - 1);
+            float startY = totalHeight / 2f;
+            yOffset = startY - (enemyIndex * 150f);
+        }
+        
+        // Setup spawn position
+        Vector2 spawnPos;
+        if (enemySpawnPosition != null && enemy.transform.parent == enemySpawnPosition)
+        {
+            spawnPos = new Vector2(xOffset, yOffset);
+        }
+        else
+        {
+            spawnPos = enemySpawnPosition != null 
+                ? enemySpawnPosition.anchoredPosition + new Vector2(xOffset, yOffset)
+                : new Vector2(xOffset, yOffset);
+        }
+        
+        // Get hero position
+        Vector2 localHeroPos = Vector2.zero;
+        if (heroVisual != null && heroVisual.transform is RectTransform heroRect)
+        {
+            localHeroPos = heroRect.anchoredPosition;
+            if (enemy.transform.parent != null && enemy.transform.parent is RectTransform enemyParentRect)
+            {
+                localHeroPos = localHeroPos - enemyParentRect.anchoredPosition;
+            }
+        }
+        
+        // Setup enemy visual with new monster data
+        enemy.Setup(newMonsterData.monsterSprite, spawnPos, localHeroPos, newMonsterData.attackRange, newMonsterData.flipSprite);
+        
+        // Reactivate the GameObject (it was hidden when previous monster died)
+        enemy.gameObject.SetActive(true);
+        
+        // Update health bar for the new monster
+        UpdateEnemyHealth(currentHealth, maxHealth, enemyIndex);
+        
+        Debug.Log($"[CombatVisualManager] Spawned new {newMonsterData.monsterName} at enemy slot {enemyIndex}");
+    }
 }
 

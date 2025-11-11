@@ -6,7 +6,7 @@ using UnityEngine;
 /// Singleton manager for the talent system.
 /// Tracks unspent points, unlocked talents, and calculates total bonuses.
 /// </summary>
-public class TalentManager : MonoBehaviour
+public class TalentManager : MonoBehaviour, ITalentService
 {
     public static TalentManager Instance { get; private set; }
     
@@ -35,6 +35,9 @@ public class TalentManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // Register with service locator
+        Services.Register<ITalentService>(this);
     }
     
     void Start()

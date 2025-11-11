@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
 
 /// <summary>
 /// Manages zone loading, navigation, and quest availability.
 /// Singleton pattern for easy access across scenes.
 /// </summary>
-public class ZoneManager : MonoBehaviour
+public class ZoneManager : MonoBehaviour, IZoneService
 {
     public static ZoneManager Instance { get; private set; }
     
@@ -16,8 +17,8 @@ public class ZoneManager : MonoBehaviour
     private int currentZoneIndex = 0;
     
     // Events
-    public System.Action<ZoneData> OnZoneChanged;
-    public System.Action<QuestData[]> OnQuestsChanged;
+    public event Action<ZoneData> OnZoneChanged;
+    public event Action<QuestData[]> OnQuestsChanged;
     
     void Awake()
     {
@@ -30,6 +31,9 @@ public class ZoneManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // Register with service locator
+        Services.Register<IZoneService>(this);
     }
     
     void Start()

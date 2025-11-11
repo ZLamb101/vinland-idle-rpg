@@ -66,6 +66,33 @@ public class InventoryData
             return new AddItemResult(false, 0, newItem != null ? newItem.quantity : 0);
         }
         
+        // Ensure items array is properly initialized
+        if (items == null || items.Length != maxSlots)
+        {
+            Debug.LogWarning($"[InventoryData] Items array was null or wrong size ({items?.Length ?? 0} vs {maxSlots}). Reinitializing.");
+            InventoryItem[] oldItems = items;
+            items = new InventoryItem[maxSlots];
+            
+            // Initialize empty slots
+            for (int i = 0; i < maxSlots; i++)
+            {
+                items[i] = new InventoryItem();
+            }
+            
+            // Copy old items if they existed
+            if (oldItems != null)
+            {
+                int copyCount = Mathf.Min(oldItems.Length, maxSlots);
+                for (int i = 0; i < copyCount; i++)
+                {
+                    if (oldItems[i] != null && !oldItems[i].IsEmpty())
+                    {
+                        items[i] = oldItems[i];
+                    }
+                }
+            }
+        }
+        
         int originalQuantity = newItem.quantity;
         
         // Create a copy to avoid modifying the original item
@@ -78,9 +105,9 @@ public class InventoryData
         itemToAdd.equipmentData = newItem.equipmentData; // Copy runtime reference too
         
         // First try to stack with existing items
-        for (int i = 0; i < maxSlots; i++)
+        for (int i = 0; i < maxSlots && i < items.Length; i++)
         {
-            if (!items[i].IsEmpty() && items[i].CanStackWith(itemToAdd))
+            if (items[i] != null && !items[i].IsEmpty() && items[i].CanStackWith(itemToAdd))
             {
                 int canAdd = Mathf.Min(itemToAdd.quantity, items[i].maxStackSize - items[i].quantity);
                 items[i].quantity += canAdd;
@@ -98,9 +125,9 @@ public class InventoryData
         {
             // Find an empty slot
             int emptySlotIndex = -1;
-            for (int i = 0; i < maxSlots; i++)
+            for (int i = 0; i < maxSlots && i < items.Length; i++)
             {
-                if (items[i].IsEmpty())
+                if (items[i] != null && items[i].IsEmpty())
                 {
                     emptySlotIndex = i;
                     break;
@@ -136,8 +163,9 @@ public class InventoryData
     /// </summary>
     public bool RemoveItem(int slotIndex, int quantity = 1)
     {
-        if (slotIndex < 0 || slotIndex >= maxSlots) return false;
-        if (items[slotIndex].IsEmpty()) return false;
+        if (items == null) return false;
+        if (slotIndex < 0 || slotIndex >= maxSlots || slotIndex >= items.Length) return false;
+        if (items[slotIndex] == null || items[slotIndex].IsEmpty()) return false;
         
         items[slotIndex].quantity -= quantity;
         
@@ -154,7 +182,8 @@ public class InventoryData
     /// </summary>
     public InventoryItem GetItem(int slotIndex)
     {
-        if (slotIndex < 0 || slotIndex >= maxSlots) return null;
+        if (items == null) return null;
+        if (slotIndex < 0 || slotIndex >= maxSlots || slotIndex >= items.Length) return null;
         return items[slotIndex];
     }
     
@@ -163,16 +192,19 @@ public class InventoryData
     /// </summary>
     public bool HasSpace()
     {
+        if (items == null) return false;
+        
         // Check for empty slots
-        for (int i = 0; i < maxSlots; i++)
+        int actualSlots = Mathf.Min(maxSlots, items.Length);
+        for (int i = 0; i < actualSlots; i++)
         {
-            if (items[i].IsEmpty()) return true;
+            if (items[i] != null && items[i].IsEmpty()) return true;
         }
         
         // Check for stackable items
-        for (int i = 0; i < maxSlots; i++)
+        for (int i = 0; i < actualSlots; i++)
         {
-            if (items[i].quantity < items[i].maxStackSize) return true;
+            if (items[i] != null && items[i].quantity < items[i].maxStackSize) return true;
         }
         
         return false;
@@ -183,9 +215,12 @@ public class InventoryData
     /// </summary>
     public int GetFirstEmptySlot()
     {
-        for (int i = 0; i < maxSlots; i++)
+        if (items == null) return -1;
+        
+        int actualSlots = Mathf.Min(maxSlots, items.Length);
+        for (int i = 0; i < actualSlots; i++)
         {
-            if (items[i].IsEmpty()) return i;
+            if (items[i] != null && items[i].IsEmpty()) return i;
         }
         return -1;
     }
@@ -195,10 +230,13 @@ public class InventoryData
     /// </summary>
     public int GetTotalItems()
     {
+        if (items == null) return 0;
+        
         int count = 0;
-        for (int i = 0; i < maxSlots; i++)
+        int actualSlots = Mathf.Min(maxSlots, items.Length);
+        for (int i = 0; i < actualSlots; i++)
         {
-            if (!items[i].IsEmpty()) count++;
+            if (items[i] != null && !items[i].IsEmpty()) count++;
         }
         return count;
     }

@@ -123,9 +123,11 @@ public class MonsterPanel : MonoBehaviour
         if (mobCountSelector != null)
         {
             mobCount = mobCountSelector.GetMobCount();
+            Debug.Log($"[MonsterPanel] MobCountSelector found. Mob count: {mobCount}");
         }
         else
         {
+            Debug.LogWarning("[MonsterPanel] MobCountSelector not found! Using default mob count: 1");
         }
         
         // Get all monsters from current zone for combat

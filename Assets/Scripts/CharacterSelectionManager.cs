@@ -143,9 +143,38 @@ public class CharacterSelectionManager : MonoBehaviour
     
     void LoadAllCharacters()
     {
-        // Load from PlayerPrefs
+        // Load from NEW SaveSystem (JSON files) first, fallback to old PlayerPrefs
         for (int i = 0; i < savedCharacters.Length; i++)
         {
+            // Try NEW save system first
+            if (SaveSystem.SaveFileExists(i))
+            {
+                SaveData saveData = SaveSystem.LoadCharacter(i);
+                if (saveData != null)
+                {
+                    // Convert SaveData to SavedCharacterData for display
+                    savedCharacters[i] = new SavedCharacterData
+                    {
+                        characterName = saveData.characterName,
+                        race = saveData.race,
+                        characterClass = saveData.characterClass,
+                        level = saveData.level,
+                        currentXP = saveData.currentXP,
+                        gold = saveData.gold,
+                        currentHealth = saveData.currentHealth,
+                        isEmpty = false,
+                        // Parse save time if available
+                        lastPlayedDate = !string.IsNullOrEmpty(saveData.saveTime) && long.TryParse(saveData.saveTime, out long ticks)
+                            ? new System.DateTime(ticks)
+                            : System.DateTime.Now
+                    };
+                    
+                    slotHasBeenUnlocked[i] = true;
+                    continue;
+                }
+            }
+            
+            // Fallback to OLD PlayerPrefs system (for backwards compatibility)
             string key = $"Character_{i}";
             if (PlayerPrefs.HasKey(key))
             {
@@ -187,6 +216,33 @@ public class CharacterSelectionManager : MonoBehaviour
     
     void SaveCharacter(int slotIndex, SavedCharacterData data)
     {
+        // Convert SavedCharacterData to SaveData for new save system
+        SaveData saveData = new SaveData
+        {
+            characterName = data.characterName,
+            race = data.race,
+            characterClass = data.characterClass,
+            level = data.level,
+            currentXP = data.currentXP,
+            gold = data.gold,
+            currentHealth = data.currentHealth,
+            saveTime = System.DateTime.Now.Ticks.ToString(),
+            version = 1
+        };
+        
+        // Save using NEW SaveSystem (JSON files)
+        bool success = SaveSystem.SaveCharacter(slotIndex, saveData);
+        
+        if (success)
+        {
+            Debug.Log($"[CharacterSelection] Saved character to slot {slotIndex} using new SaveSystem");
+        }
+        else
+        {
+            Debug.LogError($"[CharacterSelection] Failed to save character to slot {slotIndex}");
+        }
+        
+        // Also save to OLD PlayerPrefs system for backwards compatibility (temporary)
         string key = $"Character_{slotIndex}";
         string json = JsonUtility.ToJson(data);
         PlayerPrefs.SetString(key, json);
@@ -576,6 +632,14 @@ public class CharacterSelectionManager : MonoBehaviour
     {
         if (slotIndex < 0 || slotIndex >= savedCharacters.Length) return;
         
+        // Delete from NEW SaveSystem (JSON files)
+        if (SaveSystem.SaveFileExists(slotIndex))
+        {
+            SaveSystem.DeleteCharacter(slotIndex);
+            Debug.Log($"[CharacterSelection] Deleted character from slot {slotIndex} (NEW system)");
+        }
+        
+        // Delete from OLD PlayerPrefs system
         string key = $"Character_{slotIndex}";
         PlayerPrefs.DeleteKey(key);
         

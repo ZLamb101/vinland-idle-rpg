@@ -40,7 +40,7 @@ public class CombatMonsterInstance
 /// Singleton manager for auto-battle combat system.
 /// Handles combat state, attack timers, and damage calculation.
 /// </summary>
-public class CombatManager : MonoBehaviour
+public class CombatManager : MonoBehaviour, ICombatService
 {
     public static CombatManager Instance { get; private set; }
     
@@ -113,11 +113,19 @@ public class CombatManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         
+        // Register with service locator
+        Services.Register<ICombatService>(this);
+        
         // Find mob count selector if not assigned
         if (mobCountSelector == null)
         {
             mobCountSelector = FindAnyObjectByType<MobCountSelector>();
         }
+    }
+    
+    void OnDestroy()
+    {
+        Services.Unregister<ICombatService>();
     }
     
     /// <summary>

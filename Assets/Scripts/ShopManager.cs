@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Singleton manager for handling shop interactions, stock management, and transactions.
 /// </summary>
-public class ShopManager : MonoBehaviour
+public class ShopManager : MonoBehaviour, IShopService
 {
     public static ShopManager Instance { get; private set; }
     
@@ -39,6 +39,9 @@ public class ShopManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // Register with service locator
+        Services.Register<IShopService>(this);
     }
     
     /// <summary>

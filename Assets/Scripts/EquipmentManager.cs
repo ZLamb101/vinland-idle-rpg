@@ -6,7 +6,7 @@ using UnityEngine;
 /// Singleton manager for character equipment.
 /// Handles equipping/unequipping items and calculating total stats.
 /// </summary>
-public class EquipmentManager : MonoBehaviour
+public class EquipmentManager : MonoBehaviour, IEquipmentService
 {
     public static EquipmentManager Instance { get; private set; }
     
@@ -30,6 +30,9 @@ public class EquipmentManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // Register with service locator
+        Services.Register<IEquipmentService>(this);
         
         // Initialize all equipment slots as empty
         foreach (EquipmentSlot slot in Enum.GetValues(typeof(EquipmentSlot)))

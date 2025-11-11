@@ -16,7 +16,7 @@ public enum AwayActivityType
 /// <summary>
 /// Singleton manager that tracks the player's active activity for away/offline rewards.
 /// </summary>
-public class AwayActivityManager : MonoBehaviour
+public class AwayActivityManager : MonoBehaviour, IAwayActivityService
 {
     public static AwayActivityManager Instance { get; private set; }
     
@@ -76,6 +76,9 @@ public class AwayActivityManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // Register with service locator
+        Services.Register<IAwayActivityService>(this);
     }
     
     /// <summary>

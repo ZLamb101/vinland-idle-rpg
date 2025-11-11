@@ -66,6 +66,7 @@ public class MobCountSelector : MonoBehaviour
     /// </summary>
     public int GetMobCount()
     {
+        Debug.Log($"[MobCountSelector] GetMobCount called. Returning: {currentMobCount}");
         return currentMobCount;
     }
     
@@ -75,6 +76,7 @@ public class MobCountSelector : MonoBehaviour
     public void SetMobCount(int count)
     {
         currentMobCount = Mathf.Clamp(count, MIN_MOB_COUNT, MAX_MOB_COUNT);
+        Debug.Log($"[MobCountSelector] SetMobCount called. Input: {count}, Clamped to: {currentMobCount}");
         UpdateDisplay();
     }
     

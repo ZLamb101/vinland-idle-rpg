@@ -5,7 +5,7 @@ using UnityEngine;
 /// Singleton manager for character data in the idle/incremental game.
 /// This is the central hub for all character stat modifications.
 /// </summary>
-public class CharacterManager : MonoBehaviour
+public class CharacterManager : MonoBehaviour, ICharacterService
 {
     public static CharacterManager Instance { get; private set; }
     
@@ -32,6 +32,9 @@ public class CharacterManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject); // Persist between scenes
+        
+        // Register with service locator
+        Services.Register<ICharacterService>(this);
         
         // Reset loaded flag when singleton is first created or reset
         // This ensures fresh data is loaded when entering a new scene
@@ -71,6 +74,31 @@ public class CharacterManager : MonoBehaviour
         }
     }
     
+    void OnDestroy()
+    {
+        // Unregister from service locator
+        Services.Unregister<ICharacterService>();
+    }
+    
+    void OnApplicationQuit()
+    {
+        // Save away activity state when game closes
+        if (AwayActivityManager.Instance != null)
+        {
+            AwayActivityManager.Instance.SaveAwayState();
+            
+            // Save last played time
+            int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+            if (currentSlot >= 0)
+            {
+                AwayActivityManager.Instance.SaveLastPlayedTime(currentSlot);
+            }
+        }
+        
+        // Auto-save character data
+        AutoSave("application quit");
+    }
+    
     // --- XP Management ---
     public void AddXP(int amount)
     {
@@ -78,6 +106,7 @@ public class CharacterManager : MonoBehaviour
         OnXPChanged?.Invoke(characterData.currentXP);
         
         // Check for level up
+        bool leveledUp = false;
         while (characterData.CanLevelUp())
         {
             int oldLevel = characterData.level;
@@ -91,6 +120,16 @@ public class CharacterManager : MonoBehaviour
             // Update max health on level up and heal to full
             characterData.currentHealth = characterData.GetMaxHealth();
             OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+            
+            leveledUp = true;
+            
+            Debug.Log($"[CharacterManager] Level up! {oldLevel} -> {newLevel}");
+        }
+        
+        // Auto-save after leveling up (important milestone)
+        if (leveledUp)
+        {
+            AutoSave("level up");
         }
     }
     
@@ -306,5 +345,31 @@ public class CharacterManager : MonoBehaviour
         OnGoldChanged?.Invoke(characterData.gold);
         OnNameChanged?.Invoke(characterData.characterName);
         OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+    }
+    
+    /// <summary>
+    /// Auto-save character data (called on important events like leveling up)
+    /// </summary>
+    private void AutoSave(string reason = "auto")
+    {
+        // Get active character slot
+        int characterSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+        
+        if (characterSlot < 0)
+        {
+            Debug.LogWarning($"[CharacterManager] Cannot auto-save ({reason}): no active character slot");
+            return;
+        }
+        
+        bool success = SaveSystem.SaveCurrentCharacter(characterSlot);
+        
+        if (success)
+        {
+            Debug.Log($"[CharacterManager] Auto-saved character ({reason})");
+        }
+        else
+        {
+            Debug.LogError($"[CharacterManager] Failed to auto-save character ({reason})");
+        }
     }
 }

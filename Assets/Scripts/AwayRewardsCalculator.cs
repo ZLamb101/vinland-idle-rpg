@@ -126,24 +126,25 @@ public static class AwayRewardsCalculator
             rewards.activityName = $"Fighting {monsters.Length} Monster Types";
         }
         
-        // Get player combat stats from CombatManager
+        // Get player combat stats from CombatService
         float playerAttackDamage = 10f; // Base attack damage
         float playerAttackSpeed = 1.5f; // Base attack speed
         
-        if (CombatManager.Instance != null)
+        var combatService = ServiceMigrationHelper.GetCombatService();
+        if (combatService != null)
         {
             // Ensure player stats are up to date
-            CombatManager.Instance.CalculatePlayerStats();
+            combatService.CalculatePlayerStats();
             
             // Get actual player stats
-            playerAttackDamage = CombatManager.Instance.GetPlayerAttackDamage();
-            playerAttackSpeed = CombatManager.Instance.GetPlayerAttackSpeed();
+            playerAttackDamage = combatService.GetPlayerAttackDamage();
+            playerAttackSpeed = combatService.GetPlayerAttackSpeed();
             
-            Debug.Log($"[AwayRewards] Player stats from CombatManager - Damage: {playerAttackDamage}, Speed: {playerAttackSpeed}");
+            Debug.Log($"[AwayRewards] Player stats from CombatService - Damage: {playerAttackDamage}, Speed: {playerAttackSpeed}");
         }
         else
         {
-            Debug.LogWarning("[AwayRewards] CombatManager.Instance is null, using base stats");
+            Debug.LogWarning("[AwayRewards] CombatService is null, using base stats");
         }
         
         // Calculate time per kill based on:
@@ -269,18 +270,20 @@ public static class AwayRewardsCalculator
             goldBonus = 0f
         };
         
-        // Add equipment bonuses
-        if (EquipmentManager.Instance != null)
+        // Add equipment bonuses using service pattern
+        var equipmentService = ServiceMigrationHelper.GetEquipmentService();
+        if (equipmentService != null)
         {
-            EquipmentStats equipStats = EquipmentManager.Instance.GetTotalStats();
+            EquipmentStats equipStats = equipmentService.GetTotalStats();
             stats.xpBonus += equipStats.xpBonus;
             stats.goldBonus += equipStats.goldBonus;
         }
         
-        // Add talent bonuses
-        if (TalentManager.Instance != null)
+        // Add talent bonuses using service pattern
+        var talentService = ServiceMigrationHelper.GetTalentService();
+        if (talentService != null)
         {
-            TalentBonuses talents = TalentManager.Instance.GetTotalBonuses();
+            TalentBonuses talents = talentService.GetTotalBonuses();
             stats.xpBonus += talents.xpBonus;
             stats.goldBonus += talents.goldBonus;
         }

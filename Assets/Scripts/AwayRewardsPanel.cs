@@ -259,10 +259,11 @@ public class AwayRewardsPanel : MonoBehaviour
         // Apply rewards to character
         ApplyRewards(currentRewards);
         
-        // Clear away state
-        if (AwayActivityManager.Instance != null)
+        // Clear away state using service pattern
+        var awayService = ServiceMigrationHelper.GetAwayActivityService();
+        if (awayService != null)
         {
-            AwayActivityManager.Instance.ClearAwayState();
+            awayService.ClearAwayState();
         }
         
         // Hide panel
@@ -274,8 +275,10 @@ public class AwayRewardsPanel : MonoBehaviour
     /// </summary>
     void ApplyRewards(AwayRewards rewards)
     {
-        if (CharacterManager.Instance == null)
+        var characterService = ServiceMigrationHelper.GetCharacterService();
+        if (characterService == null)
         {
+            Debug.LogError("[AwayRewardsPanel] CharacterService not found! Cannot apply rewards.");
             return;
         }
         
@@ -289,7 +292,7 @@ public class AwayRewardsPanel : MonoBehaviour
                 if (itemData != null)
                 {
                     InventoryItem item = itemData.CreateInventoryItem(kvp.Value);
-                    InventoryData.AddItemResult result = CharacterManager.Instance.AddItemToInventoryDetailed(item);
+                    InventoryData.AddItemResult result = characterService.AddItemToInventoryDetailed(item);
                     
                     if (!result.success && result.itemsRemaining > 0)
                     {
@@ -304,12 +307,12 @@ public class AwayRewardsPanel : MonoBehaviour
         {
             if (rewards.xpEarned > 0)
             {
-                CharacterManager.Instance.AddXP(rewards.xpEarned);
+                characterService.AddXP(rewards.xpEarned);
             }
             
             if (rewards.goldEarned > 0)
             {
-                CharacterManager.Instance.AddGold(rewards.goldEarned);
+                characterService.AddGold(rewards.goldEarned);
             }
             
             foreach (var kvp in rewards.itemsDropped)
@@ -318,7 +321,7 @@ public class AwayRewardsPanel : MonoBehaviour
                 if (itemData != null)
                 {
                     InventoryItem item = itemData.CreateInventoryItem(kvp.Value);
-                    InventoryData.AddItemResult result = CharacterManager.Instance.AddItemToInventoryDetailed(item);
+                    InventoryData.AddItemResult result = characterService.AddItemToInventoryDetailed(item);
                     
                     if (!result.success && result.itemsRemaining > 0)
                     {

@@ -5,7 +5,7 @@ using UnityEngine;
 /// Singleton manager for the resource gathering system.
 /// Handles gathering state, progress, and item generation.
 /// </summary>
-public class ResourceManager : MonoBehaviour
+public class ResourceManager : MonoBehaviour, IResourceService
 {
     public static ResourceManager Instance { get; private set; }
     
@@ -34,6 +34,9 @@ public class ResourceManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // Register with service locator
+        Services.Register<IResourceService>(this);
     }
     
     void Update()
