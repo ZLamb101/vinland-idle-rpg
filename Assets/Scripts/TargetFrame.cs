@@ -21,8 +21,8 @@ public class TargetFrame : MonoBehaviour
     
     void Start()
     {
-        // Get combat service
-        combatService = Services.Get<ICombatService>();
+        // Get combat service using migration helper (doesn't log errors during scene transitions)
+        combatService = ServiceMigrationHelper.GetCombatService();
         
         // Subscribe to combat events
         if (combatService != null)
@@ -33,11 +33,31 @@ public class TargetFrame : MonoBehaviour
             combatService.OnMonstersChanged += OnMonstersChanged;
             combatService.OnCombatStateChanged += OnCombatStateChanged;
         }
+        else
+        {
+            // Try again after a short delay
+            StartCoroutine(RetryGetCombatService());
+        }
         
         // Hide initially
         if (targetFramePanel != null)
         {
             targetFramePanel.SetActive(false);
+        }
+    }
+    
+    System.Collections.IEnumerator RetryGetCombatService()
+    {
+        yield return new WaitForSeconds(0.2f);
+        
+        combatService = ServiceMigrationHelper.GetCombatService();
+        if (combatService != null)
+        {
+            combatService.OnTargetChanged += OnTargetChanged;
+            combatService.OnMonsterHealthChanged += OnMonsterHealthChanged;
+            combatService.OnMonsterAttackProgress += OnMonsterAttackProgress;
+            combatService.OnMonstersChanged += OnMonstersChanged;
+            combatService.OnCombatStateChanged += OnCombatStateChanged;
         }
     }
     

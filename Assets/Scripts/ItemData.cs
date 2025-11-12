@@ -37,6 +37,7 @@ public class ItemData : ScriptableObject
         item.maxStackSize = maxStackSize;
         item.itemType = itemType;
         item.baseValue = baseValue; // Store base value for selling
+        item.SetItemDataReference(this); // Store reference to this ItemData for reloading
         item.SetEquipmentData(equipmentData); // Link equipment data if exists
         
         return item;

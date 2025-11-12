@@ -22,6 +22,10 @@ public class InventoryItem
     [Tooltip("Base gold value of this item (for selling)")]
     public int baseValue = 1;
     
+    [Header("Item Data Reference")]
+    [SerializeField] // Serialized name for reloading item data (including icon)
+    public string itemDataAssetName = ""; // Name of the ItemData asset to reload from
+    
     [Header("Equipment Reference")]
     [System.NonSerialized] // Don't serialize the direct reference
     public EquipmentData equipmentData; // Runtime reference to equipment data
@@ -43,7 +47,23 @@ public class InventoryItem
         quantity = 0;
         icon = null;
         description = "";
+        itemDataAssetName = "";
         equipmentAssetName = "";
+    }
+    
+    /// <summary>
+    /// Set the ItemData reference for reloading item data after deserialization
+    /// </summary>
+    public void SetItemDataReference(ItemData itemData)
+    {
+        if (itemData != null)
+        {
+            itemDataAssetName = itemData.name;
+        }
+        else
+        {
+            itemDataAssetName = "";
+        }
     }
     
     /// <summary>
@@ -60,6 +80,67 @@ public class InventoryItem
         else
         {
             equipmentAssetName = "";
+        }
+    }
+    
+    /// <summary>
+    /// Load item data (including icon) from the stored asset name
+    /// </summary>
+    public void LoadItemData()
+    {
+        // If we have an asset name, try loading from that
+        if (!string.IsNullOrEmpty(itemDataAssetName))
+        {
+            // Try loading from Items subfolder first
+            ItemData itemData = Resources.Load<ItemData>("Items/" + itemDataAssetName);
+            
+            // If not found, try root Resources folder
+            if (itemData == null)
+            {
+                itemData = Resources.Load<ItemData>(itemDataAssetName);
+            }
+            
+            if (itemData != null)
+            {
+                // Reload the icon from the ItemData
+                icon = itemData.icon;
+                
+                // Also reload equipment data if this is equipment
+                if (itemData.equipmentData != null)
+                {
+                    equipmentData = itemData.equipmentData;
+                    equipmentAssetName = itemData.equipmentData.name;
+                }
+                
+                return;
+            }
+        }
+        
+        // Fallback: Try to find ItemData by matching item name (for legacy save files)
+        if (icon == null && !string.IsNullOrEmpty(itemName))
+        {
+            // Try loading by item name in Items subfolder
+            ItemData itemData = Resources.Load<ItemData>("Items/" + itemName);
+            
+            // If not found, try root Resources folder
+            if (itemData == null)
+            {
+                itemData = Resources.Load<ItemData>(itemName);
+            }
+            
+            if (itemData != null && itemData.itemName == itemName)
+            {
+                // Found matching ItemData - reload icon and store asset name for future saves
+                icon = itemData.icon;
+                itemDataAssetName = itemData.name;
+                
+                // Also reload equipment data if this is equipment
+                if (itemData.equipmentData != null)
+                {
+                    equipmentData = itemData.equipmentData;
+                    equipmentAssetName = itemData.equipmentData.name;
+                }
+            }
         }
     }
     
@@ -109,6 +190,7 @@ public class InventoryItem
         itemName = "";
         quantity = 0;
         icon = null;
+        itemDataAssetName = "";
         equipmentData = null;
         equipmentAssetName = "";
     }

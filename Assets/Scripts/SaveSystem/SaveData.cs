@@ -85,6 +85,7 @@ public class SaveData
                     data.inventoryItems[i].maxStackSize = charData.inventory.items[i].maxStackSize;
                     data.inventoryItems[i].itemType = charData.inventory.items[i].itemType;
                     data.inventoryItems[i].baseValue = charData.inventory.items[i].baseValue;
+                    data.inventoryItems[i].itemDataAssetName = charData.inventory.items[i].itemDataAssetName;
                     data.inventoryItems[i].equipmentAssetName = charData.inventory.items[i].equipmentAssetName;
                 }
             }
@@ -187,6 +188,7 @@ public class SaveData
                     charData.inventory.items[i].maxStackSize = inventoryItems[i].maxStackSize;
                     charData.inventory.items[i].itemType = inventoryItems[i].itemType;
                     charData.inventory.items[i].baseValue = inventoryItems[i].baseValue;
+                    charData.inventory.items[i].itemDataAssetName = inventoryItems[i].itemDataAssetName;
                     charData.inventory.items[i].equipmentAssetName = inventoryItems[i].equipmentAssetName;
                 }
                 

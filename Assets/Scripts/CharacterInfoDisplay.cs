@@ -31,15 +31,15 @@ public class CharacterInfoDisplay : MonoBehaviour
         // Wait a frame to ensure CharacterManager and CharacterLoader have initialized
         yield return null;
         
-        // Get character service
-        characterService = Services.Get<ICharacterService>();
+        // Get character service using migration helper (doesn't log errors)
+        characterService = ServiceMigrationHelper.GetCharacterService();
         
         // Try to find CharacterService - wait a bit if it's being created
         int attempts = 0;
         while (characterService == null && attempts < 10)
         {
             yield return new WaitForSeconds(0.1f);
-            characterService = Services.Get<ICharacterService>();
+            characterService = ServiceMigrationHelper.GetCharacterService();
             attempts++;
         }
         

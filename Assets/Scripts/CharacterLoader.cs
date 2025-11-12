@@ -65,14 +65,23 @@ public class CharacterLoader : MonoBehaviour
     
     void EnsureCharacterManagerExists()
     {
-        if (Services.IsRegistered<ICharacterService>()) return;
+        // Check if service is already registered
+        if (Services.IsRegistered<ICharacterService>()) 
+        {
+            Debug.Log("[CharacterLoader] CharacterService already registered");
+            return;
+        }
         
-        var characterService = Services.Get<ICharacterService>();
-        if (characterService != null) return;
-        
+        // Check if an existing manager exists but hasn't registered yet
         CharacterManager existingManager = ComponentInjector.GetOrFind<CharacterManager>();
-        if (existingManager != null) return;
+        if (existingManager != null) 
+        {
+            Debug.Log("[CharacterLoader] Found existing CharacterManager, waiting for it to register");
+            return;
+        }
         
+        // Create new manager if none exists
+        Debug.Log("[CharacterLoader] Creating new CharacterManager");
         GameObject managerObj = new GameObject("CharacterManager");
         CharacterManager manager = managerObj.AddComponent<CharacterManager>();
     }

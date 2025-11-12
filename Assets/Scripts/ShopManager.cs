@@ -269,6 +269,7 @@ public class ShopManager : MonoBehaviour, IShopService
         buyBackItem.maxStackSize = item.maxStackSize;
         buyBackItem.itemType = item.itemType;
         buyBackItem.baseValue = item.baseValue;
+        buyBackItem.itemDataAssetName = item.itemDataAssetName;
         buyBackItem.SetEquipmentData(item.equipmentData);
         buyBackPrice = sellValue;
         hasBuyBack = true;

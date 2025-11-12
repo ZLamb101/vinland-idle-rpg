@@ -101,9 +101,10 @@ public class MonsterPanel : MonoBehaviour
             return;
         }
         
-        var combatService = Services.Get<ICombatService>();
+        var combatService = ServiceMigrationHelper.GetCombatService();
         if (combatService == null)
         {
+            Debug.LogWarning("[MonsterPanel] Combat service not ready yet. Please wait a moment.");
             return;
         }
         

@@ -83,8 +83,53 @@ public class ReturnToCharacterSelect : MonoBehaviour
             }
         }
         
+        // Destroy persistent managers before returning to character selection
+        // This ensures clean slate for loading a different character
+        DestroyPersistentManagers();
+        
         // Load character selection scene
         SceneManager.LoadScene(characterSceneName);
+    }
+    
+    void DestroyPersistentManagers()
+    {
+        Debug.Log("[ReturnToCharacterSelect] Cleaning up persistent managers for character switch");
+        
+        // Destroy CharacterManager
+        if (CharacterManager.Instance != null)
+        {
+            Destroy(CharacterManager.Instance.gameObject);
+        }
+        
+        // Destroy CombatManager
+        if (CombatManager.Instance != null)
+        {
+            Destroy(CombatManager.Instance.gameObject);
+        }
+        
+        // Destroy ResourceManager
+        if (ResourceManager.Instance != null)
+        {
+            Destroy(ResourceManager.Instance.gameObject);
+        }
+        
+        // Destroy ZoneManager
+        if (ZoneManager.Instance != null)
+        {
+            Destroy(ZoneManager.Instance.gameObject);
+        }
+        
+        // Destroy EquipmentManager
+        if (EquipmentManager.Instance != null)
+        {
+            Destroy(EquipmentManager.Instance.gameObject);
+        }
+        
+        // Destroy AwayActivityManager
+        if (AwayActivityManager.Instance != null)
+        {
+            Destroy(AwayActivityManager.Instance.gameObject);
+        }
     }
     
     void SaveCharacterManually()

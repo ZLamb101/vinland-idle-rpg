@@ -147,18 +147,12 @@ public class InventoryUI : MonoBehaviour
     }
     
     /// <summary>
-    /// Load equipment data references for all items after deserialization
+    /// Load item references (icons, equipment, etc.) for all items after deserialization
     /// </summary>
     void LoadEquipmentReferences()
     {
-        if (inventoryData == null || inventoryData.items == null) return;
-        foreach (var item in inventoryData.items)
-        {
-            if (item != null && item.itemType == ItemType.Equipment)
-            {
-                item.LoadEquipmentData();
-            }
-        }
+        if (inventoryData == null) return;
+        inventoryData.LoadAllItemReferences();
     }
     
     void InitializeInventory()

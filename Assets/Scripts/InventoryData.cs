@@ -24,19 +24,34 @@ public class InventoryData
     }
     
     /// <summary>
-    /// Call this after loading data to restore equipment references
+    /// Call this after loading data to restore item references (icons, equipment, etc.)
     /// </summary>
-    public void LoadAllEquipmentReferences()
+    public void LoadAllItemReferences()
     {
         if (items == null) return;
         
         for (int i = 0; i < items.Length; i++)
         {
-            if (items[i] != null && items[i].itemType == ItemType.Equipment)
+            if (items[i] != null && !items[i].IsEmpty())
             {
-                items[i].LoadEquipmentData();
+                // Load item data (including icon) from ItemData asset
+                items[i].LoadItemData();
+                
+                // If LoadItemData didn't find the asset, try loading equipment separately
+                if (items[i].itemType == ItemType.Equipment && items[i].equipmentData == null)
+                {
+                    items[i].LoadEquipmentData();
+                }
             }
         }
+    }
+    
+    /// <summary>
+    /// Call this after loading data to restore equipment references (deprecated - use LoadAllItemReferences)
+    /// </summary>
+    public void LoadAllEquipmentReferences()
+    {
+        LoadAllItemReferences();
     }
     
     /// <summary>
@@ -101,6 +116,7 @@ public class InventoryData
         itemToAdd.maxStackSize = newItem.maxStackSize;
         itemToAdd.itemType = newItem.itemType;
         itemToAdd.baseValue = newItem.baseValue; // Copy base value for selling
+        itemToAdd.itemDataAssetName = newItem.itemDataAssetName; // Copy item data reference for reloading
         itemToAdd.equipmentAssetName = newItem.equipmentAssetName; // Copy equipment reference!
         itemToAdd.equipmentData = newItem.equipmentData; // Copy runtime reference too
         
@@ -148,6 +164,7 @@ public class InventoryData
             newStack.maxStackSize = itemToAdd.maxStackSize;
             newStack.itemType = itemToAdd.itemType;
             newStack.baseValue = itemToAdd.baseValue;
+            newStack.itemDataAssetName = itemToAdd.itemDataAssetName;
             newStack.equipmentAssetName = itemToAdd.equipmentAssetName;
             newStack.equipmentData = itemToAdd.equipmentData;
             

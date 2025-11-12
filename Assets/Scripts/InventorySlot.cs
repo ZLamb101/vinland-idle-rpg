@@ -108,14 +108,32 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         // Update item icon
         if (itemIcon != null)
         {
+            // Check if item exists, is not empty, has an icon, and the icon is not destroyed
             if (currentItem != null && !currentItem.IsEmpty() && currentItem.icon != null)
             {
-                itemIcon.sprite = currentItem.icon;
-                // Set alpha to 255 (fully visible)
-                Color iconColor = itemIcon.color;
-                iconColor.a = 1f;
-                itemIcon.color = iconColor;
-                itemIcon.gameObject.SetActive(true);
+                // Additional safety check: verify the sprite is not a destroyed Unity object
+                try
+                {
+                    // Accessing the rect property will throw if the sprite is destroyed
+                    var spriteIsValid = currentItem.icon.rect.width > 0;
+                    
+                    itemIcon.sprite = currentItem.icon;
+                    // Set alpha to 255 (fully visible)
+                    Color iconColor = itemIcon.color;
+                    iconColor.a = 1f;
+                    itemIcon.color = iconColor;
+                    itemIcon.gameObject.SetActive(true);
+                }
+                catch (System.Exception)
+                {
+                    // Sprite is destroyed or invalid - treat as if no icon
+                    Debug.LogWarning($"[InventorySlot] Item '{currentItem.itemName}' has destroyed/invalid icon sprite. Displaying empty slot.");
+                    itemIcon.sprite = null;
+                    Color iconColor = itemIcon.color;
+                    iconColor.a = 0f;
+                    itemIcon.color = iconColor;
+                    itemIcon.gameObject.SetActive(true);
+                }
             }
             else
             {
