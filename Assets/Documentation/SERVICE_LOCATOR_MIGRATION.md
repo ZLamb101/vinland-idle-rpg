@@ -431,7 +431,12 @@ public class MyPanel : Injectable
   - [x] Migrated DialogueManager.cs (one-off service calls)
   - [x] Migrated NPCPanel.cs (one-off service calls)
   - [x] Migrated ZonePanel.cs (one-off service calls)
-- [ ] Phase 4.1: Migrate Zone System
+- [x] Phase 4.1: Migrate Zone System ✅ **COMPLETE**
+  - [x] Migrated ZoneManager.cs (implements IZoneService, registers with Services, uses ICharacterService)
+  - [x] Migrated ZonePanel.cs (cached service reference)
+  - [x] Migrated CharacterSelectionManager.cs (one-off service calls)
+  - [x] Migrated SaveData.cs (one-off service calls)
+  - [x] Migrated ReturnToCharacterSelect.cs (service-based cleanup)
 - [ ] Phase 4.2: Migrate Resource System
 - [ ] Phase 4.3: Migrate Away Activity System
 - [ ] Phase 5.1: Migrate Dialogue System

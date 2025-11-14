@@ -133,9 +133,10 @@ public class MonsterPanel : MonoBehaviour
         }
         
         // Get all monsters from current zone for combat
-        if (ZoneManager.Instance != null)
+        var zoneService = Services.Get<IZoneService>();
+        if (zoneService != null)
         {
-            ZoneData currentZone = ZoneManager.Instance.GetCurrentZone();
+            ZoneData currentZone = zoneService.GetCurrentZone();
             if (currentZone != null)
             {
                 MonsterData[] allMonsters = currentZone.GetMonsters();

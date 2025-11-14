@@ -35,6 +35,11 @@ public class ZoneManager : MonoBehaviour, IZoneService
         // Register with service locator
         Services.Register<IZoneService>(this);
     }
+
+    void OnDestroy()
+    {
+        Services.Unregister<IZoneService>();
+    }
     
     void Start()
     {
@@ -176,7 +181,8 @@ public class ZoneManager : MonoBehaviour, IZoneService
         
         if (currentZone != null)
         {
-            int playerLevel = CharacterManager.Instance != null ? CharacterManager.Instance.GetLevel() : 1;
+            var characterService = Services.Get<ICharacterService>();
+            int playerLevel = characterService != null ? characterService.GetLevel() : 1;
             QuestData[] availableQuests = currentZone.GetAvailableQuests(playerLevel);
             OnQuestsChanged?.Invoke(availableQuests);
         }
@@ -189,7 +195,8 @@ public class ZoneManager : MonoBehaviour, IZoneService
         ZoneData nextZone = allZones[currentZoneIndex + 1];
         if (nextZone == null) return false;
         
-        int playerLevel = CharacterManager.Instance != null ? CharacterManager.Instance.GetLevel() : 1;
+        var characterService = Services.Get<ICharacterService>();
+        int playerLevel = characterService != null ? characterService.GetLevel() : 1;
         
         return nextZone.CanAccess(playerLevel, currentZone);
     }

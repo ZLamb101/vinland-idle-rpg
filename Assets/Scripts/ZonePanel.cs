@@ -43,13 +43,18 @@ public class ZonePanel : MonoBehaviour
     private List<GameObject> currentMonsterPanels = new List<GameObject>(); // Track spawned monster panels
     private List<GameObject> currentResourcePanels = new List<GameObject>(); // Track spawned resource panels
 
+    private IZoneService zoneService;
+
     void Start()
     {
+        //Get Zone Service
+        zoneService = Services.Get<IZoneService>();
+
         // Subscribe to zone changes
-        if (ZoneManager.Instance != null)
+        if (zoneService != null)
         {
-            ZoneManager.Instance.OnZoneChanged += OnZoneChanged;
-            ZoneManager.Instance.OnQuestsChanged += OnQuestsChanged;
+            zoneService.OnZoneChanged += OnZoneChanged;
+            zoneService.OnQuestsChanged += OnQuestsChanged;
         }
         else
         {
@@ -74,9 +79,9 @@ public class ZonePanel : MonoBehaviour
         InitializeQuestPanel();
         
         // Initialize quests for current zone when scene loads
-        if (ZoneManager.Instance != null)
+        if (zoneService != null)
         {
-            ZoneData currentZone = ZoneManager.Instance.GetCurrentZone();
+            ZoneData currentZone = zoneService.GetCurrentZone();
             if (currentZone != null)
             {
                 InitializeQuestsForZone(currentZone);
@@ -92,10 +97,10 @@ public class ZonePanel : MonoBehaviour
         // Wait a frame for ZoneManager to initialize
         yield return null;
 
-        if (ZoneManager.Instance != null)
+        if (zoneService != null)
         {
-            ZoneManager.Instance.OnZoneChanged += OnZoneChanged;
-            ZoneManager.Instance.OnQuestsChanged += OnQuestsChanged;
+            zoneService.OnZoneChanged += OnZoneChanged;
+            zoneService.OnQuestsChanged += OnQuestsChanged;
             UpdateZoneDisplay();
         }
     }
@@ -103,10 +108,10 @@ public class ZonePanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (ZoneManager.Instance != null)
+        if (zoneService != null)
         {
-            ZoneManager.Instance.OnZoneChanged -= OnZoneChanged;
-            ZoneManager.Instance.OnQuestsChanged -= OnQuestsChanged;
+            zoneService.OnZoneChanged -= OnZoneChanged;
+            zoneService.OnQuestsChanged -= OnQuestsChanged;
         }
 
         // Resource gathering events are now handled by ResourcePanel components
@@ -141,12 +146,12 @@ public class ZonePanel : MonoBehaviour
 
     void UpdateZoneDisplay()
     {
-        if (ZoneManager.Instance == null)
+        if (zoneService == null)
         {
             return;
         }
 
-        ZoneData currentZone = ZoneManager.Instance.GetCurrentZone();
+        ZoneData currentZone = zoneService.GetCurrentZone();
         if (currentZone == null)
         {
             return;
@@ -182,10 +187,10 @@ public class ZonePanel : MonoBehaviour
 
     void UpdateNavigationButtons()
     {
-        if (ZoneManager.Instance == null) return;
+        if (zoneService == null) return;
 
         // Update previous zone button
-        bool canGoPrevious = ZoneManager.Instance.CanGoToPreviousZone();
+        bool canGoPrevious = zoneService.CanGoToPreviousZone();
         if (previousZoneButton != null)
         {
             previousZoneButton.gameObject.SetActive(canGoPrevious);
@@ -196,13 +201,13 @@ public class ZonePanel : MonoBehaviour
             previousZoneText.gameObject.SetActive(canGoPrevious);
             if (canGoPrevious)
             {
-                ZoneData previousZone = ZoneManager.Instance.GetPreviousZone();
+                ZoneData previousZone = zoneService.GetPreviousZone();
                 previousZoneText.text = $"← {previousZone.zoneName}";
             }
         }
 
         // Update next zone button
-        bool canGoNext = ZoneManager.Instance.CanGoToNextZone();
+        bool canGoNext = zoneService.CanGoToNextZone();
         if (nextZoneButton != null)
         {
             nextZoneButton.interactable = canGoNext;
@@ -212,7 +217,7 @@ public class ZonePanel : MonoBehaviour
         {
             if (canGoNext)
             {
-                ZoneData nextZone = ZoneManager.Instance.GetNextZone();
+                ZoneData nextZone = zoneService.GetNextZone();
                 nextZoneText.text = $"{nextZone.zoneName} →";
             }
             else
@@ -225,17 +230,17 @@ public class ZonePanel : MonoBehaviour
 
     void GoToPreviousZone()
     {
-        if (ZoneManager.Instance != null)
+        if (zoneService != null)
         {
-            ZoneManager.Instance.GoToPreviousZone();
+            zoneService.GoToPreviousZone();
         }
     }
 
     void GoToNextZone()
     {
-        if (ZoneManager.Instance != null)
+        if (zoneService != null)
         {
-            ZoneManager.Instance.GoToNextZone();
+            zoneService.GoToNextZone();
         }
     }
 
@@ -265,7 +270,8 @@ public class ZonePanel : MonoBehaviour
         // This prevents stale references from previous character sessions
         QuestPanel.ClearActiveQuestReference();
 
-        int playerLevel = CharacterManager.Instance != null ? CharacterManager.Instance.GetLevel() : 1;
+        var characterService = Services.Get<ICharacterService>();
+        int playerLevel = characterService != null ? characterService.GetLevel() : 1;
         QuestData[] availableQuests = zone.GetAllQuests(); // Get all quests, including locked ones
 
         // Find QuestPanel components in the questActionPanel and update them

@@ -48,12 +48,13 @@ public class ReturnToCharacterSelect : MonoBehaviour
         // Combat/activity will be cleared when entering a new character
         
         // Save current zone per character slot before leaving
-        if (ZoneManager.Instance != null)
+        var zoneService = Services.Get<IZoneService>();
+        if (zoneService != null)
         {
             int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
             if (currentSlot >= 0)
             {
-                int zoneIndex = ZoneManager.Instance.GetCurrentZoneIndex();
+                int zoneIndex = zoneService.GetCurrentZoneIndex();
                 PlayerPrefs.SetInt($"Character_{currentSlot}_ZoneIndex", zoneIndex);
                 PlayerPrefs.Save();
             }
@@ -96,39 +97,45 @@ public class ReturnToCharacterSelect : MonoBehaviour
         Debug.Log("[ReturnToCharacterSelect] Cleaning up persistent managers for character switch");
         
         // Destroy CharacterManager
-        if (CharacterManager.Instance != null)
+        var characterManager = Services.Get<ICharacterService>();
+        if (characterManager != null)
         {
-            Destroy(CharacterManager.Instance.gameObject);
+            Destroy((characterManager as MonoBehaviour).gameObject);
         }
         
         // Destroy CombatManager
-        if (CombatManager.Instance != null)
+        var combatManager = Services.Get<ICombatService>();
+        if (combatManager != null)
         {
-            Destroy(CombatManager.Instance.gameObject);
+            Destroy((combatManager as MonoBehaviour).gameObject);
         }
         
         // Destroy ResourceManager
-        if (ResourceManager.Instance != null)
+        var resourceManager = Services.Get<IResourceService>();
+        if (resourceManager != null)
         {
-            Destroy(ResourceManager.Instance.gameObject);
+            Destroy((resourceManager as MonoBehaviour).gameObject);
         }
         
         // Destroy ZoneManager
-        if (ZoneManager.Instance != null)
+        var zoneService = Services.Get<IZoneService>();
+        if (zoneService != null)
         {
-            Destroy(ZoneManager.Instance.gameObject);
+            Destroy((zoneService as MonoBehaviour).gameObject);
         }
         
         // Destroy EquipmentManager
-        if (EquipmentManager.Instance != null)
+        var equipmentManager = Services.Get<IEquipmentService>();
+        if (equipmentManager != null)
         {
-            Destroy(EquipmentManager.Instance.gameObject);
+            Destroy((equipmentManager as MonoBehaviour).gameObject);
         }
         
         // Destroy AwayActivityManager
-        if (AwayActivityManager.Instance != null)
+        var awayActivityManager = Services.Get<IAwayActivityService>();
+        if (awayActivityManager != null)
         {
-            Destroy(AwayActivityManager.Instance.gameObject);
+            Destroy((awayActivityManager as MonoBehaviour).gameObject);
         }
     }
     

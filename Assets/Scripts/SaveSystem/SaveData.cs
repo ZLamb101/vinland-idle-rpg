@@ -120,9 +120,10 @@ public class SaveData
         }
         
         // Zone
-        if (ZoneManager.Instance != null)
+        var zoneService = Services.Get<IZoneService>();
+        if (zoneService != null)
         {
-            data.currentZoneIndex = ZoneManager.Instance.GetCurrentZoneIndex();
+            data.currentZoneIndex = zoneService.GetCurrentZoneIndex();
         }
         
         // Away activity
@@ -218,9 +219,10 @@ public class SaveData
         // For now, we keep the existing PlayerPrefs-based talent loading
         
         // Zone
-        if (ZoneManager.Instance != null)
+        var zoneService = Services.Get<IZoneService>();
+        if (zoneService != null)
         {
-            ZoneManager.Instance.LoadCurrentZone();
+            zoneService.LoadCurrentZone();
         }
     }
 }
