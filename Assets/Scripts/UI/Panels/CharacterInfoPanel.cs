@@ -5,7 +5,7 @@ using TMPro;
 /// Displays character information on the UI.
 /// Automatically updates when CharacterManager data changes.
 /// </summary>
-public class CharacterInfoDisplay : MonoBehaviour
+public class CharacterInfoPanel : MonoBehaviour
 {
     [Header("UI References")]
     public TextMeshProUGUI nameText;

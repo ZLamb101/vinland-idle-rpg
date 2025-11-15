@@ -21,8 +21,8 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     private InventoryItem currentItem;
     private bool isSelected = false;
     
-    // Cached reference to InventoryUI (set by InventoryUI when creating slots)
-    private InventoryUI inventoryUI;
+    // Cached reference to InventoryPanel (set by InventoryPanel when creating slots)
+    private InventoryPanel inventoryPanel;
     
     // Drag and drop
     private GameObject dragIcon;
@@ -74,21 +74,21 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     {
         slotIndex = index;
         
-        // Cache InventoryUI reference (find in parent hierarchy)
-        if (inventoryUI == null)
+        // Cache inventoryPanel reference (find in parent hierarchy)
+        if (inventoryPanel == null)
         {
-            inventoryUI = GetComponentInParent<InventoryUI>();
+            inventoryPanel = GetComponentInParent<InventoryPanel>();
         }
         
         UpdateDisplay();
     }
     
     /// <summary>
-    /// Set the InventoryUI reference (called by InventoryUI when creating slots)
+    /// Set the InventoryPanel reference (called by InventoryPanel when creating slots)
     /// </summary>
-    public void SetInventoryUI(InventoryUI ui)
+    public void SetInventoryPanel(InventoryPanel panel)
     {
-        inventoryUI = ui;
+        inventoryPanel = panel;
     }
     
     public void SetItem(InventoryItem item)
@@ -173,18 +173,18 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     {
         if (currentItem != null && !currentItem.IsEmpty())
         {
-            if (inventoryUI != null)
+            if (inventoryPanel != null)
             {
-                inventoryUI.ShowTooltip(currentItem);
+                inventoryPanel.ShowTooltip(currentItem);
             }
         }
     }
     
     void OnHoverEnd()
     {
-        if (inventoryUI != null)
+        if (inventoryPanel != null)
         {
-            inventoryUI.HideTooltip();
+            inventoryPanel.HideTooltip();
         }
     }
     
@@ -233,9 +233,9 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         if (shopService.SellItem(currentItem, slotIndex))
         {
             // Refresh inventory UI
-            if (inventoryUI != null)
+            if (inventoryPanel != null)
             {
-                inventoryUI.RefreshDisplay();
+                inventoryPanel.RefreshDisplay();
             }
         }
     }
@@ -269,9 +269,9 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
                 characterService.RemoveItemFromInventory(slotIndex, 1);
                 
                 // Refresh inventory UI
-                if (inventoryUI != null)
+                if (inventoryPanel != null)
                 {
-                    inventoryUI.RefreshDisplay();
+                    inventoryPanel.RefreshDisplay();
                 }
             }
         }
@@ -293,9 +293,9 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         
         // Find canvas for drag icon
         dragCanvas = GetComponentInParent<Canvas>();
-        if (dragCanvas == null && inventoryUI != null)
+        if (dragCanvas == null && inventoryPanel != null)
         {
-            dragCanvas = inventoryUI.GetComponentInParent<Canvas>();
+            dragCanvas = inventoryPanel.GetComponentInParent<Canvas>();
         }
         
         if (dragCanvas != null && itemIcon != null && itemIcon.sprite != null)
@@ -322,9 +322,9 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         }
         
         // Notify UI that drag started
-        if (inventoryUI != null)
+        if (inventoryPanel != null)
         {
-            inventoryUI.OnDragStart(slotIndex);
+            inventoryPanel.OnDragStart(slotIndex);
         }
     }
     
@@ -417,9 +417,9 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         }
         
         // Notify UI that drag ended
-        if (inventoryUI != null)
+        if (inventoryPanel != null)
         {
-            inventoryUI.OnDragEnd();
+            inventoryPanel.OnDragEnd();
         }
         
         draggedSlotIndex = -1;

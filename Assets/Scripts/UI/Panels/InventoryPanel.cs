@@ -5,7 +5,7 @@ using TMPro;
 /// <summary>
 /// Manages the inventory UI grid and interactions.
 /// </summary>
-public class InventoryUI : MonoBehaviour
+public class InventoryPanel : MonoBehaviour
 {
     [Header("Inventory Settings")]
     public int gridWidth = 5;
@@ -225,8 +225,8 @@ public class InventoryUI : MonoBehaviour
             
             inventorySlots[i].Initialize(i);
             
-            // Set InventoryUI reference for the slot
-            inventorySlots[i].SetInventoryUI(this);
+            // Set inventoryPanel reference for the slot
+            inventorySlots[i].SetInventoryPanel(this);
         }
     }
     
@@ -364,7 +364,7 @@ public class InventoryUI : MonoBehaviour
         // Warn if some items couldn't be added
         if (!result.success && result.itemsRemaining > 0)
         {
-            Debug.LogWarning($"[InventoryUI] Inventory full! Could only add {result.itemsAdded} of {result.itemsAdded + result.itemsRemaining} {item.itemName}. {result.itemsRemaining} items were lost.");
+            Debug.LogWarning($"[inventoryPanel] Inventory full! Could only add {result.itemsAdded} of {result.itemsAdded + result.itemsRemaining} {item.itemName}. {result.itemsRemaining} items were lost.");
         }
         
         return result.success;

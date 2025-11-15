@@ -31,13 +31,10 @@ public class InventoryToggle : MonoBehaviour
             // Refresh inventory UI when opening inventory
             if (!currentlyShowingInventory)
             {
-                InventoryUI inventoryUI = inventoryPanel.GetComponent<InventoryUI>();
-                if (inventoryUI != null)
+                InventoryPanel invPanel = inventoryPanel.GetComponent<InventoryPanel>();
+                if (invPanel != null)
                 {
-                    inventoryUI.RefreshDisplay();
-                }
-                else
-                {
+                    invPanel.RefreshDisplay();
                 }
             }
         }

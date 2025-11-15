@@ -69,7 +69,7 @@ public class GameBootstrap : MonoBehaviour
         string managerName = customName ?? typeof(T).Name;
         
         // Check if manager already exists (shouldn't happen, but safe)
-        T existing = FindObjectOfType<T>();
+        T existing = FindAnyObjectByType<T>();
         if (existing != null)
         {
             Log($"⚠️  {managerName} already exists, skipping creation");

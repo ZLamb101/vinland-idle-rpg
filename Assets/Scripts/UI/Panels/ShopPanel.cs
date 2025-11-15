@@ -36,8 +36,8 @@ public class ShopPanel : MonoBehaviour
     public TextMeshProUGUI tooltipDescriptionText;
     public Vector2 tooltipOffset = new Vector2(30f, -30f);
     
-    // Cached reference to InventoryUI (for passing to shop slots)
-    private InventoryUI inventoryUI;
+    // Cached reference to inventoryPanel (for passing to shop slots)
+    private InventoryPanel inventoryPanel;
     
     private List<GameObject> currentShopItemSlots = new List<GameObject>();
     private RectTransform tooltipRect;
@@ -49,8 +49,8 @@ public class ShopPanel : MonoBehaviour
     
     void Start()
     {
-        // Cache InventoryUI reference once
-        inventoryUI = ComponentInjector.GetOrFind<InventoryUI>();
+        // Cache inventoryPanel reference once
+        inventoryPanel = ComponentInjector.GetOrFind<InventoryPanel>();
         
         // Get shop service
         shopService = Services.Get<IShopService>();
@@ -223,7 +223,7 @@ public class ShopPanel : MonoBehaviour
                 
                 if (slot != null)
                 {
-                    slot.Initialize(entry, this, inventoryUI);
+                    slot.Initialize(entry, this, inventoryPanel);
                     currentShopItemSlots.Add(slotObj);
                 }
                 else
@@ -339,7 +339,7 @@ public class ShopPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// Get equipment stats text (reused from InventoryUI pattern)
+    /// Get equipment stats text (reused from InventoryPanel pattern)
     /// </summary>
     string GetEquipmentStatsText(EquipmentData equipment)
     {
