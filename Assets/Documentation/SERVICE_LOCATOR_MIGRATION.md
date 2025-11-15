@@ -449,7 +449,14 @@ public class MyPanel : Injectable
   - [x] Migrated all consumer files to use TryGet pattern (SaveData, ReturnToCharacterSelect, CombatManager, CharacterSelectionManager, CharacterManager, CharacterSlot, ResourceManager)
   - [x] Fixed OnDestroy() to check Instance before unregistering
   - [x] Zero .Instance usages in production code
-- [ ] Phase 5.1: Migrate Dialogue System
+- [x] Phase 5.1: Migrate Dialogue System ✅ **COMPLETE**
+  - [x] Created IDialogueService interface with events and control methods
+  - [x] DialogueManager implements IDialogueService and registers with Services
+  - [x] Migrated DialoguePanel.cs with proper event subscription/unsubscription pattern
+  - [x] Migrated NPCPanel.cs to use TryGet pattern
+  - [x] Migrated ShopManager.cs to use TryGet pattern
+  - [x] Fixed OnDestroy() to check Instance before unregistering
+  - [x] Zero .Instance usages in production code
 - [ ] Phase 5.2: Migrate GameLog System
 - [ ] Phase 6: Cleanup & Finalization
 
@@ -466,5 +473,5 @@ public class MyPanel : Injectable
 ---
 
 **Last Updated**: 2025-01-15  
-**Next Phase**: Phase 5 - UI & Utility Systems
+**Next Phase**: Phase 5.2 - GameLog System (Final migration phase!)
 

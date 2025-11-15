@@ -17,15 +17,17 @@ public class DialoguePanel : MonoBehaviour
     [Header("Controls")]
     public Button nextButton; // Button to advance dialogue
     public Button closeButton; // Button to close dialogue
+
+    private IDialogueService dialogueService;
     
     void Start()
     {
         // Subscribe to dialogue events
-        if (DialogueManager.Instance != null)
+        if (Services.TryGet<IDialogueService>(out dialogueService))
         {
-            DialogueManager.Instance.OnDialogueStarted += OnDialogueStarted;
-            DialogueManager.Instance.OnDialogueTextChanged += OnDialogueTextChanged;
-            DialogueManager.Instance.OnDialogueEnded += OnDialogueEnded;
+            dialogueService.OnDialogueStarted += OnDialogueStarted;
+            dialogueService.OnDialogueTextChanged += OnDialogueTextChanged;
+            dialogueService.OnDialogueEnded += OnDialogueEnded;
         }
         
         // Setup buttons
@@ -47,11 +49,11 @@ public class DialoguePanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (DialogueManager.Instance != null)
+        if (Services.TryGet<IDialogueService>(out dialogueService))
         {
-            DialogueManager.Instance.OnDialogueStarted -= OnDialogueStarted;
-            DialogueManager.Instance.OnDialogueTextChanged -= OnDialogueTextChanged;
-            DialogueManager.Instance.OnDialogueEnded -= OnDialogueEnded;
+            dialogueService.OnDialogueStarted -= OnDialogueStarted;
+            dialogueService.OnDialogueTextChanged -= OnDialogueTextChanged;
+            dialogueService.OnDialogueEnded -= OnDialogueEnded;
         }
     }
     
@@ -87,7 +89,7 @@ public class DialoguePanel : MonoBehaviour
     
     void UpdateNextButtonVisibility()
     {
-        if (nextButton != null && DialogueManager.Instance != null)
+        if (nextButton != null && Services.TryGet<IDialogueService>(out dialogueService))
         {
             // Always show the next button (it will handle Next/Close based on state)
             nextButton.gameObject.SetActive(true);
@@ -96,31 +98,31 @@ public class DialoguePanel : MonoBehaviour
             TextMeshProUGUI buttonText = nextButton.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null)
             {
-                buttonText.text = DialogueManager.Instance.HasMoreDialogue() ? "Next" : "Close";
+                buttonText.text = dialogueService.HasMoreDialogue() ? "Next" : "Close";
             }
         }
     }
     
     void OnNextClicked()
     {
-        if (DialogueManager.Instance != null)
+        if (Services.TryGet<IDialogueService>(out dialogueService))
         {
-            if (DialogueManager.Instance.HasMoreDialogue())
+            if (dialogueService.HasMoreDialogue())
             {
-                DialogueManager.Instance.NextDialogue();
+                dialogueService.NextDialogue();
             }
             else
             {
-                DialogueManager.Instance.EndDialogue();
+                dialogueService.EndDialogue();
             }
         }
     }
     
     void OnCloseClicked()
     {
-        if (DialogueManager.Instance != null)
+        if (Services.TryGet<IDialogueService>(out dialogueService))
         {
-            DialogueManager.Instance.EndDialogue();
+            dialogueService.EndDialogue();
         }
     }
 }

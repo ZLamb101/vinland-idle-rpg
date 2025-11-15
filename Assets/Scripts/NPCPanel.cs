@@ -114,9 +114,9 @@ public class NPCPanel : MonoBehaviour
             return;
         }
         
-        if (DialogueManager.Instance != null)
+        if (Services.TryGet<IDialogueService>(out var dialogueService))
         {
-            DialogueManager.Instance.StartDialogue(npcData);
+            dialogueService.StartDialogue(npcData);
         }
         else
         {
