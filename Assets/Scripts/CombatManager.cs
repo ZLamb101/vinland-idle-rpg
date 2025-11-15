@@ -125,7 +125,12 @@ public class CombatManager : MonoBehaviour, ICombatService
     
     void OnDestroy()
     {
-        Services.Unregister<ICombatService>();
+        // Only unregister if we're the actual instance
+        if (Instance == this)
+        {
+            Services.Unregister<ICombatService>();
+            Instance = null;
+        }
     }
     
     /// <summary>

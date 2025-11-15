@@ -24,6 +24,8 @@ public class TalentManager : MonoBehaviour, ITalentService
     public event Action<int> OnTalentPointsChanged;
     public event Action<TalentData, int> OnTalentUnlocked; // Talent, new rank
     public event Action OnTalentBonusesRecalculated;
+
+    private ICharacterService characterService;
     
     void Awake()
     {
@@ -42,10 +44,11 @@ public class TalentManager : MonoBehaviour, ITalentService
     
     void Start()
     {
+        characterService = Services.Get<ICharacterService>();
         // Subscribe to level up events
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            CharacterManager.Instance.OnLevelChanged += OnPlayerLevelUp;
+            characterService.OnLevelChanged += OnPlayerLevelUp;
         }
         
         RecalculateBonuses();
@@ -53,9 +56,16 @@ public class TalentManager : MonoBehaviour, ITalentService
     
     void OnDestroy()
     {
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            CharacterManager.Instance.OnLevelChanged -= OnPlayerLevelUp;
+            characterService.OnLevelChanged -= OnPlayerLevelUp;
+        }
+        
+        // Only unregister if we're the actual instance
+        if (Instance == this)
+        {
+            Services.Unregister<ITalentService>();
+            Instance = null;
         }
     }
     

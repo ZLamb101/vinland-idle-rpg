@@ -84,12 +84,16 @@ public class GameLog : MonoBehaviour, IGameLogService
     
     void OnDestroy()
     {
-        // Unregister from service locator
-        Services.Unregister<IGameLogService>();
-        
         // Unsubscribe from CharacterManager events
         if (characterService != null)
             characterService.OnLevelUp -= OnLevelUp;
+        
+        // Only unregister if we're the actual instance
+        if (Instance == this)
+        {
+            Services.Unregister<IGameLogService>();
+            Instance = null;
+        }
     }
     
     private void SetupContentContainer()

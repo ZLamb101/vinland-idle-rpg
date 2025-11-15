@@ -36,8 +36,12 @@ public class DialogueManager : MonoBehaviour, IDialogueService
     
     void OnDestroy()
     {
-        // Unregister from service locator
-        Services.Unregister<IDialogueService>();
+        // Only unregister if we're the actual instance
+        if (Instance == this)
+        {
+            Services.Unregister<IDialogueService>();
+            Instance = null;
+        }
     }
     
     /// <summary>

@@ -39,17 +39,17 @@ public class ReturnToCharacterSelect : MonoBehaviour
         }
         
         // Stop gathering when leaving (to prevent gathering continuing in background)
-        if (ResourceManager.Instance != null)
+        var resourceService = Services.Get<IResourceService>();
+        if (resourceService != null)
         {
-            ResourceManager.Instance.StopGathering();
+            resourceService.StopGathering();
         }
         
         // Don't end combat/activity here - just save the state
         // Combat/activity will be cleared when entering a new character
         
         // Save current zone per character slot before leaving
-        var zoneService = Services.Get<IZoneService>();
-        if (zoneService != null)
+        if (Services.TryGet<IZoneService>(out var zoneService))
         {
             int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
             if (currentSlot >= 0)
@@ -116,13 +116,14 @@ public class ReturnToCharacterSelect : MonoBehaviour
         {
             Destroy((resourceManager as MonoBehaviour).gameObject);
         }
-        
-        // Destroy ZoneManager
-        var zoneService = Services.Get<IZoneService>();
-        if (zoneService != null)
+
+        // Destroy TalentManager
+        var talentManager = Services.Get<ITalentService>();
+        if (talentManager != null)
         {
-            Destroy((zoneService as MonoBehaviour).gameObject);
+            Destroy((talentManager as MonoBehaviour).gameObject);
         }
+        
         
         // Destroy EquipmentManager
         var equipmentManager = Services.Get<IEquipmentService>();

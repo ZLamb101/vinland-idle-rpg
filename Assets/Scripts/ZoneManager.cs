@@ -38,7 +38,13 @@ public class ZoneManager : MonoBehaviour, IZoneService
 
     void OnDestroy()
     {
-        Services.Unregister<IZoneService>();
+        // Only unregister if we're the actual instance
+        // This prevents duplicate ZoneManagers from unregistering the service
+        if (Instance == this)
+        {
+            Services.Unregister<IZoneService>();
+            Instance = null;
+        }
     }
     
     void Start()
@@ -48,9 +54,6 @@ public class ZoneManager : MonoBehaviour, IZoneService
         {
             LoadZonesFromResources();
         }
-        
-        // Load current zone from save data or start with starting zone
-        LoadCurrentZone();
     }
     
     /// <summary>
@@ -87,6 +90,8 @@ public class ZoneManager : MonoBehaviour, IZoneService
     /// </summary>
     public void LoadCurrentZone()
     {
+        Debug.Log("[ZoneManager] LoadCurrentZone() called");
+        
         // Check if zones are configured (allZones array is assigned)
         if (allZones == null || allZones.Length == 0)
         {
@@ -117,10 +122,12 @@ public class ZoneManager : MonoBehaviour, IZoneService
         {
             currentZoneIndex = savedIndex;
             currentZone = allZones[currentZoneIndex];
+            Debug.Log($"[ZoneManager] Loaded zone for slot {currentSlot}: {currentZone.zoneName} (index {currentZoneIndex})");
         }
         else if (startingZone != null)
         {
             SetCurrentZone(startingZone);
+            Debug.Log($"[ZoneManager] No saved zone, using starting zone: {startingZone.zoneName}");
         }
         else
         {
@@ -128,6 +135,7 @@ public class ZoneManager : MonoBehaviour, IZoneService
             if (allZones.Length > 0 && allZones[0] != null)
             {
                 SetCurrentZone(allZones[0]);
+                Debug.Log($"[ZoneManager] No saved zone, defaulting to first zone: {allZones[0].zoneName}");
             }
             else
             {
@@ -181,8 +189,12 @@ public class ZoneManager : MonoBehaviour, IZoneService
         
         if (currentZone != null)
         {
-            var characterService = Services.Get<ICharacterService>();
-            int playerLevel = characterService != null ? characterService.GetLevel() : 1;
+            int playerLevel = 1; // Default level
+            if (Services.TryGet<ICharacterService>(out var characterService))
+            {
+                playerLevel = characterService.GetLevel();
+            }
+            
             QuestData[] availableQuests = currentZone.GetAvailableQuests(playerLevel);
             OnQuestsChanged?.Invoke(availableQuests);
         }
@@ -195,8 +207,11 @@ public class ZoneManager : MonoBehaviour, IZoneService
         ZoneData nextZone = allZones[currentZoneIndex + 1];
         if (nextZone == null) return false;
         
-        var characterService = Services.Get<ICharacterService>();
-        int playerLevel = characterService != null ? characterService.GetLevel() : 1;
+        int playerLevel = 1; // Default level
+        if (Services.TryGet<ICharacterService>(out var characterService))
+        {
+            playerLevel = characterService.GetLevel();
+        }
         
         return nextZone.CanAccess(playerLevel, currentZone);
     }

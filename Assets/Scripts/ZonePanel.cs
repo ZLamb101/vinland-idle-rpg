@@ -47,14 +47,26 @@ public class ZonePanel : MonoBehaviour
 
     void Start()
     {
-        //Get Zone Service
-        zoneService = Services.Get<IZoneService>();
+        //Get Zone Service - if it doesn't exist, create ZoneManager
+        if (!Services.TryGet<IZoneService>(out zoneService))
+        {
+            Debug.LogWarning("[ZonePanel] ZoneService not found, creating ZoneManager...");
+            GameObject zoneManagerObj = new GameObject("ZoneManager");
+            ZoneManager zoneManager = zoneManagerObj.AddComponent<ZoneManager>();
+            // ZoneManager.Awake() will register itself with Services
+            
+            // Try again after a frame to let Awake() run
+            StartCoroutine(WaitForZoneManager());
+            return; // Exit early, WaitForZoneManager will reinitialize everything
+        }
 
         // Subscribe to zone changes
         if (zoneService != null)
         {
             zoneService.OnZoneChanged += OnZoneChanged;
             zoneService.OnQuestsChanged += OnQuestsChanged;
+            
+            Debug.Log("[ZonePanel] Subscribed to zone events");
         }
         else
         {
@@ -84,12 +96,20 @@ public class ZonePanel : MonoBehaviour
             ZoneData currentZone = zoneService.GetCurrentZone();
             if (currentZone != null)
             {
+                Debug.Log($"[ZonePanel] Current zone already loaded: {currentZone.zoneName}");
                 InitializeQuestsForZone(currentZone);
+            }
+            else
+            {
+                Debug.Log("[ZonePanel] No current zone yet, will wait for OnZoneChanged event");
             }
         }
         
         // Update display after everything is initialized
+        // This will display the zone if it's already loaded, or wait for OnZoneChanged if not
         UpdateZoneDisplay();
+        
+        Debug.Log("[ZonePanel] Start() completed");
     }
 
     System.Collections.IEnumerator WaitForZoneManager()
@@ -97,11 +117,41 @@ public class ZonePanel : MonoBehaviour
         // Wait a frame for ZoneManager to initialize
         yield return null;
 
-        if (zoneService != null)
+        // Try to get the service again
+        if (Services.TryGet<IZoneService>(out zoneService))
         {
+            Debug.Log("[ZonePanel] ZoneService found after waiting");
+            
             zoneService.OnZoneChanged += OnZoneChanged;
             zoneService.OnQuestsChanged += OnQuestsChanged;
+            
+            // Setup navigation buttons
+            if (previousZoneButton != null)
+                previousZoneButton.onClick.AddListener(GoToPreviousZone);
+
+            if (nextZoneButton != null)
+                nextZoneButton.onClick.AddListener(GoToNextZone);
+
+            // Setup quest icon button
+            if (questIconButton != null)
+                questIconButton.onClick.AddListener(ToggleQuestZone);
+            
+            UpdateNavigationButtons();
+            InitializeQuestPanel();
+            
+            // Initialize quests for current zone
+            ZoneData currentZone = zoneService.GetCurrentZone();
+            if (currentZone != null)
+            {
+                Debug.Log($"[ZonePanel] Current zone after waiting: {currentZone.zoneName}");
+                InitializeQuestsForZone(currentZone);
+            }
+            
             UpdateZoneDisplay();
+        }
+        else
+        {
+            Debug.LogError("[ZonePanel] ZoneService still not found after waiting!");
         }
     }
 
@@ -119,16 +169,16 @@ public class ZonePanel : MonoBehaviour
 
     void OnZoneChanged(ZoneData zone)
     {
+        Debug.Log($"[ZonePanel] OnZoneChanged event fired: {(zone != null ? zone.zoneName : "null")}");
+        
         // Stop gathering when switching zones
-        var resourceService = Services.Get<IResourceService>();
-        if (resourceService != null && resourceService.IsGathering())
+        if (Services.TryGet<IResourceService>(out var resourceService) && resourceService.IsGathering())
         {
             resourceService.StopGathering();
         }
         
         // Close shop when switching zones
-        var shopService = Services.Get<IShopService>();
-        if (shopService != null && shopService.IsShopOpen())
+        if (Services.TryGet<IShopService>(out var shopService) && shopService.IsShopOpen())
         {
             shopService.CloseShop();
         }
@@ -148,14 +198,18 @@ public class ZonePanel : MonoBehaviour
     {
         if (zoneService == null)
         {
+            Debug.Log("[ZonePanel] UpdateZoneDisplay() - zoneService is null");
             return;
         }
 
         ZoneData currentZone = zoneService.GetCurrentZone();
         if (currentZone == null)
         {
+            Debug.Log("[ZonePanel] UpdateZoneDisplay() - currentZone is null");
             return;
         }
+
+        Debug.Log($"[ZonePanel] UpdateZoneDisplay() - Displaying zone: {currentZone.zoneName}");
 
         // Update zone info
         if (zoneNameText != null)
@@ -176,13 +230,18 @@ public class ZonePanel : MonoBehaviour
         }
 
         // Update monster display - spawn monster panels dynamically
+        Debug.Log("[ZonePanel] Updating monster display...");
         UpdateMonsterDisplay(currentZone);
 
         // Update resource display - spawn resource panels dynamically
+        Debug.Log("[ZonePanel] Updating resource display...");
         UpdateResourceDisplay(currentZone);
 
         // Update NPC display - spawn NPC panels dynamically
+        Debug.Log("[ZonePanel] Updating NPC display...");
         UpdateNPCDisplay(currentZone);
+        
+        Debug.Log("[ZonePanel] UpdateZoneDisplay() completed");
     }
 
     void UpdateNavigationButtons()

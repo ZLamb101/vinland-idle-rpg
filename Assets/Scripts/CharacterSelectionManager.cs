@@ -60,10 +60,11 @@ public class CharacterSelectionManager : MonoBehaviour
         }
         
         // Ensure ZoneManager exists (for checking zone information)
-        if (ZoneManager.Instance == null)
+        if (!Services.TryGet<IZoneService>(out var zoneService))
         {
             GameObject zoneManagerObj = new GameObject("ZoneManager");
-            zoneManagerObj.AddComponent<ZoneManager>();
+            zoneService = zoneManagerObj.AddComponent<ZoneManager>();
+            Services.Register<IZoneService>(zoneService);
         }
         
         InitializeSlots();
@@ -457,9 +458,9 @@ public class CharacterSelectionManager : MonoBehaviour
         SaveCharacter(selectedSlotIndex, newChar);
         
         // Set default zone to zone 1-1 (index 0) for new characters
-        if (ZoneManager.Instance != null)
+        if (Services.TryGet<IZoneService>(out var zoneService))
         {
-            ZoneManager.Instance.SetDefaultZoneForSlot(selectedSlotIndex);
+            zoneService.SetDefaultZoneForSlot(selectedSlotIndex);
         }
         else
         {
@@ -572,9 +573,9 @@ public class CharacterSelectionManager : MonoBehaviour
                 if (selectedHeroZoneText != null)
                 {
                     string zoneText = "";
-                    if (ZoneManager.Instance != null)
+                    if (Services.TryGet<IZoneService>(out var zoneService))
                     {
-                        zoneText = ZoneManager.Instance.GetZoneNameForSlot(selectedSlotIndex);
+                        zoneText = zoneService.GetZoneNameForSlot(selectedSlotIndex);
                     }
                     selectedHeroZoneText.text = !string.IsNullOrEmpty(zoneText) ? $"Zone: {zoneText}" : "";
                 }

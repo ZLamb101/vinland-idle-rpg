@@ -437,7 +437,12 @@ public class MyPanel : Injectable
   - [x] Migrated CharacterSelectionManager.cs (one-off service calls)
   - [x] Migrated SaveData.cs (one-off service calls)
   - [x] Migrated ReturnToCharacterSelect.cs (service-based cleanup)
-- [ ] Phase 4.2: Migrate Resource System
+  - [x] Fixed singleton conflict issue with OnDestroy() checks
+  - [x] Implemented TryGet pattern for optional services
+- [x] Phase 4.2: Migrate Resource System ✅ **COMPLETE**
+  - [x] ResourceManager.cs already implements IResourceService and registers with Services
+  - [x] ResourcePanel.cs uses service references
+  - [x] Fixed OnDestroy() to check Instance before unregistering
 - [ ] Phase 4.3: Migrate Away Activity System
 - [ ] Phase 5.1: Migrate Dialogue System
 - [ ] Phase 5.2: Migrate GameLog System

@@ -119,9 +119,8 @@ public class SaveData
             }
         }
         
-        // Zone
-        var zoneService = Services.Get<IZoneService>();
-        if (zoneService != null)
+        // Zone - Use TryGet for consistency
+        if (Services.TryGet<IZoneService>(out var zoneService))
         {
             data.currentZoneIndex = zoneService.GetCurrentZoneIndex();
         }
@@ -218,9 +217,8 @@ public class SaveData
         // Talents (would need to implement LoadTalentData in TalentManager)
         // For now, we keep the existing PlayerPrefs-based talent loading
         
-        // Zone
-        var zoneService = Services.Get<IZoneService>();
-        if (zoneService != null)
+        // Zone - Use TryGet since ZoneManager might not exist yet during early loading
+        if (Services.TryGet<IZoneService>(out var zoneService))
         {
             zoneService.LoadCurrentZone();
         }

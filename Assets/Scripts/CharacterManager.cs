@@ -76,8 +76,12 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     
     void OnDestroy()
     {
-        // Unregister from service locator
-        Services.Unregister<ICharacterService>();
+        // Only unregister if we're the actual instance
+        if (Instance == this)
+        {
+            Services.Unregister<ICharacterService>();
+            Instance = null;
+        }
     }
     
     void OnApplicationQuit()
