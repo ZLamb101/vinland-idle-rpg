@@ -1,43 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 /// <summary>
-/// Represents a single monster instance in combat
-/// </summary>
-[System.Serializable]
-public class CombatMonsterInstance
-{
-    public MonsterData monsterData;
-    public float currentHealth;
-    public float maxHealth;
-    public float attackDamage;
-    public float attackSpeed;
-    public float attackTimer;
-    public bool isAttackInProgress;
-    public int index; // Index in the active monsters list
-    
-    public CombatMonsterInstance(MonsterData data, int idx)
-    {
-        monsterData = data;
-        index = idx;
-        maxHealth = data.health;
-        currentHealth = maxHealth;
-        attackDamage = data.attackDamage;
-        attackSpeed = data.attackSpeed;
-        attackTimer = 0f;
-        isAttackInProgress = false;
-    }
-    
-    public bool IsAlive()
-    {
-        return currentHealth > 0f;
-    }
-}
-
-/// <summary>
-/// Singleton manager for auto-battle combat system.
+/// Manager for auto-battle combat system.
 /// Handles combat state, attack timers, and damage calculation.
 /// </summary>
 public class CombatManager : MonoBehaviour, ICombatService
@@ -113,7 +79,6 @@ public class CombatManager : MonoBehaviour, ICombatService
 
     void Start()
     {
-        // GameLog is optional (only exists in scenes with log UI)
         Services.TryGet<IGameLogService>(out gameLogService);
         characterService = Services.Get<ICharacterService>();
     }
@@ -147,12 +112,6 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (currentState == CombatState.Fighting)
         {
             UpdateCombat();
-            
-            // Handle Tab key for target cycling (using new Input System)
-            if (Keyboard.current != null && Keyboard.current.tabKey.wasPressedThisFrame)
-            {
-                CycleTarget();
-            }
         }
     }
     

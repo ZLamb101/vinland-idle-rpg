@@ -9199,6 +9199,7 @@ GameObject:
   - component: {fileID: 964803844}
   - component: {fileID: 964803843}
   - component: {fileID: 964803842}
+  - component: {fileID: 964803845}
   m_Layer: 5
   m_Name: CombatPanel
   m_TagString: Untagged
@@ -9295,6 +9296,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 964803840}
   m_CullTransparentMesh: 1
+--- !u!114 &964803845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 964803840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64c46f63ed4aecc409dd300f4f627ff4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatInputHandler
 --- !u!1 &966965489
 GameObject:
   m_ObjectHideFlags: 0
