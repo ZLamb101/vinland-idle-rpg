@@ -53,7 +53,12 @@ public class ResourceManager : MonoBehaviour, IResourceService
 
     void OnDestroy()
     {
-        Services.Unregister<IResourceService>();
+        // Only unregister if we're the actual instance
+        if (instance == this)
+        {
+            Services.Unregister<IResourceService>();
+            instance = null;
+        }
     }
     
     void Update()

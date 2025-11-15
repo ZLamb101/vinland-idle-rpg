@@ -47,32 +47,17 @@ public class ZonePanel : MonoBehaviour
 
     void Start()
     {
-        //Get Zone Service - if it doesn't exist, create ZoneManager
+        // Get Zone Service - should always exist due to Bootstrap scene
         if (!Services.TryGet<IZoneService>(out zoneService))
         {
-            Debug.LogWarning("[ZonePanel] ZoneService not found, creating ZoneManager...");
-            GameObject zoneManagerObj = new GameObject("ZoneManager");
-            ZoneManager zoneManager = zoneManagerObj.AddComponent<ZoneManager>();
-            // ZoneManager.Awake() will register itself with Services
-            
-            // Try again after a frame to let Awake() run
-            StartCoroutine(WaitForZoneManager());
-            return; // Exit early, WaitForZoneManager will reinitialize everything
+            Debug.LogError("[ZonePanel] ZoneService not found! Did Bootstrap scene run? Check Build Settings.");
+            return;
         }
 
         // Subscribe to zone changes
-        if (zoneService != null)
-        {
-            zoneService.OnZoneChanged += OnZoneChanged;
-            zoneService.OnQuestsChanged += OnQuestsChanged;
-            
-            Debug.Log("[ZonePanel] Subscribed to zone events");
-        }
-        else
-        {
-            // Try to initialize display anyway (ZoneManager might set currentZone in its Start)
-            StartCoroutine(WaitForZoneManager());
-        }
+        zoneService.OnZoneChanged += OnZoneChanged;
+        zoneService.OnQuestsChanged += OnQuestsChanged;
+        Debug.Log("[ZonePanel] Subscribed to zone events");
         
         // Setup navigation buttons
         if (previousZoneButton != null)

@@ -503,8 +503,14 @@ All 10 managers now use the Service Locator pattern with proper interfaces, regi
 - **Registration**: Managers self-register in `Awake()`, auto-cleanup in `OnDestroy()`
 - **Singleton Safety**: Internal singleton pattern prevents duplicates while external code uses service locator
 
+### Next Steps - Bootstrap Scene (Recommended):
+- ✅ **Code Complete**: `GameBootstrap.cs` created, all managers have `DontDestroyOnLoad()`
+- ⏳ **Unity Setup Required**: Follow `BOOTSTRAP_SETUP_INSTRUCTIONS.md` for 10-minute setup
+- 📚 **Documentation**: See `BOOTSTRAP_SCENE_GUIDE.md` for detailed explanation
+
+**Why Bootstrap?** Guarantees all managers exist before any scene loads, eliminating race conditions.
+
 ### Optional Future Enhancements:
-- [ ] Implement Bootstrap scene for centralized manager creation (see BOOTSTRAP_SCENE_GUIDE.md)
 - [ ] Add `Services.Require<T>()` extension that throws if service not found
 - [ ] Create service dependency injection for MonoBehaviours
 - [ ] Add service lifetime management (transient, scoped, singleton)

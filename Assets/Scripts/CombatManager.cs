@@ -131,7 +131,8 @@ public class CombatManager : MonoBehaviour, ICombatService
 
     void Start()
     {
-        gameLogService = Services.Get<IGameLogService>();
+        // GameLog is optional (only exists in scenes with log UI)
+        Services.TryGet<IGameLogService>(out gameLogService);
         characterService = Services.Get<ICharacterService>();
     }
     

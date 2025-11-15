@@ -52,21 +52,8 @@ public class CharacterSelectionManager : MonoBehaviour
     
     void Start()
     {
-        // Ensure AwayActivityManager exists (for checking activity status)
-        if (!Services.TryGet<IAwayActivityService>(out var awayActivityService))
-        {
-            GameObject awayManagerObj = new GameObject("AwayActivityManager");
-            awayActivityService = awayManagerObj.AddComponent<AwayActivityManager>();
-            //Services.Register<IAwayActivityService>(awayActivityService);
-        }
-        
-        // Ensure ZoneManager exists (for checking zone information)
-        if (!Services.TryGet<IZoneService>(out var zoneService))
-        {
-            GameObject zoneManagerObj = new GameObject("ZoneManager");
-            zoneService = zoneManagerObj.AddComponent<ZoneManager>();
-            //Services.Register<IZoneService>(zoneService);
-        }
+        // Bootstrap scene creates all managers - they should already exist
+        // If services aren't found, Bootstrap scene didn't run (check Build Settings)
         
         InitializeSlots();
         LoadAllCharacters();

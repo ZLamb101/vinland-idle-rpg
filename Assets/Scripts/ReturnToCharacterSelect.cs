@@ -84,60 +84,43 @@ public class ReturnToCharacterSelect : MonoBehaviour
             }
         }
         
-        // Destroy persistent managers before returning to character selection
-        // This ensures clean slate for loading a different character
-        DestroyPersistentManagers();
+        // Prepare managers for character switch (reset state, but keep managers alive)
+        PrepareForCharacterSwitch();
         
         // Load character selection scene
         SceneManager.LoadScene(characterSceneName);
     }
     
-    void DestroyPersistentManagers()
+    /// <summary>
+    /// Reset character-specific state in managers without destroying them.
+    /// Managers are created by Bootstrap and persist for the entire game session.
+    /// </summary>
+    void PrepareForCharacterSwitch()
     {
-        Debug.Log("[ReturnToCharacterSelect] Cleaning up persistent managers for character switch");
+        Debug.Log("[ReturnToCharacterSelect] Preparing managers for character switch (resetting state)");
         
-        // Destroy CharacterManager
-        var characterManager = Services.Get<ICharacterService>();
-        if (characterManager != null)
+        // Stop any active combat
+        if (Services.TryGet<ICombatService>(out var combatService))
         {
-            Destroy((characterManager as MonoBehaviour).gameObject);
+            combatService.EndCombat();
         }
         
-        // Destroy CombatManager
-        var combatManager = Services.Get<ICombatService>();
-        if (combatManager != null)
+        // Stop any gathering activity
+        if (Services.TryGet<IResourceService>(out var resourceService))
         {
-            Destroy((combatManager as MonoBehaviour).gameObject);
+            resourceService.StopGathering();
         }
         
-        // Destroy ResourceManager
-        var resourceManager = Services.Get<IResourceService>();
-        if (resourceManager != null)
+        // Stop away activity tracking (already saved above)
+        if (Services.TryGet<IAwayActivityService>(out var awayActivityService))
         {
-            Destroy((resourceManager as MonoBehaviour).gameObject);
-        }
-
-        // Destroy TalentManager
-        var talentManager = Services.Get<ITalentService>();
-        if (talentManager != null)
-        {
-            Destroy((talentManager as MonoBehaviour).gameObject);
+            awayActivityService.StopActivity();
         }
         
+        // Note: CharacterManager will be reset when a new character loads via CharacterLoader
+        // The manager itself persists, only the character data changes
         
-        // Destroy EquipmentManager
-        var equipmentManager = Services.Get<IEquipmentService>();
-        if (equipmentManager != null)
-        {
-            Destroy((equipmentManager as MonoBehaviour).gameObject);
-        }
-        
-        // Destroy AwayActivityManager
-        var awayActivityManager = Services.Get<IAwayActivityService>();
-        if (awayActivityManager != null)
-        {
-            Destroy((awayActivityManager as MonoBehaviour).gameObject);
-        }
+        Debug.Log("[ReturnToCharacterSelect] ✓ State reset complete - managers remain active for next character");
     }
     
     void SaveCharacterManually()

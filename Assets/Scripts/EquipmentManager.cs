@@ -51,6 +51,16 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         characterService = Services.Get<ICharacterService>();
     }
 
+    void OnDestroy()
+    {
+        // Only unregister if we're the actual instance
+        if (instance == this)
+        {
+            Services.Unregister<IEquipmentService>();
+            instance = null;
+        }
+    }
+
     /// <summary>
     /// Equip an item to its designated slot
     /// </summary>

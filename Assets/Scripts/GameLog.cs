@@ -51,6 +51,9 @@ public class GameLog : MonoBehaviour, IGameLogService
         }
         instance = this;
         
+        // Note: GameLog is a UI component and should NOT use DontDestroyOnLoad
+        // It exists in scenes where the log UI is needed and registers itself
+        
         // Register with service locator
         Services.Register<IGameLogService>(this);
     }

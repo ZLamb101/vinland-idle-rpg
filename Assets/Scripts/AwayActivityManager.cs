@@ -486,6 +486,15 @@ public class AwayActivityManager : MonoBehaviour, IAwayActivityService
                 {
                     string resourceName = PlayerPrefs.GetString(slotPrefix + "ResourceName");
                     currentResource = FindResourceByName(resourceName);
+                    
+                    if (currentResource == null)
+                    {
+                        Debug.LogWarning($"[AwayActivity] Failed to find ResourceData for '{resourceName}'. Rewards will be calculated without resource details.");
+                    }
+                    else
+                    {
+                        Debug.Log($"[AwayActivity] Loaded resource: {currentResource.resourceName}");
+                    }
                 }
             }
             else if (currentActivity == AwayActivityType.Fighting)
@@ -503,10 +512,23 @@ public class AwayActivityManager : MonoBehaviour, IAwayActivityService
                         {
                             loadedMonsters.Add(monster);
                         }
+                        else
+                        {
+                            Debug.LogWarning($"[AwayActivity] Failed to find MonsterData for '{monsterName}'");
+                        }
                     }
                     
                     currentMonsters = loadedMonsters.Count > 0 ? loadedMonsters.ToArray() : null;
                     mobCount = PlayerPrefs.GetInt(slotPrefix + "MobCount", 1);
+                    
+                    if (currentMonsters != null && currentMonsters.Length > 0)
+                    {
+                        Debug.Log($"[AwayActivity] Loaded {currentMonsters.Length} monster(s)");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[AwayActivity] No monsters loaded. Rewards will be calculated without monster details.");
+                    }
                 }
             }
             

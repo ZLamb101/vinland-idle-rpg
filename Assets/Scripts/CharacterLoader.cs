@@ -60,25 +60,15 @@ public class CharacterLoader : MonoBehaviour
     
     void EnsureCharacterManagerExists()
     {
-        // Check if service is already registered
+        // Bootstrap scene creates all managers - CharacterManager should already exist
         if (Services.IsRegistered<ICharacterService>()) 
         {
-            Debug.Log("[CharacterLoader] CharacterService already registered");
+            Debug.Log("[CharacterLoader] CharacterService already registered (via Bootstrap)");
             return;
         }
         
-        // Check if an existing manager exists but hasn't registered yet
-        CharacterManager existingManager = ComponentInjector.GetOrFind<CharacterManager>();
-        if (existingManager != null) 
-        {
-            Debug.Log("[CharacterLoader] Found existing CharacterManager, waiting for it to register");
-            return;
-        }
-        
-        // Create new manager if none exists
-        Debug.Log("[CharacterLoader] Creating new CharacterManager");
-        GameObject managerObj = new GameObject("CharacterManager");
-        CharacterManager manager = managerObj.AddComponent<CharacterManager>();
+        // If we get here, Bootstrap scene didn't run - this is an error
+        Debug.LogError("[CharacterLoader] CharacterManager not found! Bootstrap scene must run first. Check Build Settings.");
     }
     
     System.Collections.IEnumerator RetryLoadAfterDelay()
@@ -197,6 +187,32 @@ public class CharacterLoader : MonoBehaviour
             awayService.GetCurrentMonsters(),
             awayService.GetMobCount()
         );
+        
+        // Fallback: If activity name wasn't set (because resources/monsters couldn't be loaded),
+        // use a generic name based on activity type and PlayerPrefs data
+        if (string.IsNullOrEmpty(rewards.activityName))
+        {
+            if (activity == AwayActivityType.Mining)
+            {
+                rewards.activityName = "Mining";
+            }
+            else if (activity == AwayActivityType.Fighting)
+            {
+                string monsterName = awayService.GetMonsterDisplayNameFromPlayerPrefs(currentSlotIndex);
+                if (!string.IsNullOrEmpty(monsterName))
+                {
+                    rewards.activityName = $"Fighting {monsterName}";
+                }
+                else
+                {
+                    rewards.activityName = "Fighting";
+                }
+            }
+            else
+            {
+                rewards.activityName = "doing Nothing";
+            }
+        }
         
         // Show rewards panel after a short delay to ensure scene is fully loaded
         StartCoroutine(ShowAwayRewardsPanelDelayed(rewards));

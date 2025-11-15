@@ -1,9 +1,21 @@
 # Bootstrap Scene Implementation Guide
 
-**Status**: Not Yet Implemented  
-**Prerequisites**: Complete Service Locator Migration (Phase 6)  
-**Estimated Time**: 2-3 hours  
+**Status**: ✅ Code Complete - Ready for Unity Setup  
+**Prerequisites**: ✅ Service Locator Migration Complete (Phase 6)  
+**Estimated Time**: 10-15 minutes (Unity Editor setup only)  
 **Risk Level**: Low
+
+---
+
+## 🎉 Code Changes Complete!
+
+All required C# code has been created and modified:
+- ✅ `GameBootstrap.cs` created
+- ✅ `CharacterSelectionManager.cs` cleaned up
+- ✅ `ZonePanel.cs` cleaned up
+- ✅ `CharacterLoader.cs` updated
+
+**See `BOOTSTRAP_SETUP_INSTRUCTIONS.md` for step-by-step Unity Editor setup!**
 
 ---
 
@@ -125,7 +137,9 @@ public class GameBootstrap : MonoBehaviour
         
         // UI and utilities
         CreateManager<DialogueManager>("DialogueManager");
-        CreateManager<GameLog>("GameLog");
+        
+        // Note: GameLog is NOT created here - it's a UI component that should
+        // exist in scenes where the log UI is needed. It will register itself.
         
         Log("=== All Managers Created ===");
         Log($"Loading first scene: {firstSceneName}");
@@ -455,6 +469,108 @@ This runs automatically before any scene loads using Unity's `RuntimeInitializeO
 - More reliable initialization
 - Easier to test
 - Industry-standard architecture
+
+---
+
+## Important: UI Components vs Logic Managers
+
+### ✅ Logic Managers (Created by Bootstrap)
+
+These are **pure logic** managers with no UI dependencies:
+- CharacterManager, CombatManager, ZoneManager, ResourceManager
+- EquipmentManager, TalentManager, ShopManager
+- AwayActivityManager, DialogueManager
+
+**Characteristics:**
+- No `public GameObject`, `Button`, `ScrollRect`, etc. fields
+- No Inspector references needed
+- Can be created programmatically via `new GameObject().AddComponent<T>()`
+- Use `DontDestroyOnLoad` to persist across scenes
+
+### ❌ UI Components (NOT Created by Bootstrap)
+
+**GameLog** is a UI component, not a pure logic manager:
+
+```csharp
+public class GameLog : MonoBehaviour, IGameLogService
+{
+    // ❌ These need to be assigned in Unity Inspector!
+    public GameObject logPanel;
+    public ScrollRect scrollRect;
+    public Button toggleButton;
+    public GameObject logEntryPrefab;
+    // ... etc
+}
+```
+
+**Why GameLog is different:**
+- Has UI component references that need Inspector wiring
+- Must be attached to a UI GameObject in the scene
+- Should NOT use `DontDestroyOnLoad` (scene-specific)
+- Registers as `IGameLogService` when scene loads
+- Systems use `Services.TryGet<IGameLogService>()` to check availability
+
+**Usage Pattern:**
+```csharp
+// In CombatManager (or any system that wants to log)
+if (Services.TryGet<IGameLogService>(out var gameLog))
+{
+    gameLog.AddCombatLogEntry("Player attacked!", LogType.Info);
+}
+// Gracefully handles scenes without GameLog UI
+```
+
+---
+
+## Important Design Pattern: Character Switching
+
+### ✅ Managers Persist, Data Changes
+
+With Bootstrap, managers are created once at game start and **never destroyed**. When switching characters:
+
+**The Old Way (Pre-Bootstrap):**
+```csharp
+void ReturnToCharacterSelect()
+{
+    // ❌ Destroy all managers
+    Destroy(CharacterManager.Instance.gameObject);
+    Destroy(CombatManager.Instance.gameObject);
+    Destroy(ResourceManager.Instance.gameObject);
+    // This caused "Service not found" errors!
+}
+```
+
+**The New Way (Post-Bootstrap):**
+```csharp
+void PrepareForCharacterSwitch()
+{
+    // ✅ Keep managers alive, just reset state
+    combatService.EndCombat();
+    resourceService.StopGathering();
+    awayActivityService.StopActivity();
+    // CharacterManager will load new character data via CharacterLoader
+}
+```
+
+### How It Works
+
+1. **Bootstrap creates managers** → They persist forever with `DontDestroyOnLoad`
+2. **Character loads** → `CharacterLoader` loads data into existing `CharacterManager`
+3. **Character switches** → `PrepareForCharacterSwitch()` resets state, keeps managers
+4. **New character loads** → Same managers, different data
+
+### Benefits
+
+✅ **No re-initialization overhead** - Managers stay warm  
+✅ **Services always registered** - No "Service not found" errors  
+✅ **Cleaner state management** - Explicit reset points  
+✅ **Better performance** - No destroy/recreate cycle
+
+### Key Takeaway
+
+> **Managers are Singleton + Service Locator Pattern**  
+> They're created once by Bootstrap and live for the entire game session.  
+> Only the *data* they manage changes when switching characters.
 
 ---
 
