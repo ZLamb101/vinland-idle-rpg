@@ -115,6 +115,13 @@ public class CharacterLoader : MonoBehaviour
         
         Debug.Log($"[CharacterLoader] Initializing character from slot {currentSlotIndex}");
         
+        // Refresh GameLog subscription to new character's events
+        var gameLogService = ServiceMigrationHelper.GetGameLogService();
+        if (gameLogService != null && gameLogService is GameLog gameLog)
+        {
+            gameLog.RefreshCharacterSubscription();
+        }
+        
         var combatService = ServiceMigrationHelper.GetCombatService();
         if (combatService != null && combatService.GetCombatState() != CombatManager.CombatState.Idle)
         {

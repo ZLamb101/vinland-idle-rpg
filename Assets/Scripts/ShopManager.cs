@@ -44,6 +44,16 @@ public class ShopManager : MonoBehaviour, IShopService
         Services.Register<IShopService>(this);
     }
     
+    void OnDestroy()
+    {
+        // Only unregister if we're the actual instance
+        if (Instance == this)
+        {
+            Services.Unregister<IShopService>();
+            Instance = null;
+        }
+    }
+    
     /// <summary>
     /// Open a shop and initialize/refresh stock if needed
     /// </summary>
@@ -209,40 +219,41 @@ public class ShopManager : MonoBehaviour, IShopService
         
         int totalCost = entry.price * quantity;
         
+        // Get character service fresh (don't cache - CharacterManager can be destroyed/recreated)
+        if (!Services.TryGet<ICharacterService>(out var characterService))
+        {
+            Debug.LogError("[ShopManager] CharacterService not available for purchase");
+            return false;
+        }
+        
         // Check if player has enough gold
-        if (CharacterManager.Instance == null || CharacterManager.Instance.GetGold() < totalCost)
+        if (characterService.GetGold() < totalCost)
         {
             return false;
         }
         
-        // Check if player has inventory space
-        if (CharacterManager.Instance != null)
+        // Create item and try to add to inventory
+        InventoryItem itemToAdd = entry.item.CreateInventoryItem(quantity);
+        bool added = characterService.AddItemToInventory(itemToAdd);
+        
+        if (!added)
         {
-            // Create item and try to add to inventory
-            InventoryItem itemToAdd = entry.item.CreateInventoryItem(quantity);
-            bool added = CharacterManager.Instance.AddItemToInventory(itemToAdd);
-            
-            if (!added)
-            {
-                return false;
-            }
-            
-            // Deduct gold
-            CharacterManager.Instance.SpendGold(totalCost);
-            
-            // Reduce stock
-            entry.currentStock -= quantity;
-            
-            // Find entry index for event
-            int entryIndex = currentShop.shopItems.IndexOf(entry);
-            if (entryIndex >= 0)
-            {
-                OnStockChanged?.Invoke(entryIndex);
-            }
-            return true;
+            return false;
         }
         
-        return false;
+        // Deduct gold
+        characterService.SpendGold(totalCost);
+        
+        // Reduce stock
+        entry.currentStock -= quantity;
+        
+        // Find entry index for event
+        int entryIndex = currentShop.shopItems.IndexOf(entry);
+        if (entryIndex >= 0)
+        {
+            OnStockChanged?.Invoke(entryIndex);
+        }
+        return true;
     }
     
     /// <summary>
@@ -252,6 +263,7 @@ public class ShopManager : MonoBehaviour, IShopService
     {
         if (!isShopOpen)
         {
+            Debug.LogWarning("[ShopManager] Cannot sell - shop not open");
             return false;
         }
         
@@ -260,10 +272,17 @@ public class ShopManager : MonoBehaviour, IShopService
             return false;
         }
         
+        // Get character service fresh (don't cache - CharacterManager can be destroyed/recreated)
+        if (!Services.TryGet<ICharacterService>(out var characterService))
+        {
+            Debug.LogError("[ShopManager] CharacterService not available for selling");
+            return false;
+        }
+        
         // Calculate sell value (exact baseValue)
         int sellValue = item.baseValue * item.quantity;
         
-        // Store for buyback
+        // Store for buyback BEFORE removing from inventory (item reference might get cleared)
         buyBackItem = new InventoryItem(item.itemName, item.quantity, item.icon);
         buyBackItem.description = item.description;
         buyBackItem.maxStackSize = item.maxStackSize;
@@ -275,16 +294,10 @@ public class ShopManager : MonoBehaviour, IShopService
         hasBuyBack = true;
         
         // Remove item from inventory
-        if (CharacterManager.Instance != null)
-        {
-            CharacterManager.Instance.RemoveItemFromInventory(slotIndex, item.quantity);
-        }
+        characterService.RemoveItemFromInventory(slotIndex, item.quantity);
         
         // Add gold
-        if (CharacterManager.Instance != null)
-        {
-            CharacterManager.Instance.AddGold(sellValue);
-        }
+        characterService.AddGold(sellValue);
         
         OnBuyBackChanged?.Invoke();
         return true;
@@ -305,39 +318,37 @@ public class ShopManager : MonoBehaviour, IShopService
             return false;
         }
         
+        // Get character service fresh (don't cache - CharacterManager can be destroyed/recreated)
+        if (!Services.TryGet<ICharacterService>(out var characterService))
+        {
+            Debug.LogError("[ShopManager] CharacterService not available for buyback");
+            return false;
+        }
+        
         // Check if player has enough gold
-        if (CharacterManager.Instance == null || CharacterManager.Instance.GetGold() < buyBackPrice)
+        if (characterService.GetGold() < buyBackPrice)
         {
             return false;
         }
         
         // Check if player has inventory space
-        if (CharacterManager.Instance != null)
+        bool added = characterService.AddItemToInventory(buyBackItem);
+        
+        if (!added)
         {
-            bool added = CharacterManager.Instance.AddItemToInventory(buyBackItem);
-            
-            if (!added)
-            {
-                return false;
-            }
-            
-            // Store item name before clearing
-            string itemName = buyBackItem.itemName;
-            int price = buyBackPrice;
-            
-            // Deduct gold
-            CharacterManager.Instance.SpendGold(buyBackPrice);
-            
-            // Clear buyback
-            buyBackItem = null;
-            buyBackPrice = 0;
-            hasBuyBack = false;
-            
-            OnBuyBackChanged?.Invoke();
-            return true;
+            return false;
         }
         
-        return false;
+        // Deduct gold
+        characterService.SpendGold(buyBackPrice);
+        
+        // Clear buyback
+        buyBackItem = null;
+        buyBackPrice = 0;
+        hasBuyBack = false;
+        
+        OnBuyBackChanged?.Invoke();
+        return true;
     }
     
     /// <summary>

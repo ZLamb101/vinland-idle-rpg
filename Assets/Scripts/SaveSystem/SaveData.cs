@@ -56,9 +56,8 @@ public class SaveData
         SaveData data = new SaveData();
         data.saveTime = DateTime.Now.Ticks.ToString();
         
-        // Character data
-        var characterService = Services.Get<ICharacterService>();
-        if (characterService != null)
+        // Character data - Use TryGet since services might be destroyed during shutdown
+        if (Services.TryGet<ICharacterService>(out var characterService))
         {
             CharacterData charData = characterService.GetCharacterData();
             data.characterName = charData.characterName;
@@ -91,9 +90,8 @@ public class SaveData
             }
         }
         
-        // Equipment
-        var equipmentService = Services.Get<IEquipmentService>();
-        if (equipmentService != null)
+        // Equipment - Use TryGet since services might be destroyed during shutdown
+        if (Services.TryGet<IEquipmentService>(out var equipmentService))
         {
             var equipData = equipmentService.GetEquipmentSaveData();
             foreach (var kvp in equipData)
@@ -102,9 +100,8 @@ public class SaveData
             }
         }
         
-        // Talents
-        var talentService = Services.Get<ITalentService>();
-        if (talentService != null)
+        // Talents - Use TryGet since services might be destroyed during shutdown
+        if (Services.TryGet<ITalentService>(out var talentService))
         {
             data.unspentTalentPoints = talentService.GetUnspentPoints();
             data.totalTalentPoints = talentService.GetTotalPoints();
@@ -160,8 +157,7 @@ public class SaveData
     public void ApplyToGameState()
     {
         // Character data
-        var characterService = Services.Get<ICharacterService>();
-        if (characterService != null)
+        if (Services.TryGet<ICharacterService>(out var characterService))
         {
             CharacterData charData = new CharacterData();
             charData.characterName = characterName;
@@ -200,8 +196,7 @@ public class SaveData
         }
         
         // Equipment
-        var equipmentService = Services.Get<IEquipmentService>();
-        if (equipmentService != null && equippedItems != null)
+        if (Services.TryGet<IEquipmentService>(out var equipmentService) && equippedItems != null)
         {
             Dictionary<EquipmentSlot, string> equipDict = new Dictionary<EquipmentSlot, string>();
             foreach (var kvp in equippedItems)

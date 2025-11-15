@@ -19,6 +19,8 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     
     // Cached total stats
     private EquipmentStats totalStats = new EquipmentStats();
+
+    private ICharacterService characterService;
     
     void Awake()
     {
@@ -40,7 +42,12 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
             equippedItems[slot] = null;
         }
     }
-    
+
+    void Start()
+    {
+        characterService = Services.Get<ICharacterService>();
+    }
+
     /// <summary>
     /// Equip an item to its designated slot
     /// </summary>
@@ -49,9 +56,9 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         if (equipment == null) return false;
         
         // Check level requirement
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            int playerLevel = CharacterManager.Instance.GetLevel();
+            int playerLevel = characterService.GetLevel();
             if (playerLevel < equipment.levelRequired)
             {
                 return false;

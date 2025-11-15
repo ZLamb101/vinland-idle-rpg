@@ -49,8 +49,11 @@ public class AnimatedResourceBar : MonoBehaviour
     private float currentAmount = 0f;
     private float maxAmount = 1f;
     
+    private ICharacterService characterService;
+
     void Start()
     {
+        characterService = Services.Get<ICharacterService>();
         InitializeSliders();
         SubscribeToEvents();
     }
@@ -82,20 +85,20 @@ public class AnimatedResourceBar : MonoBehaviour
     
     void SubscribeToEvents()
     {
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
             switch (resourceType)
             {
                 case ResourceType.Health:
-                    CharacterManager.Instance.OnHealthChanged += UpdateHealthBar;
-                    UpdateHealthBar(CharacterManager.Instance.GetCurrentHealth(), 
-                                   CharacterManager.Instance.GetMaxHealth());
+                    characterService.OnHealthChanged += UpdateHealthBar;
+                    UpdateHealthBar(characterService.GetCurrentHealth(), 
+                                   characterService.GetMaxHealth());
                     break;
                     
                 case ResourceType.Experience:
-                    CharacterManager.Instance.OnXPChanged += UpdateXPBar;
-                    CharacterManager.Instance.OnLevelChanged += OnLevelChanged;
-                    UpdateXPBar(CharacterManager.Instance.GetCurrentXP());
+                    characterService.OnXPChanged += UpdateXPBar;
+                    characterService.OnLevelChanged += OnLevelChanged;
+                    UpdateXPBar(characterService.GetCurrentXP());
                     break;
             }
         }
@@ -103,17 +106,17 @@ public class AnimatedResourceBar : MonoBehaviour
     
     void OnDestroy()
     {
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
             switch (resourceType)
             {
                 case ResourceType.Health:
-                    CharacterManager.Instance.OnHealthChanged -= UpdateHealthBar;
+                    characterService.OnHealthChanged -= UpdateHealthBar;
                     break;
                     
                 case ResourceType.Experience:
-                    CharacterManager.Instance.OnXPChanged -= UpdateXPBar;
-                    CharacterManager.Instance.OnLevelChanged -= OnLevelChanged;
+                    characterService.OnXPChanged -= UpdateXPBar;
+                    characterService.OnLevelChanged -= OnLevelChanged;
                     break;
             }
         }
@@ -169,9 +172,9 @@ public class AnimatedResourceBar : MonoBehaviour
     
     void UpdateXPBar(int currentXP)
     {
-        if (CharacterManager.Instance == null) return;
+        if (characterService == null) return;
         
-        int xpNeeded = CharacterManager.Instance.GetXPRequiredForNextLevel();
+        int xpNeeded = characterService.GetXPRequiredForNextLevel();
         currentAmount = currentXP;
         maxAmount = xpNeeded;
         
@@ -195,9 +198,9 @@ public class AnimatedResourceBar : MonoBehaviour
     
     void OnLevelChanged(int newLevel)
     {
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            UpdateXPBar(CharacterManager.Instance.GetCurrentXP());
+            UpdateXPBar(characterService.GetCurrentXP());
         }
     }
     

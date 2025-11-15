@@ -23,9 +23,12 @@ public class QuestPanel : MonoBehaviour
     
     // Static reference to track currently active quest
     private static QuestPanel currentlyActiveQuest = null;
+
+    private ICharacterService characterService;
     
     void Start()
     {
+        characterService = Services.Get<ICharacterService>();
         if (questData == null)
         {
             return;
@@ -43,9 +46,9 @@ public class QuestPanel : MonoBehaviour
         }
         
         // Subscribe to level changes to unlock quests
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            CharacterManager.Instance.OnLevelChanged += OnPlayerLevelChanged;
+            characterService.OnLevelChanged += OnPlayerLevelChanged;
         }
         
         // Initialize quest UI
@@ -57,9 +60,9 @@ public class QuestPanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            CharacterManager.Instance.OnLevelChanged -= OnPlayerLevelChanged;
+            characterService.OnLevelChanged -= OnPlayerLevelChanged;
         }
         
         // Clear active quest reference if this was the active one
@@ -130,9 +133,9 @@ public class QuestPanel : MonoBehaviour
     
     void CheckQuestAvailability()
     {
-        if (CharacterManager.Instance == null || questData == null) return;
+        if (characterService == null || questData == null) return;
         
-        int playerLevel = CharacterManager.Instance.GetLevel();
+        int playerLevel = characterService.GetLevel();
         bool canDoQuest = playerLevel >= questData.levelRequired;
         
         // Enable/disable button based on level requirement
@@ -238,10 +241,10 @@ public class QuestPanel : MonoBehaviour
         if (questData == null) return;
         
         // Add XP and Gold through CharacterManager
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            CharacterManager.Instance.AddXP(questData.xpReward);
-            CharacterManager.Instance.AddGold(questData.goldReward);
+            characterService.AddXP(questData.xpReward);
+            characterService.AddGold(questData.goldReward);
             
             // Add item reward from QuestData
             if (questData.itemReward != null)
@@ -249,7 +252,7 @@ public class QuestPanel : MonoBehaviour
                 InventoryItem itemReward = questData.itemReward.CreateInventoryItem(questData.itemRewardQuantity);
                 
                 // Try to add item to inventory
-                bool itemAdded = CharacterManager.Instance.AddItemToInventory(itemReward);
+                bool itemAdded = characterService.AddItemToInventory(itemReward);
                 if (!itemAdded)
                 {
                 }

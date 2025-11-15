@@ -21,32 +21,34 @@ public class ResourcePanel : MonoBehaviour
     private ResourceData resourceData;
     private RectTransform rectTransform;
     private bool isGathering = false;
+    private IResourceService resourceService;
     
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
-        
+        resourceService = Services.Get<IResourceService>();
+
         // Setup gather button
         if (gatherButton != null)
             gatherButton.onClick.AddListener(OnGatherClicked);
         
         // Subscribe to ResourceManager events
-        if (ResourceManager.Instance != null)
+        if (resourceService != null)
         {
-            ResourceManager.Instance.OnGatheringStateChanged += OnGatheringStateChanged;
-            ResourceManager.Instance.OnResourceChanged += OnResourceChanged;
-            ResourceManager.Instance.OnGatherProgressChanged += OnGatherProgressChanged;
+            resourceService.OnGatheringStateChanged += OnGatheringStateChanged;
+            resourceService.OnResourceChanged += OnResourceChanged;
+            resourceService.OnGatherProgressChanged += OnGatherProgressChanged;
         }
     }
     
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (ResourceManager.Instance != null)
+        if (resourceService != null)
         {
-            ResourceManager.Instance.OnGatheringStateChanged -= OnGatheringStateChanged;
-            ResourceManager.Instance.OnResourceChanged -= OnResourceChanged;
-            ResourceManager.Instance.OnGatherProgressChanged -= OnGatherProgressChanged;
+            resourceService.OnGatheringStateChanged -= OnGatheringStateChanged;
+            resourceService.OnResourceChanged -= OnResourceChanged;
+            resourceService.OnGatherProgressChanged -= OnGatherProgressChanged;
         }
     }
     
@@ -120,29 +122,29 @@ public class ResourcePanel : MonoBehaviour
             return;
         }
         
-        if (ResourceManager.Instance == null)
+        if (resourceService == null)
         {
             return;
         }
         
         // Toggle gathering for this specific resource
-        if (isGathering && ResourceManager.Instance.GetCurrentResource() == resourceData)
+        if (isGathering && resourceService.GetCurrentResource() == resourceData)
         {
             // Currently gathering this resource - stop
-            ResourceManager.Instance.StopGathering();
+            resourceService.StopGathering();
         }
         else
         {
             // Not gathering or gathering different resource - start gathering this one
-            ResourceManager.Instance.StartGathering(resourceData);
+            resourceService.StartGathering(resourceData);
         }
     }
     
     void OnGatheringStateChanged(bool gathering)
     {
         // Check if we're gathering THIS resource
-        bool gatheringThisResource = gathering && ResourceManager.Instance != null && 
-                                     ResourceManager.Instance.GetCurrentResource() == resourceData;
+        bool gatheringThisResource = gathering && resourceService != null && 
+                                     resourceService.GetCurrentResource() == resourceData;
         
         isGathering = gatheringThisResource;
         UpdateGatherButtonState();
@@ -158,8 +160,8 @@ public class ResourcePanel : MonoBehaviour
     {
         // Update state if this panel's resource changed
         bool gatheringThisResource = resource == resourceData && 
-                                     ResourceManager.Instance != null && 
-                                     ResourceManager.Instance.IsGathering();
+                                     resourceService != null && 
+                                     resourceService.IsGathering();
         
         isGathering = gatheringThisResource;
         UpdateGatherButtonState();
@@ -178,8 +180,8 @@ public class ResourcePanel : MonoBehaviour
     void OnGatherProgressChanged(float progress)
     {
         // Only update progress if we're gathering THIS resource
-        if (isGathering && ResourceManager.Instance != null && 
-            ResourceManager.Instance.GetCurrentResource() == resourceData)
+        if (isGathering && resourceService != null && 
+            resourceService.GetCurrentResource() == resourceData)
         {
             if (progressSlider != null)
             {

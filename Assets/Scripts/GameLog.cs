@@ -76,10 +76,25 @@ public class GameLog : MonoBehaviour, IGameLogService
         // Start with game log tab
         SwitchToTab(false);
         
-        // Get character service and subscribe to events
-        characterService = Services.Get<ICharacterService>();
+        // Subscribe to character events
+        RefreshCharacterSubscription();
+    }
+    
+    /// <summary>
+    /// Refresh character service subscription (call when character changes)
+    /// </summary>
+    public void RefreshCharacterSubscription()
+    {
+        // Unsubscribe from old service if it exists
         if (characterService != null)
+            characterService.OnLevelUp -= OnLevelUp;
+        
+        // Get fresh character service (CharacterManager can be destroyed/recreated)
+        if (Services.TryGet<ICharacterService>(out characterService))
+        {
             characterService.OnLevelUp += OnLevelUp;
+            Debug.Log("[GameLog] Subscribed to new character's events");
+        }
     }
     
     void OnDestroy()

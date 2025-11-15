@@ -24,6 +24,9 @@ public class ResourceManager : MonoBehaviour, IResourceService
     public event Action<float> OnGatherProgressChanged; // 0 to 1
     public event Action<int> OnItemsGathered; // Amount of items gathered
     
+    private ICharacterService characterService;
+    private IAwayActivityService awayActivityService;
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -37,6 +40,17 @@ public class ResourceManager : MonoBehaviour, IResourceService
         
         // Register with service locator
         Services.Register<IResourceService>(this);
+    }
+
+    void Start()
+    {
+        characterService = Services.Get<ICharacterService>();
+        awayActivityService = Services.Get<IAwayActivityService>();
+    }
+
+    void OnDestroy()
+    {
+        Services.Unregister<IResourceService>();
     }
     
     void Update()
@@ -69,12 +83,12 @@ public class ResourceManager : MonoBehaviour, IResourceService
         gatherTimer = 0f;
         
         // Register activity with AwayActivityManager
-        if (AwayActivityManager.Instance != null)
+        if (awayActivityService != null)
         {
-            AwayActivityManager.Instance.StartMining(resource);
+            awayActivityService.StartMining(resource);
             
             // Save activity immediately so it shows on character screen
-            AwayActivityManager.Instance.SaveAwayState();
+            awayActivityService.SaveAwayState();
         }
         
         OnGatheringStateChanged?.Invoke(isGathering);
@@ -111,9 +125,9 @@ public class ResourceManager : MonoBehaviour, IResourceService
         if (!isGathering) return;
         
         // Save activity state BEFORE stopping (so we save the mining activity, not "None")
-        if (AwayActivityManager.Instance != null)
+        if (awayActivityService != null)
         {
-            AwayActivityManager.Instance.SaveAwayState();
+            awayActivityService.SaveAwayState();
         }
         
         isGathering = false;
@@ -122,9 +136,9 @@ public class ResourceManager : MonoBehaviour, IResourceService
         currentResource = null;
         
         // Stop tracking activity in AwayActivityManager (after saving)
-        if (AwayActivityManager.Instance != null)
+        if (awayActivityService != null)
         {
-            AwayActivityManager.Instance.StopActivity();
+            awayActivityService.StopActivity();
         }
         
         OnGatheringStateChanged?.Invoke(isGathering);
@@ -158,10 +172,10 @@ public class ResourceManager : MonoBehaviour, IResourceService
         }
         
         // Add items to inventory
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
             InventoryItem items = currentResource.gatheredItem.CreateInventoryItem(currentResource.itemsPerGather);
-            CharacterManager.Instance.AddItemToInventory(items);
+            characterService.AddItemToInventory(items);
             
             OnItemsGathered?.Invoke(currentResource.itemsPerGather);
         }

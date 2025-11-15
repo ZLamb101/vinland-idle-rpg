@@ -101,6 +101,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         public float xpBonus;
         public float goldBonus;
     }
+
+    private IGameLogService gameLogService;
+    private ICharacterService characterService;
     
     void Awake()
     {
@@ -121,6 +124,12 @@ public class CombatManager : MonoBehaviour, ICombatService
         {
             mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
         }
+    }
+
+    void Start()
+    {
+        gameLogService = Services.Get<IGameLogService>();
+        characterService = Services.Get<ICharacterService>();
     }
     
     void OnDestroy()
@@ -204,10 +213,10 @@ public class CombatManager : MonoBehaviour, ICombatService
     public void CalculatePlayerStats()
     {
         // Base stats from character
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            playerMaxHealth = CharacterManager.Instance.GetMaxHealthWithTalents();
-            playerCurrentHealth = CharacterManager.Instance.GetCurrentHealth();
+            playerMaxHealth = characterService.GetMaxHealthWithTalents();
+            playerCurrentHealth = characterService.GetCurrentHealth();
         }
         else
         {
@@ -266,6 +275,8 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         // Create list of monster data to spawn
         List<MonsterData> monstersToSpawn = new List<MonsterData>();
+
+        
         
         for (int i = 0; i < count; i++)
         {
@@ -279,9 +290,9 @@ public class CombatManager : MonoBehaviour, ICombatService
             monstersToSpawn.Add(selectedMonster);
             
             // Log monster spawn
-            if (GameLog.Instance != null)
+            if (gameLogService != null)
             {
-                GameLog.Instance.AddCombatLogEntry($"Monster {i + 1}: {selectedMonster.monsterName} spawned!", LogType.Info);
+                gameLogService.AddCombatLogEntry($"Monster {i + 1}: {selectedMonster.monsterName} spawned!", LogType.Info);
             }
             
             OnMonsterSpawned?.Invoke(i);
@@ -307,10 +318,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // Log combat start
-        if (GameLog.Instance != null && monstersToSpawn.Count > 0)
+        if (gameLogService != null && monstersToSpawn.Count > 0)
         {
             string monsterNames = string.Join(", ", monstersToSpawn.ConvertAll(m => m.monsterName));
-            GameLog.Instance.AddCombatLogEntry($"Combat started against {monstersToSpawn.Count} monster(s): {monsterNames}!", LogType.Info);
+            gameLogService.AddCombatLogEntry($"Combat started against {monstersToSpawn.Count} monster(s): {monsterNames}!", LogType.Info);
         }
         
         // Reset timers
@@ -576,10 +587,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         OnPlayerDamageDealt?.Invoke(damage); // Fire event for damage dealt BY player TO monsters (shows above enemies)
         
         // Log combat message
-        if (GameLog.Instance != null && target.monsterData != null)
+        if (gameLogService != null && target.monsterData != null)
         {
             string critText = (damage > playerAttackDamage) ? " (Critical!)" : "";
-            GameLog.Instance.AddCombatLogEntry($"You deal {damage:F0} damage to {target.monsterData.monsterName}{critText}", LogType.Info);
+            gameLogService.AddCombatLogEntry($"You deal {damage:F0} damage to {target.monsterData.monsterName}{critText}", LogType.Info);
         }
         
         if (target.currentHealth <= 0)
@@ -641,9 +652,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (stats.dodge > 0 && UnityEngine.Random.value <= stats.dodge)
         {
             // Log dodge message
-            if (GameLog.Instance != null && monster.monsterData != null)
+            if (gameLogService != null && monster.monsterData != null)
             {
-                GameLog.Instance.AddCombatLogEntry($"{monster.monsterData.monsterName} attacks, but you dodge!", LogType.Success);
+                gameLogService.AddCombatLogEntry($"{monster.monsterData.monsterName} attacks, but you dodge!", LogType.Success);
             }
             
             return; // Attack dodged, no damage taken
@@ -660,18 +671,18 @@ public class CombatManager : MonoBehaviour, ICombatService
         OnPlayerDamageTaken?.Invoke(damage); // Fire event for damage dealt TO player BY monsters (shows player damage)
         
         // Log combat message
-        if (GameLog.Instance != null && monster.monsterData != null)
+        if (gameLogService != null && monster.monsterData != null)
         {
-            GameLog.Instance.AddCombatLogEntry($"{monster.monsterData.monsterName} hits you for {damage:F0} damage", LogType.Warning);
+            gameLogService.AddCombatLogEntry($"{monster.monsterData.monsterName} hits you for {damage:F0} damage", LogType.Warning);
         }
         
         // Sync with CharacterManager
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
-            float damageTaken = CharacterManager.Instance.GetCurrentHealth() - playerCurrentHealth;
+            float damageTaken = characterService.GetCurrentHealth() - playerCurrentHealth;
             if (damageTaken > 0)
             {
-                CharacterManager.Instance.TakeDamage(damageTaken);
+                characterService.TakeDamage(damageTaken);
             }
         }
         
@@ -691,13 +702,13 @@ public class CombatManager : MonoBehaviour, ICombatService
             return;
         
         // Log victory message
-        if (GameLog.Instance != null)
+        if (gameLogService != null)
         {
-            GameLog.Instance.AddCombatLogEntry($"You defeated {defeatedMonster.monsterData.monsterName}!", LogType.Success);
+            gameLogService.AddCombatLogEntry($"You defeated {defeatedMonster.monsterData.monsterName}!", LogType.Success);
         }
         
         // Give rewards with equipment bonuses
-        if (CharacterManager.Instance != null)
+        if (characterService != null)
         {
             int xpReward = defeatedMonster.monsterData.xpReward;
             int goldReward = defeatedMonster.monsterData.goldReward;
@@ -708,8 +719,8 @@ public class CombatManager : MonoBehaviour, ICombatService
             xpReward = Mathf.RoundToInt(xpReward * (1f + stats.xpBonus));
             goldReward = Mathf.RoundToInt(goldReward * (1f + stats.goldBonus));
             
-            CharacterManager.Instance.AddXP(xpReward);
-            CharacterManager.Instance.AddGold(goldReward);
+            characterService.AddXP(xpReward);
+            characterService.AddGold(goldReward);
             
             // Process drop table - roll for each item independently
             List<MonsterDropEntry> droppedItems = new List<MonsterDropEntry>();
@@ -724,7 +735,7 @@ public class CombatManager : MonoBehaviour, ICombatService
                         
                         // Create and add item to inventory
                         InventoryItem drop = dropEntry.item.CreateInventoryItem(dropEntry.quantity);
-                        CharacterManager.Instance.AddItemToInventory(drop);
+                        characterService.AddItemToInventory(drop);
                     }
                 }
             }
@@ -797,11 +808,11 @@ public class CombatManager : MonoBehaviour, ICombatService
     void OnPlayerDefeated()
     {
         // Log defeat message
-        if (GameLog.Instance != null && activeMonsters.Count > 0)
+        if (gameLogService != null && activeMonsters.Count > 0)
         {
             var target = GetCurrentTarget();
             string monsterName = target != null && target.monsterData != null ? target.monsterData.monsterName : "monsters";
-            GameLog.Instance.AddCombatLogEntry($"You were defeated by {monsterName}!", LogType.Error);
+            gameLogService.AddCombatLogEntry($"You were defeated by {monsterName}!", LogType.Error);
         }
         
         currentState = CombatState.Defeat;
@@ -820,10 +831,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (currentState == CombatState.Defeat)
         {
             // Heal player to full health
-            if (CharacterManager.Instance != null)
+            if (characterService != null)
             {
-                CharacterManager.Instance.HealToFull();
-                playerCurrentHealth = CharacterManager.Instance.GetCurrentHealth();
+                characterService.HealToFull();
+                playerCurrentHealth = characterService.GetCurrentHealth();
                 
                 // Recalculate stats in case player leveled up
                 CalculatePlayerStats();

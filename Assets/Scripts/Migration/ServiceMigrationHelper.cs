@@ -174,6 +174,25 @@ public static class ServiceMigrationHelper
     }
     
     /// <summary>
+    /// Get game log service with fallback to singleton Instance
+    /// </summary>
+    public static IGameLogService GetGameLogService()
+    {
+        if (Services.TryGet<IGameLogService>(out var service))
+        {
+            return service;
+        }
+        
+        if (GameLog.Instance != null)
+        {
+            return GameLog.Instance;
+        }
+        
+        Debug.LogWarning("[ServiceMigrationHelper] GameLogService not found via Services or Instance");
+        return null;
+    }
+    
+    /// <summary>
     /// Check if a service is available (either via Services or Instance)
     /// </summary>
     public static bool IsServiceAvailable<T>() where T : class
@@ -200,6 +219,8 @@ public static class ServiceMigrationHelper
             return ZoneManager.Instance != null;
         if (typeof(T) == typeof(IAwayActivityService))
             return AwayActivityManager.Instance != null;
+        if (typeof(T) == typeof(IGameLogService))
+            return GameLog.Instance != null;
         
         return false;
     }
