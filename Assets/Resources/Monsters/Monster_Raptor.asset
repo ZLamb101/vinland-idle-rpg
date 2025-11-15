@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterName: Raptor
   monsterSprite: {fileID: -7970112860141335647, guid: 0ec0351421f858a49baaee38138ea721, type: 3}
+  flipSprite: 1
   level: 1
   health: 110
   attackDamage: 12
   attackSpeed: 2
+  attackRange: 100
   xpReward: 30
   goldReward: 5
   dropTable:

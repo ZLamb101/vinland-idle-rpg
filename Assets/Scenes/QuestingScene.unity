@@ -7482,6 +7482,7 @@ GameObject:
   - component: {fileID: 771461472}
   - component: {fileID: 771461474}
   - component: {fileID: 771461473}
+  - component: {fileID: 771461475}
   m_Layer: 5
   m_Name: Tooltip
   m_TagString: Untagged
@@ -7548,6 +7549,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 771461471}
   m_CullTransparentMesh: 1
+--- !u!114 &771461475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 771461471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e568a4fc61c5c2847b31e88f8b56d6ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Tooltip
+  tooltipPanel: {fileID: 771461471}
+  tooltipNameText: {fileID: 20955862}
+  tooltipDescriptionText: {fileID: 80945017}
+  tooltipOffset: {x: 30, y: -30}
 --- !u!1 &799956452
 GameObject:
   m_ObjectHideFlags: 0
@@ -10725,6 +10742,7 @@ GameObject:
   - component: {fileID: 1153227929}
   - component: {fileID: 1153227931}
   - component: {fileID: 1153227930}
+  - component: {fileID: 1153227932}
   m_Layer: 5
   m_Name: Tooltip
   m_TagString: Untagged
@@ -10791,6 +10809,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1153227928}
   m_CullTransparentMesh: 1
+--- !u!114 &1153227932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1153227928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e568a4fc61c5c2847b31e88f8b56d6ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Tooltip
+  tooltipPanel: {fileID: 1153227928}
+  tooltipNameText: {fileID: 1617227020}
+  tooltipDescriptionText: {fileID: 397513327}
+  tooltipOffset: {x: 30, y: -30}
 --- !u!1 &1171428033
 GameObject:
   m_ObjectHideFlags: 0
@@ -10857,10 +10891,7 @@ MonoBehaviour:
   buyBackPriceText: {fileID: 1052572860}
   buyBackButton: {fileID: 2103169994}
   closeButton: {fileID: 799956454}
-  tooltipPanel: {fileID: 1153227928}
-  tooltipNameText: {fileID: 1617227020}
-  tooltipDescriptionText: {fileID: 397513327}
-  tooltipOffset: {x: 0, y: -90}
+  tooltip: {fileID: 1153227932}
 --- !u!114 &1171428036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16631,10 +16662,7 @@ MonoBehaviour:
   inventoryGridParent: {fileID: 1414693828}
   inventorySlotPrefab: {fileID: 7856986631181604247, guid: 40c21c179f2d2fc4fb506a2151db84d2, type: 3}
   inventorySlots: []
-  tooltipPanel: {fileID: 771461471}
-  tooltipNameText: {fileID: 20955862}
-  tooltipDescriptionText: {fileID: 80945017}
-  tooltipOffset: {x: 0, y: 0}
+  tooltip: {fileID: 771461475}
 --- !u!114 &1825896138
 MonoBehaviour:
   m_ObjectHideFlags: 0

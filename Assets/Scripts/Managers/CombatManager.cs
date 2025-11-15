@@ -90,20 +90,6 @@ public class CombatManager : MonoBehaviour, ICombatService
         Fighting,   // Active combat
         Defeat      // Player died
     }
-    
-    /// <summary>
-    /// Helper struct for combat stats from equipment and talents
-    /// </summary>
-    private struct CombatStats
-    {
-        public float critChance;
-        public float critDamage;
-        public float lifesteal;
-        public float dodge;
-        public float armor;
-        public float xpBonus;
-        public float goldBonus;
-    }
 
     private IGameLogService gameLogService;
     private ICharacterService characterService;
@@ -473,52 +459,6 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
     }
     
-    /// <summary>
-    /// Get combined combat stats from equipment and talents
-    /// </summary>
-    CombatStats GetCombatStats()
-    {
-        CombatStats stats = new CombatStats
-        {
-            critChance = 0f,
-            critDamage = 2f, // Base crit is 2x
-            lifesteal = 0f,
-            dodge = 0f,
-            armor = 0f,
-            xpBonus = 0f,
-            goldBonus = 0f
-        };
-        
-        // Add equipment bonuses
-        var equipmentService = Services.Get<IEquipmentService>();
-        if (equipmentService != null)
-        {
-            EquipmentStats equipStats = equipmentService.GetTotalStats();
-            stats.critChance += equipStats.criticalChance;
-            stats.lifesteal += equipStats.lifesteal;
-            stats.dodge += equipStats.dodge;
-            stats.armor += equipStats.armor;
-            stats.xpBonus += equipStats.xpBonus;
-            stats.goldBonus += equipStats.goldBonus;
-        }
-        
-        // Add talent bonuses
-        var talentService = Services.Get<ITalentService>();
-        if (talentService != null)
-        {
-            TalentBonuses talents = talentService.GetTotalBonuses();
-            stats.critChance += talents.criticalChance;
-            stats.critDamage += talents.criticalDamage;
-            stats.lifesteal += talents.lifesteal;
-            stats.dodge += talents.dodge;
-            stats.armor += talents.armor;
-            stats.xpBonus += talents.xpBonus;
-            stats.goldBonus += talents.goldBonus;
-        }
-        
-        return stats;
-    }
-    
     void PlayerAttack()
     {
         // Get current target
@@ -544,7 +484,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         float damage = playerAttackDamage;
         
         // Get combined stats from equipment and talents
-        CombatStats stats = GetCombatStats();
+        CombatStats stats = CombatLogic.GetCombatStats();
         
         // Apply critical hit
         if (stats.critChance > 0 && UnityEngine.Random.value <= stats.critChance)
@@ -650,7 +590,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         float damage = monster.attackDamage;
         
         // Get combined stats from equipment and talents
-        CombatStats stats = GetCombatStats();
+        CombatStats stats = CombatLogic.GetCombatStats();
         
         // Apply dodge
         if (stats.dodge > 0 && UnityEngine.Random.value <= stats.dodge)
@@ -718,7 +658,7 @@ public class CombatManager : MonoBehaviour, ICombatService
             int goldReward = defeatedMonster.monsterData.goldReward;
             
             // Get bonus stats
-            CombatStats stats = GetCombatStats();
+            CombatStats stats = CombatLogic.GetCombatStats();
             
             xpReward = Mathf.RoundToInt(xpReward * (1f + stats.xpBonus));
             goldReward = Mathf.RoundToInt(goldReward * (1f + stats.goldBonus));

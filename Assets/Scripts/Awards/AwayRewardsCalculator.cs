@@ -67,9 +67,6 @@ public static class AwayRewardsCalculator
     private static void CalculateNoneRewards(AwayRewards rewards, TimeSpan timeAway)
     {
         rewards.activityName = "doing Nothing";
-        
-        // Currently no rewards for doing nothing, but this can be extended later
-        // For example: passive gold generation, small XP gain, etc.
     }
     
     /// <summary>
@@ -208,7 +205,7 @@ public static class AwayRewardsCalculator
             int killsForThisType = killsPerMonsterType + (i < remainderKills ? 1 : 0);
             
             // Calculate XP and gold with bonuses
-            CombatStats stats = GetCombatStats();
+            CombatStats stats = CombatLogic.GetCombatStats();
             int xpPerKill = Mathf.RoundToInt(monster.xpReward * (1f + stats.xpBonus));
             int goldPerKill = Mathf.RoundToInt(monster.goldReward * (1f + stats.goldBonus));
             
@@ -257,44 +254,6 @@ public static class AwayRewardsCalculator
         
         Debug.Log($"[AwayRewards] Final rewards - XP: {totalXP}, Gold: {totalGold}, Items: {totalItems.Count}");
     }
-    
-    /// <summary>
-    /// Get combat stats from equipment and talents (for calculating bonuses)
-    /// </summary>
-    private static CombatStats GetCombatStats()
-    {
-        CombatStats stats = new CombatStats
-        {
-            xpBonus = 0f,
-            goldBonus = 0f
-        };
-        
-        // Add equipment bonuses using service pattern
-        if (Services.TryGet<IEquipmentService>(out var equipmentService))
-        {
-            EquipmentStats equipStats = equipmentService.GetTotalStats();
-            stats.xpBonus += equipStats.xpBonus;
-            stats.goldBonus += equipStats.goldBonus;
-        }
-        
-        // Add talent bonuses using service pattern
-        if (Services.TryGet<ITalentService>(out var talentService))
-        {
-            TalentBonuses talents = talentService.GetTotalBonuses();
-            stats.xpBonus += talents.xpBonus;
-            stats.goldBonus += talents.goldBonus;
-        }
-        
-        return stats;
-    }
-    
-    /// <summary>
-    /// Helper struct for combat stats (matching CombatManager's internal struct)
-    /// </summary>
-    private struct CombatStats
-    {
-        public float xpBonus;
-        public float goldBonus;
-    }
+
 }
 

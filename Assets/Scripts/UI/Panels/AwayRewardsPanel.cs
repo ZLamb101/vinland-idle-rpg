@@ -300,6 +300,29 @@ public class AwayRewardsPanel : MonoBehaviour
                 }
             }
         }
+
+        // Apply items dropped from fighting
+        foreach (var kvp in rewards.itemsDropped)
+        {
+            ItemData itemData = FindItemByName(kvp.Key);
+            if (itemData != null)
+            {
+                InventoryItem item = itemData.CreateInventoryItem(kvp.Value);
+                
+                if (characterService.AddItemToInventory(item))
+                {
+                    Debug.Log($"[AwayRewards] Added {kvp.Value}x {kvp.Key} to inventory (from fighting)");
+                }
+                else
+                {
+                    Debug.LogWarning($"[AwayRewards] Inventory full! Could not add {kvp.Value}x {kvp.Key}");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[AwayRewards] Could not find ItemData for {kvp.Key}");
+            }
+        }
     }
     
     /// <summary>

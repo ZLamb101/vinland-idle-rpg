@@ -19,16 +19,10 @@ public class InventoryPanel : MonoBehaviour
     public InventorySlot[] inventorySlots;
     
     [Header("Tooltip")]
-    public GameObject tooltipPanel;
-    public TextMeshProUGUI tooltipNameText;
-    public TextMeshProUGUI tooltipDescriptionText;
-    public Vector2 tooltipOffset = new Vector2(30f, -30f);
+    public Tooltip tooltip;
     
     private InventoryData inventoryData;
     private int selectedSlot = -1;
-    private RectTransform tooltipRect;
-    private Canvas tooltipCanvas;
-    private RectTransform canvasRect;
     private int draggingSlotIndex = -1; // Track which slot is being dragged
     
     void Start()
@@ -41,40 +35,7 @@ public class InventoryPanel : MonoBehaviour
         EventBus.Subscribe<ItemAddedEvent>(OnItemAdded);
         EventBus.Subscribe<ItemRemovedEvent>(OnItemRemoved);
         
-        // Setup tooltip
-        if (tooltipPanel != null)
-        {
-            tooltipPanel.SetActive(false);
-            tooltipRect = tooltipPanel.GetComponent<RectTransform>();
-            if (tooltipRect != null)
-            {
-                tooltipRect.pivot = new Vector2(0f, 1f); // top-left pivot so offset behaves intuitively
-            }
-            tooltipCanvas = tooltipPanel.GetComponentInParent<Canvas>();
-            if (tooltipCanvas != null)
-            {
-                canvasRect = tooltipCanvas.GetComponent<RectTransform>();
-            }
-            else
-            {
-                canvasRect = tooltipPanel.transform.parent as RectTransform;
-            }
-            
-            // Disable raycast blocking on tooltip
-            CanvasGroup tooltipCanvasGroup = tooltipPanel.GetComponent<CanvasGroup>();
-            if (tooltipCanvasGroup == null)
-            {
-                tooltipCanvasGroup = tooltipPanel.AddComponent<CanvasGroup>();
-            }
-            tooltipCanvasGroup.blocksRaycasts = false;
-            tooltipCanvasGroup.interactable = false;
-            
-            // Disable raycasts on all child elements
-            foreach (UnityEngine.UI.Graphic graphic in tooltipPanel.GetComponentsInChildren<UnityEngine.UI.Graphic>(true))
-            {
-                graphic.raycastTarget = false;
-            }
-        }
+        // Tooltip is now handled by Tooltip component
     }
     
     void OnDestroy()
@@ -94,57 +55,6 @@ public class InventoryPanel : MonoBehaviour
         RefreshDisplay();
     }
     
-    void Update()
-    {
-        // Update tooltip position to follow cursor
-        if (tooltipPanel != null && tooltipPanel.activeSelf && tooltipRect != null)
-        {
-            Vector2 mousePos = GetMousePosition();
-            Vector2 localPoint;
-            RectTransform targetRect = tooltipRect.parent as RectTransform;
-            if (targetRect == null)
-            {
-                targetRect = canvasRect;
-            }
-            if (targetRect == null)
-            {
-                return;
-            }
-            Camera uiCamera = null;
-            if (tooltipCanvas != null && tooltipCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
-            {
-                uiCamera = tooltipCanvas.worldCamera;
-            }
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                targetRect,
-                mousePos,
-                uiCamera,
-                out localPoint
-            );
-            
-            tooltipRect.anchoredPosition = localPoint + tooltipOffset;
-        }
-    }
-    
-    /// <summary>
-    /// Get mouse position - compatible with both old and new Input System
-    /// </summary>
-    Vector2 GetMousePosition()
-    {
-        #if ENABLE_INPUT_SYSTEM
-        if (UnityEngine.InputSystem.Mouse.current != null)
-        {
-            return UnityEngine.InputSystem.Mouse.current.position.ReadValue();
-        }
-        #endif
-        
-        #if ENABLE_LEGACY_INPUT_MANAGER
-        return Input.mousePosition;
-        #endif
-        
-        return Vector2.zero;
-    }
     
     /// <summary>
     /// Load item references (icons, equipment, etc.) for all items after deserialization
@@ -394,31 +304,10 @@ public class InventoryPanel : MonoBehaviour
     /// </summary>
     public void ShowTooltip(InventoryItem item)
     {
-        if (tooltipPanel == null || item == null || item.IsEmpty()) return;
-        
-        if (tooltipNameText != null)
-            tooltipNameText.text = item.itemName;
-        
-        if (tooltipDescriptionText != null)
+        if (tooltip != null)
         {
-            string desc = item.description;
-            
-            // Add equipment stats if it's equipment
-            if (item.IsEquipment() && item.equipmentData != null)
-            {
-                desc += "\n\n" + GetEquipmentStatsText(item.equipmentData);
-            }
-            
-            // Add quantity info
-            if (item.quantity > 1)
-            {
-                desc += $"\n\n<color=yellow>Quantity: {item.quantity}</color>";
-            }
-            
-            tooltipDescriptionText.text = desc;
+            tooltip.ShowForInventoryItem(item);
         }
-        
-        tooltipPanel.SetActive(true);
     }
     
     /// <summary>
@@ -426,8 +315,10 @@ public class InventoryPanel : MonoBehaviour
     /// </summary>
     public void HideTooltip()
     {
-        if (tooltipPanel != null)
-            tooltipPanel.SetActive(false);
+        if (tooltip != null)
+        {
+            tooltip.Hide();
+        }
     }
     
     /// <summary>
@@ -464,25 +355,4 @@ public class InventoryPanel : MonoBehaviour
         }
     }
     
-    string GetEquipmentStatsText(EquipmentData equipment)
-    {
-        string stats = $"<color=cyan>Slot: {equipment.slot}</color>\n";
-        
-        if (equipment.levelRequired > 1)
-            stats += $"<color=red>Requires Level {equipment.levelRequired}</color>\n";
-        
-        stats += "\n";
-        
-        if (equipment.attackDamage > 0) stats += $"+{equipment.attackDamage:F0} Attack Damage\n";
-        if (equipment.maxHealth > 0) stats += $"+{equipment.maxHealth:F0} Max Health\n";
-        if (equipment.attackSpeed != 0) stats += $"{(equipment.attackSpeed < 0 ? "" : "+")}{equipment.attackSpeed:F2}s Attack Speed\n";
-        if (equipment.armor > 0) stats += $"+{equipment.armor * 100:F0}% Armor\n";
-        if (equipment.criticalChance > 0) stats += $"+{equipment.criticalChance * 100:F0}% Critical Chance\n";
-        if (equipment.dodge > 0) stats += $"+{equipment.dodge * 100:F0}% Dodge\n";
-        if (equipment.lifesteal > 0) stats += $"+{equipment.lifesteal * 100:F0}% Lifesteal\n";
-        if (equipment.xpBonus > 0) stats += $"+{equipment.xpBonus * 100:F0}% XP Gain\n";
-        if (equipment.goldBonus > 0) stats += $"+{equipment.goldBonus * 100:F0}% Gold Gain\n";
-        
-        return stats;
-    }
 }
