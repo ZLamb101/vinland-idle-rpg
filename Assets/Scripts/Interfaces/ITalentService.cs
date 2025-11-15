@@ -6,10 +6,7 @@ using System.Collections.Generic;
 /// </summary>
 public interface ITalentService
 {
-    // Events
-    event Action<int> OnTalentPointsChanged;
-    event Action<TalentData, int> OnTalentUnlocked; // Talent, new rank
-    event Action OnTalentBonusesRecalculated;
+    // Events migrated to EventBus - see GameEvent.cs
     
     // Talent Management
     void AddTalentPoints(int amount);

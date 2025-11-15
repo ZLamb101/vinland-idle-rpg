@@ -11,14 +11,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     private CharacterData characterData = new CharacterData(); // Not serialized - loaded at runtime
     private bool dataHasBeenLoaded = false; // Track if character data has been loaded from save
     
-    // Events for UI and other systems to subscribe to
-    public event Action<int> OnXPChanged;
-    public event Action<int> OnLevelChanged;
-    public event Action<int, int> OnLevelUp; // (oldLevel, newLevel)
-    public event Action<int> OnGoldChanged;
-    public event Action<string> OnNameChanged;
-    public event Action<float, float> OnHealthChanged; // (currentHealth, maxHealth)
-    public event Action OnPlayerDied; // When health reaches 0
+    // Events migrated to EventBus - see GameEvent.cs for event types
 
     void Awake()
     {
@@ -56,11 +49,11 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         else
         {
             // Data has been loaded, trigger events to update UI
-            OnXPChanged?.Invoke(characterData.currentXP);
-            OnLevelChanged?.Invoke(characterData.level);
-            OnGoldChanged?.Invoke(characterData.gold);
-            OnNameChanged?.Invoke(characterData.characterName);
-            OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+            EventBus.Publish(new CharacterXPChangedEvent { newXP = characterData.currentXP, xpGained = 0 });
+            EventBus.Publish(new CharacterLevelChangedEvent { newLevel = characterData.level });
+            EventBus.Publish(new CharacterGoldChangedEvent { newGold = characterData.gold, goldChanged = 0 });
+            EventBus.Publish(new CharacterNameChangedEvent { newName = characterData.characterName });
+            EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = 0 });
         }
     }
     
@@ -85,7 +78,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     public void AddXP(int amount)
     {
         characterData.currentXP += amount;
-        OnXPChanged?.Invoke(characterData.currentXP);
+        EventBus.Publish(new CharacterXPChangedEvent { newXP = characterData.currentXP, xpGained = amount });
         
         // Check for level up
         bool leveledUp = false;
@@ -95,13 +88,13 @@ public class CharacterManager : MonoBehaviour, ICharacterService
             characterData.LevelUp();
             int newLevel = characterData.level;
             
-            OnLevelChanged?.Invoke(newLevel);
-            OnLevelUp?.Invoke(oldLevel, newLevel); // Emit level-up event with both levels
-            OnXPChanged?.Invoke(characterData.currentXP); // Update XP after level up
+            EventBus.Publish(new CharacterLevelChangedEvent { newLevel = newLevel });
+            EventBus.Publish(new CharacterLevelUpEvent { oldLevel = oldLevel, newLevel = newLevel }); // Emit level-up event with both levels
+            EventBus.Publish(new CharacterXPChangedEvent { newXP = characterData.currentXP, xpGained = 0 }); // Update XP after level up
             
             // Update max health on level up and heal to full
             characterData.currentHealth = characterData.GetMaxHealth();
-            OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+            EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = characterData.currentHealth });
             
             leveledUp = true;
             
@@ -122,7 +115,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     public void AddGold(int amount)
     {
         characterData.gold += amount;
-        OnGoldChanged?.Invoke(characterData.gold);
+        EventBus.Publish(new CharacterGoldChangedEvent { newGold = characterData.gold, goldChanged = amount });
     }
     
     public bool SpendGold(int amount)
@@ -130,7 +123,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         if (characterData.gold >= amount)
         {
             characterData.gold -= amount;
-            OnGoldChanged?.Invoke(characterData.gold);
+            EventBus.Publish(new CharacterGoldChangedEvent { newGold = characterData.gold, goldChanged = -amount });
             return true;
         }
         return false;
@@ -145,7 +138,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     public void SetName(string newName)
     {
         characterData.characterName = newName;
-        OnNameChanged?.Invoke(characterData.characterName);
+        EventBus.Publish(new CharacterNameChangedEvent { newName = characterData.characterName });
     }
     
     public string GetName() => characterData.characterName;
@@ -192,29 +185,29 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         if (characterData.currentHealth <= 0)
         {
             characterData.currentHealth = 0;
-            OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
-            OnPlayerDied?.Invoke();
+            EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = -amount });
+            EventBus.Publish(new CharacterDiedEvent { deathReason = "Defeated in combat" });
             
             // Reset to max health
             characterData.currentHealth = characterData.GetMaxHealth();
-            OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+            EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = characterData.currentHealth });
         }
         else
         {
-            OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+            EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = -amount });
         }
     }
     
     public void Heal(float amount)
     {
         characterData.currentHealth = Mathf.Min(characterData.currentHealth + amount, characterData.GetMaxHealth());
-        OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+        EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = amount });
     }
     
     public void HealToFull()
     {
         characterData.currentHealth = characterData.GetMaxHealth();
-        OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+        EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = characterData.currentHealth });
     }
     
     public float GetCurrentHealth() => characterData.currentHealth;
@@ -325,11 +318,11 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         }
         
         // Trigger all events to update UI
-        OnXPChanged?.Invoke(characterData.currentXP);
-        OnLevelChanged?.Invoke(characterData.level);
-        OnGoldChanged?.Invoke(characterData.gold);
-        OnNameChanged?.Invoke(characterData.characterName);
-        OnHealthChanged?.Invoke(characterData.currentHealth, characterData.GetMaxHealth());
+        EventBus.Publish(new CharacterXPChangedEvent { newXP = characterData.currentXP, xpGained = 0 });
+        EventBus.Publish(new CharacterLevelChangedEvent { newLevel = characterData.level });
+        EventBus.Publish(new CharacterGoldChangedEvent { newGold = characterData.gold, goldChanged = 0 });
+        EventBus.Publish(new CharacterNameChangedEvent { newName = characterData.characterName });
+        EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = 0 });
     }
     
     /// <summary>

@@ -22,11 +22,7 @@ public class ShopManager : MonoBehaviour, IShopService
     private int buyBackPrice;
     private bool hasBuyBack = false;
     
-    // Events
-    public event Action<ShopData> OnShopOpened;
-    public event Action OnShopClosed;
-    public event Action<int> OnStockChanged; // ShopItemEntry index
-    public event Action OnBuyBackChanged;
+    // Events migrated to EventBus - see GameEvent.cs for event types
     
     void Awake()
     {
@@ -96,7 +92,7 @@ public class ShopManager : MonoBehaviour, IShopService
             RestoreStockState(shop);
         }
         
-        OnShopOpened?.Invoke(shop);
+        EventBus.Publish(new ShopOpenedEvent { shop = shop });
     }
     
     /// <summary>
@@ -115,7 +111,7 @@ public class ShopManager : MonoBehaviour, IShopService
         currentShop = null;
         isShopOpen = false;
         
-        OnShopClosed?.Invoke();
+        EventBus.Publish(new ShopClosedEvent { shop = currentShop });
     }
     
     /// <summary>
@@ -245,7 +241,7 @@ public class ShopManager : MonoBehaviour, IShopService
         int entryIndex = currentShop.shopItems.IndexOf(entry);
         if (entryIndex >= 0)
         {
-            OnStockChanged?.Invoke(entryIndex);
+            EventBus.Publish(new ShopStockChangedEvent { itemIndex = entryIndex });
         }
         return true;
     }
@@ -293,7 +289,7 @@ public class ShopManager : MonoBehaviour, IShopService
         // Add gold
         characterService.AddGold(sellValue);
         
-        OnBuyBackChanged?.Invoke();
+        EventBus.Publish(new ShopBuyBackChangedEvent());
         return true;
     }
     
@@ -341,7 +337,7 @@ public class ShopManager : MonoBehaviour, IShopService
         buyBackPrice = 0;
         hasBuyBack = false;
         
-        OnBuyBackChanged?.Invoke();
+        EventBus.Publish(new ShopBuyBackChangedEvent());
         return true;
     }
     

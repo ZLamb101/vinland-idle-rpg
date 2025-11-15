@@ -48,7 +48,7 @@ public class QuestPanel : MonoBehaviour
         // Subscribe to level changes to unlock quests
         if (characterService != null)
         {
-            characterService.OnLevelChanged += OnPlayerLevelChanged;
+            EventBus.Subscribe<CharacterLevelChangedEvent>(OnPlayerLevelChanged);
         }
         
         // Initialize quest UI
@@ -60,10 +60,7 @@ public class QuestPanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
-        if (characterService != null)
-        {
-            characterService.OnLevelChanged -= OnPlayerLevelChanged;
-        }
+        EventBus.Unsubscribe<CharacterLevelChangedEvent>(OnPlayerLevelChanged);
         
         // Clear active quest reference if this was the active one
         if (currentlyActiveQuest == this)
@@ -85,13 +82,13 @@ public class QuestPanel : MonoBehaviour
         }
     }
     
-    void OnPlayerLevelChanged(int newLevel)
+    void OnPlayerLevelChanged(CharacterLevelChangedEvent e)
     {
         // Re-check quest availability when player levels up
         CheckQuestAvailability();
         
         // If quest just became available, show a notification
-        if (questData != null && newLevel == questData.levelRequired)
+        if (questData != null && e.newLevel == questData.levelRequired)
         {
             // Optional: Add visual feedback (flash, highlight, etc.)
             if (questNameText != null)

@@ -5,11 +5,7 @@ using System;
 /// </summary>
 public interface IShopService
 {
-    // Events
-    event Action<ShopData> OnShopOpened;
-    event Action OnShopClosed;
-    event Action<int> OnStockChanged;
-    event Action OnBuyBackChanged;
+    // Events migrated to EventBus - see GameEvent.cs
     
     // Shop Control
     void OpenShop(ShopData shop);

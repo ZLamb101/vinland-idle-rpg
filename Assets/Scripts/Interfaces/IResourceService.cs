@@ -5,11 +5,7 @@ using System;
 /// </summary>
 public interface IResourceService
 {
-    // Events
-    event Action<bool> OnGatheringStateChanged;
-    event Action<ResourceData> OnResourceChanged;
-    event Action<float> OnGatherProgressChanged;
-    event Action<int> OnItemsGathered;
+    // Events migrated to EventBus - see GameEvent.cs
     
     // Gathering Control
     bool StartGathering(ResourceData resource);

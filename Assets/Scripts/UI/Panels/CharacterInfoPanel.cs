@@ -46,11 +46,11 @@ public class CharacterInfoPanel : MonoBehaviour
         // Subscribe to all character data changes
         if (characterService != null)
         {
-            characterService.OnNameChanged += UpdateNameDisplay;
-            characterService.OnLevelChanged += UpdateLevelDisplay;
-            characterService.OnXPChanged += UpdateXPDisplay;
-            characterService.OnGoldChanged += UpdateGoldDisplay;
-            characterService.OnHealthChanged += UpdateHealthDisplay;
+            EventBus.Subscribe<CharacterNameChangedEvent>(e => UpdateNameDisplay(e.newName));
+            EventBus.Subscribe<CharacterLevelChangedEvent>(e => UpdateLevelDisplay(e.newLevel));
+            EventBus.Subscribe<CharacterXPChangedEvent>(e => UpdateXPDisplay(e.newXP));
+            EventBus.Subscribe<CharacterGoldChangedEvent>(e => UpdateGoldDisplay(e.newGold));
+            EventBus.Subscribe<CharacterHealthChangedEvent>(e => UpdateHealthDisplay(e.currentHealth, e.maxHealth));
             
             // Initialize displays with current values (after character has been loaded)
             UpdateNameDisplay(characterService.GetName());
@@ -67,14 +67,11 @@ public class CharacterInfoPanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
-        if (characterService != null)
-        {
-            characterService.OnNameChanged -= UpdateNameDisplay;
-            characterService.OnLevelChanged -= UpdateLevelDisplay;
-            characterService.OnXPChanged -= UpdateXPDisplay;
-            characterService.OnGoldChanged -= UpdateGoldDisplay;
-            characterService.OnHealthChanged -= UpdateHealthDisplay;
-        }
+        EventBus.Unsubscribe<CharacterNameChangedEvent>(e => UpdateNameDisplay(e.newName));
+        EventBus.Unsubscribe<CharacterLevelChangedEvent>(e => UpdateLevelDisplay(e.newLevel));
+        EventBus.Unsubscribe<CharacterXPChangedEvent>(e => UpdateXPDisplay(e.newXP));
+        EventBus.Unsubscribe<CharacterGoldChangedEvent>(e => UpdateGoldDisplay(e.newGold));
+        EventBus.Unsubscribe<CharacterHealthChangedEvent>(e => UpdateHealthDisplay(e.currentHealth, e.maxHealth));
     }
     
     void UpdateNameDisplay(string characterName)

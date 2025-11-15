@@ -5,14 +5,7 @@ using System;
 /// </summary>
 public interface ICharacterService
 {
-    // Events
-    event Action<int> OnXPChanged;
-    event Action<int> OnLevelChanged;
-    event Action<int, int> OnLevelUp;
-    event Action<int> OnGoldChanged;
-    event Action<string> OnNameChanged;
-    event Action<float, float> OnHealthChanged;
-    event Action OnPlayerDied;
+    // Events migrated to EventBus - see GameEvent.cs
     
     // XP Management
     void AddXP(int amount);

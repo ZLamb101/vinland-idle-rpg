@@ -57,14 +57,11 @@ public class CombatPanel : MonoBehaviour
         // Get combat service
         combatService = Services.Get<ICombatService>();
         
-        // Subscribe to combat events
-        if (combatService != null)
-        {
-            combatService.OnCombatStateChanged += OnCombatStateChanged;
-            combatService.OnPlayerHealthChanged += UpdatePlayerHealth;
-            combatService.OnPlayerAttackProgress += UpdatePlayerAttackProgress;
-            combatService.OnPlayerDamageTaken += ShowPlayerDamage;
-        }
+        // Subscribe to combat events via EventBus
+        EventBus.Subscribe<CombatStateChangedEvent>(OnCombatStateChanged);
+        EventBus.Subscribe<PlayerHealthChangedEvent>(UpdatePlayerHealth);
+        EventBus.Subscribe<PlayerAttackProgressEvent>(UpdatePlayerAttackProgress);
+        EventBus.Subscribe<PlayerDamageTakenEvent>(ShowPlayerDamage);
         
         // Setup buttons
         if (retreatButton != null)
@@ -93,19 +90,16 @@ public class CombatPanel : MonoBehaviour
     
     void OnDestroy()
     {
-        // Unsubscribe from events
-        if (combatService != null)
-        {
-            combatService.OnCombatStateChanged -= OnCombatStateChanged;
-            combatService.OnPlayerHealthChanged -= UpdatePlayerHealth;
-            combatService.OnPlayerAttackProgress -= UpdatePlayerAttackProgress;
-            combatService.OnPlayerDamageTaken -= ShowPlayerDamage;
-        }
+        // Unsubscribe from EventBus
+        EventBus.Unsubscribe<CombatStateChangedEvent>(OnCombatStateChanged);
+        EventBus.Unsubscribe<PlayerHealthChangedEvent>(UpdatePlayerHealth);
+        EventBus.Unsubscribe<PlayerAttackProgressEvent>(UpdatePlayerAttackProgress);
+        EventBus.Unsubscribe<PlayerDamageTakenEvent>(ShowPlayerDamage);
     }
     
-    void OnCombatStateChanged(CombatManager.CombatState newState)
+    void OnCombatStateChanged(CombatStateChangedEvent e)
     {
-        switch (newState)
+        switch (e.newState)
         {
             case CombatManager.CombatState.Idle:
                 HideCombatPanel();
@@ -137,28 +131,28 @@ public class CombatPanel : MonoBehaviour
         }
     }
     
-    void UpdatePlayerHealth(float current, float max)
+    void UpdatePlayerHealth(PlayerHealthChangedEvent e)
     {
         // Clamp health to 0 minimum for display
-        float displayCurrent = Mathf.Max(0f, current);
+        float displayCurrent = Mathf.Max(0f, e.currentHealth);
         
         if (playerHealthBar != null)
         {
-            playerHealthBar.maxValue = max;
+            playerHealthBar.maxValue = e.maxHealth;
             playerHealthBar.value = displayCurrent;
         }
         
         if (playerHealthText != null)
-            playerHealthText.text = $"{displayCurrent:F0} / {max:F0}";
+            playerHealthText.text = $"{displayCurrent:F0} / {e.maxHealth:F0}";
     }
     
-    void UpdatePlayerAttackProgress(float progress)
+    void UpdatePlayerAttackProgress(PlayerAttackProgressEvent e)
     {
         if (playerAttackProgressBar != null)
-            playerAttackProgressBar.value = progress;
+            playerAttackProgressBar.value = e.progress;
     }
     
-    void ShowPlayerDamage(float damage)
+    void ShowPlayerDamage(PlayerDamageTakenEvent e)
     {
         // Only show damage if the panel GameObject is active (can't start coroutines on inactive objects)
         // Also check if combatPanel is active since that controls visibility
@@ -177,7 +171,7 @@ public class CombatPanel : MonoBehaviour
             damageTextCounter++;
             
             // Set damage value
-            damageTextInstance.text = $"-{damage:F0}";
+            damageTextInstance.text = $"-{e.damage:F0}";
             
             // Start animation with offset
             StartCoroutine(AnimateDamageNumber(damageTextInstance, damageRiseDistance, damageAnimationDuration, xOffset));

@@ -44,8 +44,8 @@ public class EquipmentPanel : MonoBehaviour
         // Subscribe to equipment changes
         if (equipmentService != null)
         {
-            equipmentService.OnEquipmentChanged += OnEquipmentChanged;
-            equipmentService.OnStatsRecalculated += UpdateStatsDisplay;
+            EventBus.Subscribe<EquipmentChangedEvent>(OnEquipmentChanged);
+            EventBus.Subscribe<StatsRecalculatedEvent>(UpdateStatsDisplay);
         }
         
         // Initialize all slots
@@ -59,11 +59,8 @@ public class EquipmentPanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (equipmentService != null)
-        {
-            equipmentService.OnEquipmentChanged -= OnEquipmentChanged;
-            equipmentService.OnStatsRecalculated -= UpdateStatsDisplay;
-        }
+        EventBus.Unsubscribe<EquipmentChangedEvent>(OnEquipmentChanged);
+        EventBus.Unsubscribe<StatsRecalculatedEvent>(UpdateStatsDisplay);
     }
     
     void InitializeSlots()
@@ -84,7 +81,10 @@ public class EquipmentPanel : MonoBehaviour
         SetupSlot(offHandSlot, EquipmentSlot.OffHand);
         
         RefreshAllSlots();
-        UpdateStatsDisplay();
+        UpdateStatsDisplay(new StatsRecalculatedEvent 
+        { 
+            equipmentStats = equipmentService?.GetTotalStats() ?? new EquipmentStats()
+        });
     }
     
     void SetupSlot(EquipmentSlotUI slotUI, EquipmentSlot slotType)
@@ -99,9 +99,9 @@ public class EquipmentPanel : MonoBehaviour
         }
     }
     
-    void OnEquipmentChanged(EquipmentSlot slot, EquipmentData equipment)
+    void OnEquipmentChanged(EquipmentChangedEvent e)
     {
-        RefreshSlot(slot);
+        RefreshSlot(e.slot);
     }
     
     void RefreshSlot(EquipmentSlot slotType)
@@ -181,7 +181,7 @@ public class EquipmentPanel : MonoBehaviour
         }
     }
     
-    void UpdateStatsDisplay()
+    void UpdateStatsDisplay(StatsRecalculatedEvent e)
     {
         if (equipmentService == null) return;
         

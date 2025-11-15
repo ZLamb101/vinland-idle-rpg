@@ -24,11 +24,11 @@ public class TargetFrame : MonoBehaviour
         // Get combat service (doesn't log errors during scene transitions)
         if (Services.TryGet<ICombatService>(out combatService))
         {
-            combatService.OnTargetChanged += OnTargetChanged;
-            combatService.OnMonsterHealthChanged += OnMonsterHealthChanged;
-            combatService.OnMonsterAttackProgress += OnMonsterAttackProgress;
-            combatService.OnMonstersChanged += OnMonstersChanged;
-            combatService.OnCombatStateChanged += OnCombatStateChanged;
+            EventBus.Subscribe<TargetChangedEvent>(OnTargetChanged);
+            EventBus.Subscribe<MonsterHealthChangedEvent>(OnMonsterHealthChanged);
+            EventBus.Subscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
+            EventBus.Subscribe<MonstersChangedEvent>(OnMonstersChanged);
+            EventBus.Subscribe<CombatStateChangedEvent>(OnCombatStateChanged);
         }
         else
         {
@@ -49,70 +49,67 @@ public class TargetFrame : MonoBehaviour
         
         if (Services.TryGet<ICombatService>(out combatService))
         {
-            combatService.OnTargetChanged += OnTargetChanged;
-            combatService.OnMonsterHealthChanged += OnMonsterHealthChanged;
-            combatService.OnMonsterAttackProgress += OnMonsterAttackProgress;
-            combatService.OnMonstersChanged += OnMonstersChanged;
-            combatService.OnCombatStateChanged += OnCombatStateChanged;
+            EventBus.Subscribe<TargetChangedEvent>(OnTargetChanged);
+            EventBus.Subscribe<MonsterHealthChangedEvent>(OnMonsterHealthChanged);
+            EventBus.Subscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
+            EventBus.Subscribe<MonstersChangedEvent>(OnMonstersChanged);
+            EventBus.Subscribe<CombatStateChangedEvent>(OnCombatStateChanged);
         }
     }
     
     void OnDestroy()
     {
-        // Unsubscribe from events
-        if (combatService != null)
-        {
-            combatService.OnTargetChanged -= OnTargetChanged;
-            combatService.OnMonsterHealthChanged -= OnMonsterHealthChanged;
-            combatService.OnMonsterAttackProgress -= OnMonsterAttackProgress;
-            combatService.OnMonstersChanged -= OnMonstersChanged;
-            combatService.OnCombatStateChanged -= OnCombatStateChanged;
-        }
+        // Unsubscribe from EventBus
+        EventBus.Unsubscribe<TargetChangedEvent>(OnTargetChanged);
+        EventBus.Unsubscribe<MonsterHealthChangedEvent>(OnMonsterHealthChanged);
+        EventBus.Unsubscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
+        EventBus.Unsubscribe<MonstersChangedEvent>(OnMonstersChanged);
+        EventBus.Unsubscribe<CombatStateChangedEvent>(OnCombatStateChanged);
     }
     
-    void OnCombatStateChanged(CombatManager.CombatState state)
+    void OnCombatStateChanged(CombatStateChangedEvent e)
     {
         // Hide target frame when not in combat
         if (targetFramePanel != null)
         {
-            targetFramePanel.SetActive(state == CombatManager.CombatState.Fighting);
+            targetFramePanel.SetActive(e.newState == CombatManager.CombatState.Fighting);
         }
         
-        if (state != CombatManager.CombatState.Fighting)
+        if (e.newState != CombatManager.CombatState.Fighting)
         {
             currentTargetIndex = -1;
         }
     }
     
-    void OnMonstersChanged(System.Collections.Generic.List<MonsterData> monsters)
+    void OnMonstersChanged(MonstersChangedEvent e)
     {
         // Update target frame when monsters spawn
-        if (monsters != null && monsters.Count > 0 && combatService != null)
+        if (e.monsters != null && e.monsters.Count > 0 && combatService != null)
         {
             currentTargetIndex = combatService.GetCurrentTargetIndex();
             UpdateTargetFrame();
         }
     }
     
-    void OnTargetChanged(int targetIndex)
+    void OnTargetChanged(TargetChangedEvent e)
     {
-        currentTargetIndex = targetIndex;
+        currentTargetIndex = e.newTargetIndex;
         UpdateTargetFrame();
     }
     
-    void OnMonsterHealthChanged(float current, float max, int index)
+    void OnMonsterHealthChanged(MonsterHealthChangedEvent e)
     {
-        if (index == currentTargetIndex)
+        if (e.monsterIndex == currentTargetIndex)
         {
-            UpdateHealthDisplay(current, max);
+            UpdateHealthDisplay(e.currentHealth, e.maxHealth);
         }
     }
     
-    void OnMonsterAttackProgress(float progress, int index)
+    void OnMonsterAttackProgress(MonsterAttackProgressEvent e)
     {
-        if (index == currentTargetIndex)
+        if (e.monsterIndex == currentTargetIndex)
         {
-            UpdateSwingTimer(progress);
+            UpdateSwingTimer(e.progress);
         }
     }
     

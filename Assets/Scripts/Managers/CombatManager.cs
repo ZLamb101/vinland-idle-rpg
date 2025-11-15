@@ -33,18 +33,7 @@ public class CombatManager : MonoBehaviour, ICombatService
     [Tooltip("Mob count selector. If not assigned, will try to find it in the scene.")]
     public MobCountSelector mobCountSelector; // Selector for number of mobs to fight
     
-    // Events for UI updates
-    public event Action<CombatState> OnCombatStateChanged;
-    public event Action<float, float> OnPlayerHealthChanged; // (current, max)
-    public event Action<float, float, int> OnMonsterHealthChanged; // (current, max, index)
-    public event Action<List<MonsterData>> OnMonstersChanged; // Called when monsters spawn
-    public event Action<int> OnTargetChanged; // Called when target changes (index)
-    public event Action<int> OnMonsterSpawned; // Called when a monster spawns (index)
-    public event Action<int> OnMonsterDied; // Called when a monster dies (index)
-    public event Action<float> OnPlayerAttackProgress; // 0 to 1
-    public event Action<float, int> OnMonsterAttackProgress; // (progress 0-1, index)
-    public event Action<float> OnPlayerDamageDealt; // Damage dealt BY player TO monsters (for showing above enemies)
-    public event Action<float> OnPlayerDamageTaken; // Damage dealt TO player BY monsters (for showing player damage)
+    // Events migrated to EventBus - see GameEvent.cs for event types
     
     public enum CombatState
     {
@@ -235,7 +224,7 @@ public class CombatManager : MonoBehaviour, ICombatService
                 gameLogService.AddCombatLogEntry($"Monster {i + 1}: {selectedMonster.monsterName} spawned!", LogType.Info);
             }
             
-            OnMonsterSpawned?.Invoke(i);
+            EventBus.Publish(new MonsterSpawnedEvent { monsterData = selectedMonster, monsterIndex = i });
         }
         
         // Set first monster as target
@@ -273,10 +262,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // Immediately update UI to show reset progress bars
-        OnPlayerAttackProgress?.Invoke(0f);
+        EventBus.Publish(new PlayerAttackProgressEvent { progress = 0f });
         for (int i = 0; i < activeMonsters.Count; i++)
         {
-            OnMonsterAttackProgress?.Invoke(0f, i);
+            EventBus.Publish(new MonsterAttackProgressEvent { progress = 0f, monsterIndex = i });
         }
         
         // Register activity with AwayActivityManager - use unique monster types for display
@@ -301,17 +290,18 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // Update state
+        CombatState oldState = currentState;
         currentState = CombatState.Fighting;
-        OnCombatStateChanged?.Invoke(currentState);
-        OnMonstersChanged?.Invoke(monstersToSpawn);
-        OnTargetChanged?.Invoke(currentTargetIndex);
-        OnPlayerHealthChanged?.Invoke(playerCurrentHealth, playerMaxHealth);
+        EventBus.Publish(new CombatStateChangedEvent { oldState = oldState, newState = currentState });
+        EventBus.Publish(new MonstersChangedEvent { monsters = monstersToSpawn });
+        EventBus.Publish(new TargetChangedEvent { newTargetIndex = currentTargetIndex });
+        EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
         
         // Update health for all monsters
         for (int i = 0; i < activeMonsters.Count; i++)
         {
             var monster = activeMonsters[i];
-            OnMonsterHealthChanged?.Invoke(monster.currentHealth, monster.maxHealth, i);
+            EventBus.Publish(new MonsterHealthChangedEvent { currentHealth = monster.currentHealth, maxHealth = monster.maxHealth, monsterIndex = i });
         }
     }
     
@@ -329,13 +319,13 @@ public class CombatManager : MonoBehaviour, ICombatService
             currentTargetIndex = (currentTargetIndex + 1) % activeMonsters.Count;
             if (activeMonsters[currentTargetIndex].IsAlive())
             {
-                OnTargetChanged?.Invoke(currentTargetIndex);
+                EventBus.Publish(new TargetChangedEvent { newTargetIndex = currentTargetIndex });
                 return;
             }
         } while (currentTargetIndex != startIndex);
         
         // If we looped back, just update anyway
-        OnTargetChanged?.Invoke(currentTargetIndex);
+        EventBus.Publish(new TargetChangedEvent { newTargetIndex = currentTargetIndex });
     }
     
     /// <summary>
@@ -346,7 +336,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (index >= 0 && index < activeMonsters.Count && activeMonsters[index].IsAlive())
         {
             currentTargetIndex = index;
-            OnTargetChanged?.Invoke(currentTargetIndex);
+            EventBus.Publish(new TargetChangedEvent { newTargetIndex = currentTargetIndex });
         }
     }
     
@@ -373,7 +363,7 @@ public class CombatManager : MonoBehaviour, ICombatService
     {
         // Update player attack timer - player can attack immediately when enemy spawns
         playerAttackTimer += Time.deltaTime;
-        OnPlayerAttackProgress?.Invoke(Mathf.Clamp01(playerAttackTimer / playerAttackSpeed));
+        EventBus.Publish(new PlayerAttackProgressEvent { progress = Mathf.Clamp01(playerAttackTimer / playerAttackSpeed) });
         
         if (playerAttackTimer >= playerAttackSpeed)
         {
@@ -398,7 +388,7 @@ public class CombatManager : MonoBehaviour, ICombatService
             if (canAttack)
             {
                 monster.attackTimer += Time.deltaTime;
-                OnMonsterAttackProgress?.Invoke(Mathf.Clamp01(monster.attackTimer / monster.attackSpeed), i);
+                EventBus.Publish(new MonsterAttackProgressEvent { progress = Mathf.Clamp01(monster.attackTimer / monster.attackSpeed), monsterIndex = i });
                 
                 if (monster.attackTimer >= monster.attackSpeed)
                 {
@@ -422,7 +412,7 @@ public class CombatManager : MonoBehaviour, ICombatService
                 {
                     currentTargetIndex = i;
                     target = activeMonsters[i];
-                    OnTargetChanged?.Invoke(currentTargetIndex);
+                    EventBus.Publish(new TargetChangedEvent { newTargetIndex = currentTargetIndex });
                     break;
                 }
             }
@@ -473,12 +463,12 @@ public class CombatManager : MonoBehaviour, ICombatService
         {
             float healAmount = damage * totalLifesteal;
             playerCurrentHealth = Mathf.Min(playerCurrentHealth + healAmount, playerMaxHealth);
-            OnPlayerHealthChanged?.Invoke(playerCurrentHealth, playerMaxHealth);
+            EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
         }
         
         target.currentHealth -= damage;
-        OnMonsterHealthChanged?.Invoke(target.currentHealth, target.maxHealth, targetIndex);
-        OnPlayerDamageDealt?.Invoke(damage); // Fire event for damage dealt BY player TO monsters (shows above enemies)
+        EventBus.Publish(new MonsterHealthChangedEvent { currentHealth = target.currentHealth, maxHealth = target.maxHealth, monsterIndex = targetIndex });
+        EventBus.Publish(new PlayerDamageDealtEvent { damage = damage, wasCritical = (damage > playerAttackDamage) }); // Fire event for damage dealt BY player TO monsters (shows above enemies)
         
         // Log combat message
         if (gameLogService != null && target.monsterData != null)
@@ -561,8 +551,8 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         playerCurrentHealth -= damage;
-        OnPlayerHealthChanged?.Invoke(playerCurrentHealth, playerMaxHealth);
-        OnPlayerDamageTaken?.Invoke(damage); // Fire event for damage dealt TO player BY monsters (shows player damage)
+        EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
+        EventBus.Publish(new PlayerDamageTakenEvent { damage = damage }); // Fire event for damage dealt TO player BY monsters (shows player damage)
         
         // Log combat message
         if (gameLogService != null && monster.monsterData != null)
@@ -642,7 +632,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // Notify that this monster died
-        OnMonsterDied?.Invoke(monsterIndex);
+        EventBus.Publish(new MonsterDiedEvent { monsterData = defeatedMonster.monsterData, monsterIndex = monsterIndex });
         
         // Clean up visual for dead enemy
         if (visualManager != null)
@@ -682,7 +672,7 @@ public class CombatManager : MonoBehaviour, ICombatService
                     if (activeMonsters[i].IsAlive())
                     {
                         currentTargetIndex = i;
-                        OnTargetChanged?.Invoke(currentTargetIndex);
+                        EventBus.Publish(new TargetChangedEvent { newTargetIndex = currentTargetIndex });
                         break;
                     }
                 }
@@ -709,8 +699,9 @@ public class CombatManager : MonoBehaviour, ICombatService
             gameLogService.AddCombatLogEntry($"You were defeated by {monsterName}!", LogType.Error);
         }
         
+        CombatState oldState = currentState;
         currentState = CombatState.Defeat;
-        OnCombatStateChanged?.Invoke(currentState);
+        EventBus.Publish(new CombatStateChangedEvent { oldState = oldState, newState = currentState });
         
         // Combat is paused - player must click Continue to resume
         // Healing will happen when Continue is clicked
@@ -765,7 +756,8 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Clear visual manager reference so it gets re-found next time (in case scene was reloaded)
         visualManager = null;
         
-        OnCombatStateChanged?.Invoke(currentState);
+        CombatState oldState = currentState;
+        EventBus.Publish(new CombatStateChangedEvent { oldState = oldState, newState = currentState });
     }
     
     // Getters

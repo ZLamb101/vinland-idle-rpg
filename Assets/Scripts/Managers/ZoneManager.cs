@@ -15,9 +15,7 @@ public class ZoneManager : MonoBehaviour, IZoneService
     private ZoneData currentZone;
     private int currentZoneIndex = 0;
     
-    // Events
-    public event Action<ZoneData> OnZoneChanged;
-    public event Action<QuestData[]> OnQuestsChanged;
+    // Events migrated to EventBus - see GameEvent.cs for event types
     
     void Awake()
     {
@@ -149,6 +147,7 @@ public class ZoneManager : MonoBehaviour, IZoneService
             return;
         }
         
+        ZoneData oldZone = currentZone; // Track old zone before changing
         currentZone = zone;
         
         // Find the index of this zone
@@ -172,12 +171,12 @@ public class ZoneManager : MonoBehaviour, IZoneService
         PlayerPrefs.SetInt("CurrentZoneIndex", currentZoneIndex);
         PlayerPrefs.Save();
         
-        UpdateZoneDisplay();
+        UpdateZoneDisplay(oldZone);
     }
     
-    void UpdateZoneDisplay()
+    void UpdateZoneDisplay(ZoneData oldZone = null)
     {
-        OnZoneChanged?.Invoke(currentZone);
+        EventBus.Publish(new ZoneChangedEvent { oldZone = oldZone, newZone = currentZone });
         
         if (currentZone != null)
         {
@@ -188,7 +187,7 @@ public class ZoneManager : MonoBehaviour, IZoneService
             }
             
             QuestData[] availableQuests = currentZone.GetAvailableQuests(playerLevel);
-            OnQuestsChanged?.Invoke(availableQuests);
+            EventBus.Publish(new QuestsUpdatedEvent { availableQuests = availableQuests });
         }
     }
     

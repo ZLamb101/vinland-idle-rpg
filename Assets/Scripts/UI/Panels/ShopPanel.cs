@@ -52,10 +52,10 @@ public class ShopPanel : MonoBehaviour
         // Subscribe to shop events
         if (shopService != null)
         {
-            shopService.OnShopOpened += OnShopOpened;
-            shopService.OnShopClosed += OnShopClosed;
-            shopService.OnStockChanged += OnStockChanged;
-            shopService.OnBuyBackChanged += OnBuyBackChanged;
+            EventBus.Subscribe<ShopOpenedEvent>(OnShopOpened);
+            EventBus.Subscribe<ShopClosedEvent>(OnShopClosed);
+            EventBus.Subscribe<ShopStockChangedEvent>(OnStockChanged);
+            EventBus.Subscribe<ShopBuyBackChangedEvent>(OnBuyBackChanged);
         }
         
         // Setup buttons
@@ -92,17 +92,15 @@ public class ShopPanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (shopService != null)
-        {
-            shopService.OnShopOpened -= OnShopOpened;
-            shopService.OnShopClosed -= OnShopClosed;
-            shopService.OnStockChanged -= OnStockChanged;
-            shopService.OnBuyBackChanged -= OnBuyBackChanged;
-        }
+        EventBus.Unsubscribe<ShopOpenedEvent>(OnShopOpened);
+        EventBus.Unsubscribe<ShopClosedEvent>(OnShopClosed);
+        EventBus.Unsubscribe<ShopStockChangedEvent>(OnStockChanged);
+        EventBus.Unsubscribe<ShopBuyBackChangedEvent>(OnBuyBackChanged);
     }
     
-    void OnShopOpened(ShopData shop)
+    void OnShopOpened(ShopOpenedEvent e)
     {
+        ShopData shop = e.shop;
         if (shopPanel != null)
             shopPanel.SetActive(true);
         
@@ -114,7 +112,7 @@ public class ShopPanel : MonoBehaviour
         UpdateRefreshTimer();
     }
     
-    void OnShopClosed()
+    void OnShopClosed(ShopClosedEvent e)
     {
         if (shopPanel != null)
             shopPanel.SetActive(false);
@@ -122,12 +120,12 @@ public class ShopPanel : MonoBehaviour
         ClearShopItems();
     }
     
-    void OnStockChanged(int itemIndex)
+    void OnStockChanged(ShopStockChangedEvent e)
     {
         RefreshShopItems(shopService?.GetCurrentShop());
     }
     
-    void OnBuyBackChanged()
+    void OnBuyBackChanged(ShopBuyBackChangedEvent e)
     {
         UpdateBuyBackDisplay();
     }

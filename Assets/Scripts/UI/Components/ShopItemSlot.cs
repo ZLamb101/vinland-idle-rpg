@@ -33,20 +33,17 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         var characterService = Services.Get<ICharacterService>();
         if (characterService != null)
         {
-            characterService.OnGoldChanged += OnGoldChanged;
+            EventBus.Subscribe<CharacterGoldChangedEvent>(OnGoldChanged);
         }
     }
     
     void OnDestroy()
     {
-        // Unsubscribe from events - Use TryGet since service might already be destroyed
-        if (Services.TryGet<ICharacterService>(out var characterService))
-        {
-            characterService.OnGoldChanged -= OnGoldChanged;
-        }
+        // Unsubscribe from events
+        EventBus.Unsubscribe<CharacterGoldChangedEvent>(OnGoldChanged);
     }
     
-    void OnGoldChanged(int newGold)
+    void OnGoldChanged(CharacterGoldChangedEvent e)
     {
         UpdateBuyButtonState();
     }

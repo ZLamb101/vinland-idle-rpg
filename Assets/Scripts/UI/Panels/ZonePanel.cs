@@ -54,10 +54,10 @@ public class ZonePanel : MonoBehaviour
             return;
         }
 
-        // Subscribe to zone changes
-        zoneService.OnZoneChanged += OnZoneChanged;
-        zoneService.OnQuestsChanged += OnQuestsChanged;
-        Debug.Log("[ZonePanel] Subscribed to zone events");
+        // Subscribe to zone changes via EventBus
+        EventBus.Subscribe<ZoneChangedEvent>(OnZoneChanged);
+        EventBus.Subscribe<QuestsUpdatedEvent>(OnQuestsChanged);
+        Debug.Log("[ZonePanel] Subscribed to zone events via EventBus");
         
         // Setup navigation buttons
         if (previousZoneButton != null)
@@ -107,8 +107,8 @@ public class ZonePanel : MonoBehaviour
         {
             Debug.Log("[ZonePanel] ZoneService found after waiting");
             
-            zoneService.OnZoneChanged += OnZoneChanged;
-            zoneService.OnQuestsChanged += OnQuestsChanged;
+            EventBus.Subscribe<ZoneChangedEvent>(OnZoneChanged);
+            EventBus.Subscribe<QuestsUpdatedEvent>(OnQuestsChanged);
             
             // Setup navigation buttons
             if (previousZoneButton != null)
@@ -142,18 +142,16 @@ public class ZonePanel : MonoBehaviour
 
     void OnDestroy()
     {
-        // Unsubscribe from events
-        if (zoneService != null)
-        {
-            zoneService.OnZoneChanged -= OnZoneChanged;
-            zoneService.OnQuestsChanged -= OnQuestsChanged;
-        }
+        // Unsubscribe from EventBus
+        EventBus.Unsubscribe<ZoneChangedEvent>(OnZoneChanged);
+        EventBus.Unsubscribe<QuestsUpdatedEvent>(OnQuestsChanged);
 
         // Resource gathering events are now handled by ResourcePanel components
     }
 
-    void OnZoneChanged(ZoneData zone)
+    void OnZoneChanged(ZoneChangedEvent e)
     {
+        ZoneData zone = e.newZone;
         Debug.Log($"[ZonePanel] OnZoneChanged event fired: {(zone != null ? zone.zoneName : "null")}");
         
         // Stop gathering when switching zones
@@ -173,7 +171,7 @@ public class ZonePanel : MonoBehaviour
         InitializeQuestsForZone(zone);
     }
 
-    void OnQuestsChanged(QuestData[] quests)
+    void OnQuestsChanged(QuestsUpdatedEvent e)
     {
         // Quest loading is handled by the existing questActionPanel
         // No need to duplicate quest display logic here

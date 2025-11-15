@@ -53,8 +53,8 @@ public class TalentPanel : MonoBehaviour
         // Subscribe to events
         if (talentService != null)
         {
-            talentService.OnTalentPointsChanged += UpdatePointsDisplay;
-            talentService.OnTalentUnlocked += OnTalentUnlocked;
+            EventBus.Subscribe<TalentPointsChangedEvent>(UpdatePointsDisplay);
+            EventBus.Subscribe<TalentUnlockedEvent>(OnTalentUnlocked);
         }
         
         // Setup tab buttons
@@ -96,7 +96,11 @@ public class TalentPanel : MonoBehaviour
         
         // Initialize
         CreateTalentButtons();
-        UpdatePointsDisplay(talentService?.GetUnspentPoints() ?? 0);
+        UpdatePointsDisplay(new TalentPointsChangedEvent 
+        { 
+            unspentPoints = talentService?.GetUnspentPoints() ?? 0,
+            totalPoints = talentService?.GetTotalPoints() ?? 0
+        });
     }
     
     void Update()
@@ -139,11 +143,8 @@ public class TalentPanel : MonoBehaviour
     
     void OnDestroy()
     {
-        if (talentService != null)
-        {
-            talentService.OnTalentPointsChanged -= UpdatePointsDisplay;
-            talentService.OnTalentUnlocked -= OnTalentUnlocked;
-        }
+        EventBus.Unsubscribe<TalentPointsChangedEvent>(UpdatePointsDisplay);
+        EventBus.Unsubscribe<TalentUnlockedEvent>(OnTalentUnlocked);
     }
     
     void CreateTalentButtons()
@@ -262,22 +263,22 @@ public class TalentPanel : MonoBehaviour
             tooltipPanel.SetActive(false);
     }
     
-    void OnTalentUnlocked(TalentData talent, int newRank)
+    void OnTalentUnlocked(TalentUnlockedEvent e)
     {
         // Specifically refresh the button for the unlocked talent
-        if (talent != null && talentButtons.ContainsKey(talent))
+        if (e.talent != null && talentButtons.ContainsKey(e.talent))
         {
-            talentButtons[talent].Refresh();
+            talentButtons[e.talent].Refresh();
         }
         
         // Also refresh all buttons to ensure everything is in sync
         RefreshAllButtons();
     }
     
-    void UpdatePointsDisplay(int points)
+    void UpdatePointsDisplay(TalentPointsChangedEvent e)
     {
         if (talentPointsText != null)
-            talentPointsText.text = $"Talent Points: {points}";
+            talentPointsText.text = $"Talent Points: {e.unspentPoints}";
         
         UpdateTreeSummary();
     }

@@ -6,18 +6,7 @@ using System.Collections.Generic;
 /// </summary>
 public interface ICombatService
 {
-    // Events
-    event Action<CombatManager.CombatState> OnCombatStateChanged;
-    event Action<float, float> OnPlayerHealthChanged;
-    event Action<float, float, int> OnMonsterHealthChanged;
-    event Action<List<MonsterData>> OnMonstersChanged;
-    event Action<int> OnTargetChanged;
-    event Action<int> OnMonsterSpawned;
-    event Action<int> OnMonsterDied;
-    event Action<float> OnPlayerAttackProgress;
-    event Action<float, int> OnMonsterAttackProgress;
-    event Action<float> OnPlayerDamageDealt;
-    event Action<float> OnPlayerDamageTaken;
+    // Events migrated to EventBus - see GameEvent.cs
     
     // Combat Control
     void StartCombat(MonsterData[] monsters, int mobCount = 1);

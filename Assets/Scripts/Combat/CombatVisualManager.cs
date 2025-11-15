@@ -94,10 +94,10 @@ public class CombatVisualManager : MonoBehaviour
         // Subscribe to combat events for health bar updates
         if (combatService != null)
         {
-            combatService.OnMonsterHealthChanged += UpdateEnemyHealth;
-            combatService.OnMonsterAttackProgress += OnMonsterAttackProgress;
-            combatService.OnTargetChanged += SetTargetIndicator;
-            combatService.OnPlayerDamageDealt += OnPlayerDamageDealt;
+            EventBus.Subscribe<MonsterHealthChangedEvent>(UpdateEnemyHealth);
+            EventBus.Subscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
+            EventBus.Subscribe<TargetChangedEvent>(SetTargetIndicator);
+            EventBus.Subscribe<PlayerDamageDealtEvent>(OnPlayerDamageDealt);
         }
     }
     
@@ -107,13 +107,10 @@ public class CombatVisualManager : MonoBehaviour
         Cleanup();
         
         // Unsubscribe from events
-        if (combatService != null)
-        {
-            combatService.OnMonsterHealthChanged -= UpdateEnemyHealth;
-            combatService.OnMonsterAttackProgress -= OnMonsterAttackProgress;
-            combatService.OnTargetChanged -= SetTargetIndicator;
-            combatService.OnPlayerDamageDealt -= OnPlayerDamageDealt;
-        }
+        EventBus.Unsubscribe<MonsterHealthChangedEvent>(UpdateEnemyHealth);
+        EventBus.Unsubscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
+        EventBus.Unsubscribe<TargetChangedEvent>(SetTargetIndicator);
+        EventBus.Unsubscribe<PlayerDamageDealtEvent>(OnPlayerDamageDealt);
     }
     
     void OnDisable()
@@ -122,18 +119,18 @@ public class CombatVisualManager : MonoBehaviour
         Cleanup();
     }
     
-    void OnMonsterAttackProgress(float progress, int index)
+    void OnMonsterAttackProgress(MonsterAttackProgressEvent e)
     {
-        UpdateMonsterSwingTimer(index, progress);
+        UpdateMonsterSwingTimer(e.monsterIndex, e.progress);
     }
     
-    void OnPlayerDamageDealt(float damage)
+    void OnPlayerDamageDealt(PlayerDamageDealtEvent e)
     {
         // Show damage on current target
         if (combatService != null)
         {
             int targetIndex = combatService.GetCurrentTargetIndex();
-            ShowDamageHitText(targetIndex, damage);
+            ShowDamageHitText(targetIndex, e.damage);
         }
     }
     
@@ -497,12 +494,12 @@ public class CombatVisualManager : MonoBehaviour
     /// <summary>
     /// Update enemy health bar for specific enemy
     /// </summary>
-    public void UpdateEnemyHealth(float current, float max, int index)
+    public void UpdateEnemyHealth(MonsterHealthChangedEvent e)
     {
-        if (index < 0 || index >= activeEnemies.Count)
+        if (e.monsterIndex < 0 || e.monsterIndex >= activeEnemies.Count)
             return;
         
-        EnemyVisual enemy = activeEnemies[index];
+        EnemyVisual enemy = activeEnemies[e.monsterIndex];
         if (enemy == null)
             return;
         
@@ -517,8 +514,8 @@ public class CombatVisualManager : MonoBehaviour
             if (sliders.Length > 0)
             {
                 Slider healthBar = sliders[0];
-                healthBar.maxValue = max;
-                healthBar.value = Mathf.Max(0f, current);
+                healthBar.maxValue = e.maxHealth;
+                healthBar.value = Mathf.Max(0f, e.currentHealth);
             }
             
             // Update health text (look for text that contains "/" or is numeric)
@@ -526,7 +523,7 @@ public class CombatVisualManager : MonoBehaviour
             {
                 if (text.text.Contains("/") || System.Text.RegularExpressions.Regex.IsMatch(text.text, @"^\d+"))
                 {
-                    text.text = $"{Mathf.Max(0f, current):F0} / {max:F0}";
+                    text.text = $"{Mathf.Max(0f, e.currentHealth):F0} / {e.maxHealth:F0}";
                     break; // Update first matching text (health text)
                 }
             }
@@ -535,9 +532,9 @@ public class CombatVisualManager : MonoBehaviour
             if (combatService != null)
             {
                 var monsterInstance = combatService.GetActiveMonsters();
-                if (index < monsterInstance.Count && monsterInstance[index].monsterData != null)
+                if (e.monsterIndex < monsterInstance.Count && monsterInstance[e.monsterIndex].monsterData != null)
                 {
-                    string monsterName = monsterInstance[index].monsterData.monsterName;
+                    string monsterName = monsterInstance[e.monsterIndex].monsterData.monsterName;
                     // Find name text (usually doesn't contain numbers or "/")
                     foreach (TextMeshProUGUI text in texts)
                     {
@@ -552,7 +549,7 @@ public class CombatVisualManager : MonoBehaviour
         }
         
         // Update swing timer bar (usually the second slider if it exists)
-        UpdateMonsterSwingTimer(index);
+        UpdateMonsterSwingTimer(e.monsterIndex);
     }
     
     /// <summary>
@@ -791,9 +788,9 @@ public class CombatVisualManager : MonoBehaviour
     /// <summary>
     /// Set target indicator (show/hide red arrow on targeted mob)
     /// </summary>
-    public void SetTargetIndicator(int targetIndex)
+    public void SetTargetIndicator(TargetChangedEvent e)
     {
-        currentTargetIndex = targetIndex;
+        currentTargetIndex = e.newTargetIndex;
         UpdateTargetIndicators();
     }
     
@@ -1119,7 +1116,12 @@ public class CombatVisualManager : MonoBehaviour
         enemy.gameObject.SetActive(true);
         
         // Update health bar for the new monster
-        UpdateEnemyHealth(currentHealth, maxHealth, enemyIndex);
+        UpdateEnemyHealth(new MonsterHealthChangedEvent 
+        { 
+            currentHealth = currentHealth, 
+            maxHealth = maxHealth, 
+            monsterIndex = enemyIndex 
+        });
         
         Debug.Log($"[CombatVisualManager] Spawned new {newMonsterData.monsterName} at enemy slot {enemyIndex}");
     }

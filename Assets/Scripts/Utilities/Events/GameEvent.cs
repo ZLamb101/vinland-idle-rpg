@@ -17,6 +17,11 @@ public class CharacterXPChangedEvent : GameEvent
     public int xpGained;
 }
 
+public class CharacterLevelChangedEvent : GameEvent
+{
+    public int newLevel;
+}
+
 public class CharacterLevelUpEvent : GameEvent
 {
     public int oldLevel;
@@ -27,6 +32,11 @@ public class CharacterGoldChangedEvent : GameEvent
 {
     public int newGold;
     public int goldChanged; // positive = gained, negative = spent
+}
+
+public class CharacterNameChangedEvent : GameEvent
+{
+    public string newName;
 }
 
 public class CharacterHealthChangedEvent : GameEvent
@@ -43,6 +53,12 @@ public class CharacterDiedEvent : GameEvent
 
 // ==================== Combat Events ====================
 
+public class CombatStateChangedEvent : GameEvent
+{
+    public CombatManager.CombatState newState;
+    public CombatManager.CombatState oldState;
+}
+
 public class CombatStartedEvent : GameEvent
 {
     public MonsterData[] monsters;
@@ -53,6 +69,29 @@ public class CombatEndedEvent : GameEvent
 {
     public bool wasVictory;
     public int monstersDefeated;
+}
+
+public class PlayerHealthChangedEvent : GameEvent
+{
+    public float currentHealth;
+    public float maxHealth;
+}
+
+public class MonsterHealthChangedEvent : GameEvent
+{
+    public float currentHealth;
+    public float maxHealth;
+    public int monsterIndex;
+}
+
+public class MonstersChangedEvent : GameEvent
+{
+    public System.Collections.Generic.List<MonsterData> monsters;
+}
+
+public class TargetChangedEvent : GameEvent
+{
+    public int newTargetIndex;
 }
 
 public class MonsterSpawnedEvent : GameEvent
@@ -67,6 +106,28 @@ public class MonsterDiedEvent : GameEvent
     public int monsterIndex;
     public int xpAwarded;
     public int goldAwarded;
+}
+
+public class PlayerAttackProgressEvent : GameEvent
+{
+    public float progress; // 0 to 1
+}
+
+public class MonsterAttackProgressEvent : GameEvent
+{
+    public float progress; // 0 to 1
+    public int monsterIndex;
+}
+
+public class PlayerDamageDealtEvent : GameEvent
+{
+    public float damage;
+    public bool wasCritical;
+}
+
+public class PlayerDamageTakenEvent : GameEvent
+{
+    public float damage;
 }
 
 public class DamageDealtEvent : GameEvent
@@ -126,6 +187,15 @@ public class ShopClosedEvent : GameEvent
     public ShopData shop;
 }
 
+public class ShopStockChangedEvent : GameEvent
+{
+    public int itemIndex;
+}
+
+public class ShopBuyBackChangedEvent : GameEvent
+{
+}
+
 public class ItemPurchasedEvent : GameEvent
 {
     public ItemData item;
@@ -152,6 +222,22 @@ public class QuestsUpdatedEvent : GameEvent
     public QuestData[] availableQuests;
 }
 
+// ==================== Dialogue Events ====================
+
+public class DialogueStartedEvent : GameEvent
+{
+    public NPCData npc;
+}
+
+public class DialogueTextChangedEvent : GameEvent
+{
+    public string dialogueText;
+}
+
+public class DialogueEndedEvent : GameEvent
+{
+}
+
 // ==================== Talent Events ====================
 
 public class TalentUnlockedEvent : GameEvent
@@ -167,7 +253,34 @@ public class TalentPointsChangedEvent : GameEvent
     public int totalPoints;
 }
 
+public class TalentBonusesRecalculatedEvent : GameEvent
+{
+    public TalentBonuses talentBonuses;
+}
+
 // ==================== Resource Events ====================
+
+public class GatheringStateChangedEvent : GameEvent
+{
+    public bool isGathering;
+    public ResourceData resource;
+}
+
+public class ResourceChangedEvent : GameEvent
+{
+    public ResourceData resource;
+}
+
+public class GatherProgressChangedEvent : GameEvent
+{
+    public float progress; // 0 to 1
+}
+
+public class ItemsGatheredEvent : GameEvent
+{
+    public int itemsGathered;
+    public ResourceData resource;
+}
 
 public class GatheringStartedEvent : GameEvent
 {

@@ -6,10 +6,7 @@ using System;
 /// </summary>
 public interface IDialogueService
 {
-    // Events
-    event Action<NPCData> OnDialogueStarted; // When dialogue begins
-    event Action<string> OnDialogueTextChanged; // When dialogue text changes
-    event Action OnDialogueEnded; // When dialogue closes
+    // Events migrated to EventBus - see GameEvent.cs
     
     // Dialogue Control
     void StartDialogue(NPCData npc);

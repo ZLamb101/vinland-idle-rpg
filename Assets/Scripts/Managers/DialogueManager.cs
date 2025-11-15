@@ -13,10 +13,7 @@ public class DialogueManager : MonoBehaviour, IDialogueService
     private int currentDialogueIndex = 0;
     private bool isDialogueActive = false;
     
-    // Events
-    public event Action<NPCData> OnDialogueStarted; // When dialogue begins
-    public event Action<string> OnDialogueTextChanged; // When dialogue text changes
-    public event Action OnDialogueEnded; // When dialogue closes
+    // Events migrated to EventBus - see GameEvent.cs for event types
     
     void Awake()
     {
@@ -65,7 +62,7 @@ public class DialogueManager : MonoBehaviour, IDialogueService
         currentDialogueIndex = 0;
         isDialogueActive = true;
         
-        OnDialogueStarted?.Invoke(npc);
+        EventBus.Publish(new DialogueStartedEvent { npc = npc });
         ShowCurrentDialogueLine();
     }
     
@@ -81,7 +78,7 @@ public class DialogueManager : MonoBehaviour, IDialogueService
         }
         
         string dialogueText = currentDialogueLines[currentDialogueIndex].text;
-        OnDialogueTextChanged?.Invoke(dialogueText);
+        EventBus.Publish(new DialogueTextChangedEvent { dialogueText = dialogueText });
     }
     
     /// <summary>
@@ -115,7 +112,7 @@ public class DialogueManager : MonoBehaviour, IDialogueService
         currentDialogueLines = null;
         currentDialogueIndex = 0;
         
-        OnDialogueEnded?.Invoke();
+        EventBus.Publish(new DialogueEndedEvent());
     }
     
     // Getters

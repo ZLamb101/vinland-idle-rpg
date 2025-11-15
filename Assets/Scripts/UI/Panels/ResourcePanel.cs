@@ -35,21 +35,18 @@ public class ResourcePanel : MonoBehaviour
         // Subscribe to ResourceManager events
         if (resourceService != null)
         {
-            resourceService.OnGatheringStateChanged += OnGatheringStateChanged;
-            resourceService.OnResourceChanged += OnResourceChanged;
-            resourceService.OnGatherProgressChanged += OnGatherProgressChanged;
+            EventBus.Subscribe<GatheringStateChangedEvent>(OnGatheringStateChanged);
+            EventBus.Subscribe<ResourceChangedEvent>(OnResourceChanged);
+            EventBus.Subscribe<GatherProgressChangedEvent>(OnGatherProgressChanged);
         }
     }
     
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (resourceService != null)
-        {
-            resourceService.OnGatheringStateChanged -= OnGatheringStateChanged;
-            resourceService.OnResourceChanged -= OnResourceChanged;
-            resourceService.OnGatherProgressChanged -= OnGatherProgressChanged;
-        }
+        EventBus.Unsubscribe<GatheringStateChangedEvent>(OnGatheringStateChanged);
+        EventBus.Unsubscribe<ResourceChangedEvent>(OnResourceChanged);
+        EventBus.Unsubscribe<GatherProgressChangedEvent>(OnGatherProgressChanged);
     }
     
     /// <summary>
@@ -140,10 +137,10 @@ public class ResourcePanel : MonoBehaviour
         }
     }
     
-    void OnGatheringStateChanged(bool gathering)
+    void OnGatheringStateChanged(GatheringStateChangedEvent e)
     {
         // Check if we're gathering THIS resource
-        bool gatheringThisResource = gathering && resourceService != null && 
+        bool gatheringThisResource = e.isGathering && resourceService != null && 
                                      resourceService.GetCurrentResource() == resourceData;
         
         isGathering = gatheringThisResource;
@@ -156,10 +153,10 @@ public class ResourcePanel : MonoBehaviour
         }
     }
     
-    void OnResourceChanged(ResourceData resource)
+    void OnResourceChanged(ResourceChangedEvent e)
     {
         // Update state if this panel's resource changed
-        bool gatheringThisResource = resource == resourceData && 
+        bool gatheringThisResource = e.resource == resourceData && 
                                      resourceService != null && 
                                      resourceService.IsGathering();
         
@@ -177,7 +174,7 @@ public class ResourcePanel : MonoBehaviour
         }
     }
     
-    void OnGatherProgressChanged(float progress)
+    void OnGatherProgressChanged(GatherProgressChangedEvent e)
     {
         // Only update progress if we're gathering THIS resource
         if (isGathering && resourceService != null && 
@@ -185,7 +182,7 @@ public class ResourcePanel : MonoBehaviour
         {
             if (progressSlider != null)
             {
-                progressSlider.value = progress;
+                progressSlider.value = e.progress;
             }
         }
     }

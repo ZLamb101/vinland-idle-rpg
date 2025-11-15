@@ -92,13 +92,12 @@ public class GameLog : MonoBehaviour, IGameLogService
     public void RefreshCharacterSubscription()
     {
         // Unsubscribe from old service if it exists
-        if (characterService != null)
-            characterService.OnLevelUp -= OnLevelUp;
+        EventBus.Unsubscribe<CharacterLevelUpEvent>(OnLevelUp);
         
         // Get fresh character service (CharacterManager can be destroyed/recreated)
         if (Services.TryGet<ICharacterService>(out characterService))
         {
-            characterService.OnLevelUp += OnLevelUp;
+            EventBus.Subscribe<CharacterLevelUpEvent>(OnLevelUp);
             Debug.Log("[GameLog] Subscribed to new character's events");
         }
     }
@@ -106,8 +105,7 @@ public class GameLog : MonoBehaviour, IGameLogService
     void OnDestroy()
     {
         // Unsubscribe from CharacterManager events
-        if (characterService != null)
-            characterService.OnLevelUp -= OnLevelUp;
+        EventBus.Unsubscribe<CharacterLevelUpEvent>(OnLevelUp);
         
         // Only unregister if we're the actual instance
         if (instance == this)
@@ -672,11 +670,11 @@ public class GameLog : MonoBehaviour, IGameLogService
         }
     }
     
-    private void OnLevelUp(int oldLevel, int newLevel)
+    private void OnLevelUp(CharacterLevelUpEvent e)
     {
-        List<StatChange> statChanges = CalculateStatChanges(oldLevel, newLevel);
+        List<StatChange> statChanges = CalculateStatChanges(e.oldLevel, e.newLevel);
         
-        AddLogEntry($"Level Up! You went from level {oldLevel} to level {newLevel}", LogType.Success);
+        AddLogEntry($"Level Up! You went from level {e.oldLevel} to level {e.newLevel}", LogType.Success);
         
         foreach (StatChange change in statChanges)
             AddLogEntry($"  • {change.GetDisplayText()}", LogType.Info);

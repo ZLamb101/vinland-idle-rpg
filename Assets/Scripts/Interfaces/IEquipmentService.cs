@@ -6,9 +6,7 @@ using System.Collections.Generic;
 /// </summary>
 public interface IEquipmentService
 {
-    // Events
-    event Action<EquipmentSlot, EquipmentData> OnEquipmentChanged;
-    event Action OnStatsRecalculated;
+    // Events migrated to EventBus - see GameEvent.cs
     
     // Equipment Management
     bool EquipItem(EquipmentData equipment);

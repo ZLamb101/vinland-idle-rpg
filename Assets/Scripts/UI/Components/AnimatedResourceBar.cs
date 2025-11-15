@@ -90,15 +90,25 @@ public class AnimatedResourceBar : MonoBehaviour
             switch (resourceType)
             {
                 case ResourceType.Health:
-                    characterService.OnHealthChanged += UpdateHealthBar;
-                    UpdateHealthBar(characterService.GetCurrentHealth(), 
-                                   characterService.GetMaxHealth());
+                    EventBus.Subscribe<CharacterHealthChangedEvent>(UpdateHealthBar);
+                    // Initialize with current values
+                    UpdateHealthBar(new CharacterHealthChangedEvent 
+                    { 
+                        currentHealth = characterService.GetCurrentHealth(),
+                        maxHealth = characterService.GetMaxHealth(),
+                        healthChanged = 0
+                    });
                     break;
                     
                 case ResourceType.Experience:
-                    characterService.OnXPChanged += UpdateXPBar;
-                    characterService.OnLevelChanged += OnLevelChanged;
-                    UpdateXPBar(characterService.GetCurrentXP());
+                    EventBus.Subscribe<CharacterXPChangedEvent>(UpdateXPBar);
+                    EventBus.Subscribe<CharacterLevelChangedEvent>(OnLevelChanged);
+                    // Initialize with current values
+                    UpdateXPBar(new CharacterXPChangedEvent 
+                    { 
+                        newXP = characterService.GetCurrentXP(),
+                        xpGained = 0
+                    });
                     break;
             }
         }
@@ -106,19 +116,16 @@ public class AnimatedResourceBar : MonoBehaviour
     
     void OnDestroy()
     {
-        if (characterService != null)
+        switch (resourceType)
         {
-            switch (resourceType)
-            {
-                case ResourceType.Health:
-                    characterService.OnHealthChanged -= UpdateHealthBar;
-                    break;
-                    
-                case ResourceType.Experience:
-                    characterService.OnXPChanged -= UpdateXPBar;
-                    characterService.OnLevelChanged -= OnLevelChanged;
-                    break;
-            }
+            case ResourceType.Health:
+                EventBus.Unsubscribe<CharacterHealthChangedEvent>(UpdateHealthBar);
+                break;
+                
+            case ResourceType.Experience:
+                EventBus.Unsubscribe<CharacterXPChangedEvent>(UpdateXPBar);
+                EventBus.Unsubscribe<CharacterLevelChangedEvent>(OnLevelChanged);
+                break;
         }
     }
     
@@ -135,12 +142,12 @@ public class AnimatedResourceBar : MonoBehaviour
         }
     }
     
-    void UpdateHealthBar(float current, float max)
+    void UpdateHealthBar(CharacterHealthChangedEvent e)
     {
-        currentAmount = current;
-        maxAmount = max;
+        currentAmount = e.currentHealth;
+        maxAmount = e.maxHealth;
         
-        float newTargetValue = max > 0 ? current / max : 0;
+        float newTargetValue = e.maxHealth > 0 ? e.currentHealth / e.maxHealth : 0;
         
         // Handle background bar for damage preview
         if (useBackgroundBar && backgroundSlider != null)
@@ -170,15 +177,15 @@ public class AnimatedResourceBar : MonoBehaviour
         UpdateText();
     }
     
-    void UpdateXPBar(int currentXP)
+    void UpdateXPBar(CharacterXPChangedEvent e)
     {
         if (characterService == null) return;
         
         int xpNeeded = characterService.GetXPRequiredForNextLevel();
-        currentAmount = currentXP;
+        currentAmount = e.newXP;
         maxAmount = xpNeeded;
         
-        targetValue = xpNeeded > 0 ? (float)currentXP / xpNeeded : 0;
+        targetValue = xpNeeded > 0 ? (float)e.newXP / xpNeeded : 0;
         
         if (!useSmoothing && mainSlider != null)
         {
@@ -196,11 +203,14 @@ public class AnimatedResourceBar : MonoBehaviour
         UpdateText();
     }
     
-    void OnLevelChanged(int newLevel)
+    void OnLevelChanged(CharacterLevelChangedEvent e)
     {
+        // When level changes, XP also changes, so we'll get an XPChangedEvent
+        // This just ensures the bar resets properly for the new level
         if (characterService != null)
         {
-            UpdateXPBar(characterService.GetCurrentXP());
+            int currentXP = characterService.GetCurrentXP();
+            EventBus.Publish(new CharacterXPChangedEvent { newXP = currentXP, xpGained = 0 });
         }
     }
     

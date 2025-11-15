@@ -25,9 +25,9 @@ public class DialoguePanel : MonoBehaviour
         // Subscribe to dialogue events
         if (Services.TryGet<IDialogueService>(out dialogueService))
         {
-            dialogueService.OnDialogueStarted += OnDialogueStarted;
-            dialogueService.OnDialogueTextChanged += OnDialogueTextChanged;
-            dialogueService.OnDialogueEnded += OnDialogueEnded;
+            EventBus.Subscribe<DialogueStartedEvent>(OnDialogueStarted);
+            EventBus.Subscribe<DialogueTextChangedEvent>(OnDialogueTextChanged);
+            EventBus.Subscribe<DialogueEndedEvent>(OnDialogueEnded);
         }
         
         // Setup buttons
@@ -49,15 +49,12 @@ public class DialoguePanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        if (Services.TryGet<IDialogueService>(out dialogueService))
-        {
-            dialogueService.OnDialogueStarted -= OnDialogueStarted;
-            dialogueService.OnDialogueTextChanged -= OnDialogueTextChanged;
-            dialogueService.OnDialogueEnded -= OnDialogueEnded;
-        }
+        EventBus.Unsubscribe<DialogueStartedEvent>(OnDialogueStarted);
+        EventBus.Unsubscribe<DialogueTextChangedEvent>(OnDialogueTextChanged);
+        EventBus.Unsubscribe<DialogueEndedEvent>(OnDialogueEnded);
     }
     
-    void OnDialogueStarted(NPCData npc)
+    void OnDialogueStarted(DialogueStartedEvent e)
     {
         if (dialoguePanel != null)
             dialoguePanel.SetActive(true);
@@ -70,15 +67,15 @@ public class DialoguePanel : MonoBehaviour
         UpdateNextButtonVisibility();
     }
     
-    void OnDialogueTextChanged(string text)
+    void OnDialogueTextChanged(DialogueTextChangedEvent e)
     {
         if (dialogueText != null)
-            dialogueText.text = text;
+            dialogueText.text = e.dialogueText;
         
         UpdateNextButtonVisibility();
     }
     
-    void OnDialogueEnded()
+    void OnDialogueEnded(DialogueEndedEvent e)
     {
         if (dialoguePanel != null)
             dialoguePanel.SetActive(false);

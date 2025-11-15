@@ -12,9 +12,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     [Header("Equipment Slots")]
     private Dictionary<EquipmentSlot, EquipmentData> equippedItems = new Dictionary<EquipmentSlot, EquipmentData>();
     
-    // Events for UI updates
-    public event Action<EquipmentSlot, EquipmentData> OnEquipmentChanged;
-    public event Action OnStatsRecalculated;
+    // Events migrated to EventBus - see GameEvent.cs for event types
     
     // Cached total stats
     private EquipmentStats totalStats = new EquipmentStats();
@@ -86,7 +84,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         RecalculateStats();
         
         // Notify listeners
-        OnEquipmentChanged?.Invoke(slot, equipment);
+        EventBus.Publish(new EquipmentChangedEvent { slot = slot, newEquipment = equipment, oldEquipment = previousEquipment });
         return true;
     }
     
@@ -109,7 +107,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         RecalculateStats();
         
         // Notify listeners
-        OnEquipmentChanged?.Invoke(slot, null);
+        EventBus.Publish(new EquipmentChangedEvent { slot = slot, newEquipment = null, oldEquipment = unequipped });
         return unequipped;
     }
     
@@ -139,7 +137,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
             totalStats.goldBonus += equipment.goldBonus;
         }
         
-        OnStatsRecalculated?.Invoke();
+        EventBus.Publish(new StatsRecalculatedEvent { equipmentStats = totalStats });
     }
     
     /// <summary>

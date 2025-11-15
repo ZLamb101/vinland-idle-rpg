@@ -19,10 +19,7 @@ public class TalentManager : MonoBehaviour, ITalentService
     // Cached total bonuses from all talents
     private TalentBonuses totalBonuses = new TalentBonuses();
     
-    // Events
-    public event Action<int> OnTalentPointsChanged;
-    public event Action<TalentData, int> OnTalentUnlocked; // Talent, new rank
-    public event Action OnTalentBonusesRecalculated;
+    // Events migrated to EventBus - see GameEvent.cs for event types
 
     private ICharacterService characterService;
     
@@ -47,7 +44,7 @@ public class TalentManager : MonoBehaviour, ITalentService
         // Subscribe to level up events
         if (characterService != null)
         {
-            characterService.OnLevelChanged += OnPlayerLevelUp;
+            EventBus.Subscribe<CharacterLevelChangedEvent>(OnPlayerLevelUp);
         }
         
         RecalculateBonuses();
@@ -55,10 +52,7 @@ public class TalentManager : MonoBehaviour, ITalentService
     
     void OnDestroy()
     {
-        if (characterService != null)
-        {
-            characterService.OnLevelChanged -= OnPlayerLevelUp;
-        }
+        EventBus.Unsubscribe<CharacterLevelChangedEvent>(OnPlayerLevelUp);
         
         Services.Unregister<ITalentService>();
     }
@@ -66,7 +60,7 @@ public class TalentManager : MonoBehaviour, ITalentService
     /// <summary>
     /// Award talent point when player levels up
     /// </summary>
-    void OnPlayerLevelUp(int newLevel)
+    void OnPlayerLevelUp(CharacterLevelChangedEvent e)
     {
         AddTalentPoints(1);
     }
@@ -78,7 +72,7 @@ public class TalentManager : MonoBehaviour, ITalentService
     {
         unspentTalentPoints += amount;
         totalTalentPoints += amount;
-        OnTalentPointsChanged?.Invoke(unspentTalentPoints);
+        EventBus.Publish(new TalentPointsChangedEvent { unspentPoints = unspentTalentPoints, totalPoints = totalTalentPoints });
     }
     
     /// <summary>
@@ -115,8 +109,8 @@ public class TalentManager : MonoBehaviour, ITalentService
         RecalculateBonuses();
         
         // Notify listeners
-        OnTalentPointsChanged?.Invoke(unspentTalentPoints);
-        OnTalentUnlocked?.Invoke(talent, newRank);
+        EventBus.Publish(new TalentPointsChangedEvent { unspentPoints = unspentTalentPoints, totalPoints = totalTalentPoints });
+        EventBus.Publish(new TalentUnlockedEvent { talent = talent, newRank = newRank, talentPointsRemaining = unspentTalentPoints });
         return true;
     }
     
@@ -182,7 +176,7 @@ public class TalentManager : MonoBehaviour, ITalentService
             totalBonuses.goldBonus += talent.goldBonus * rank;
         }
         
-        OnTalentBonusesRecalculated?.Invoke();
+        EventBus.Publish(new TalentBonusesRecalculatedEvent { talentBonuses = totalBonuses });
     }
     
     /// <summary>
@@ -200,7 +194,7 @@ public class TalentManager : MonoBehaviour, ITalentService
         unspentTalentPoints += pointsToRefund;
         
         RecalculateBonuses();
-        OnTalentPointsChanged?.Invoke(unspentTalentPoints);
+        EventBus.Publish(new TalentPointsChangedEvent { unspentPoints = unspentTalentPoints, totalPoints = totalTalentPoints });
     }
     
     // Getters

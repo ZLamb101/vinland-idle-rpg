@@ -5,9 +5,7 @@ using System;
 /// </summary>
 public interface IZoneService
 {
-    // Events
-    event Action<ZoneData> OnZoneChanged;
-    event Action<QuestData[]> OnQuestsChanged;
+    // Events migrated to EventBus - see GameEvent.cs
     
     // Zone Navigation
     void LoadCurrentZone();

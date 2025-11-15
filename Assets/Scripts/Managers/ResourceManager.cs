@@ -17,11 +17,7 @@ public class ResourceManager : MonoBehaviour, IResourceService
     private float gatherTimer = 0f;
     private float timePerGather = 1f; // Time in seconds to complete one gather cycle
     
-    // Events
-    public event Action<bool> OnGatheringStateChanged; // bool = isGathering
-    public event Action<ResourceData> OnResourceChanged; // When resource changes
-    public event Action<float> OnGatherProgressChanged; // 0 to 1
-    public event Action<int> OnItemsGathered; // Amount of items gathered
+    // Events migrated to EventBus - see GameEvent.cs for event types
     
     private ICharacterService characterService;
     private IAwayActivityService awayActivityService;
@@ -90,9 +86,9 @@ public class ResourceManager : MonoBehaviour, IResourceService
             awayActivityService.SaveAwayState();
         }
         
-        OnGatheringStateChanged?.Invoke(isGathering);
-        OnResourceChanged?.Invoke(currentResource);
-        OnGatherProgressChanged?.Invoke(0f);
+        EventBus.Publish(new GatheringStateChangedEvent { isGathering = isGathering, resource = currentResource });
+        EventBus.Publish(new ResourceChangedEvent { resource = currentResource });
+        EventBus.Publish(new GatherProgressChangedEvent { progress = 0f });
         return true;
     }
     
@@ -140,8 +136,8 @@ public class ResourceManager : MonoBehaviour, IResourceService
             awayActivityService.StopActivity();
         }
         
-        OnGatheringStateChanged?.Invoke(isGathering);
-        OnGatherProgressChanged?.Invoke(0f);
+        EventBus.Publish(new GatheringStateChangedEvent { isGathering = isGathering, resource = currentResource });
+        EventBus.Publish(new GatherProgressChangedEvent { progress = 0f });
     }
     
     void UpdateGathering()
@@ -149,7 +145,7 @@ public class ResourceManager : MonoBehaviour, IResourceService
         gatherTimer += Time.deltaTime;
         gatherProgress = Mathf.Clamp01(gatherTimer / timePerGather);
         
-        OnGatherProgressChanged?.Invoke(gatherProgress);
+        EventBus.Publish(new GatherProgressChangedEvent { progress = gatherProgress });
         
         // When gather cycle completes
         if (gatherProgress >= 1f)
@@ -159,7 +155,7 @@ public class ResourceManager : MonoBehaviour, IResourceService
             // Reset for next cycle
             gatherTimer = 0f;
             gatherProgress = 0f;
-            OnGatherProgressChanged?.Invoke(0f);
+            EventBus.Publish(new GatherProgressChangedEvent { progress = 0f });
         }
     }
     
@@ -176,7 +172,7 @@ public class ResourceManager : MonoBehaviour, IResourceService
             InventoryItem items = currentResource.gatheredItem.CreateInventoryItem(currentResource.itemsPerGather);
             characterService.AddItemToInventory(items);
             
-            OnItemsGathered?.Invoke(currentResource.itemsPerGather);
+            EventBus.Publish(new ItemsGatheredEvent { itemsGathered = currentResource.itemsPerGather, resource = currentResource });
         }
     }
     
