@@ -53,10 +53,11 @@ public class CharacterSelectionManager : MonoBehaviour
     void Start()
     {
         // Ensure AwayActivityManager exists (for checking activity status)
-        if (AwayActivityManager.Instance == null)
+        if (!Services.TryGet<IAwayActivityService>(out var awayActivityService))
         {
             GameObject awayManagerObj = new GameObject("AwayActivityManager");
-            awayManagerObj.AddComponent<AwayActivityManager>();
+            awayActivityService = awayManagerObj.AddComponent<AwayActivityManager>();
+            //Services.Register<IAwayActivityService>(awayActivityService);
         }
         
         // Ensure ZoneManager exists (for checking zone information)
@@ -64,7 +65,7 @@ public class CharacterSelectionManager : MonoBehaviour
         {
             GameObject zoneManagerObj = new GameObject("ZoneManager");
             zoneService = zoneManagerObj.AddComponent<ZoneManager>();
-            Services.Register<IZoneService>(zoneService);
+            //Services.Register<IZoneService>(zoneService);
         }
         
         InitializeSlots();
@@ -562,9 +563,9 @@ public class CharacterSelectionManager : MonoBehaviour
                 if (selectedHeroActivityText != null)
                 {
                     string activityText = "";
-                    if (AwayActivityManager.Instance != null)
+                    if (Services.TryGet<IAwayActivityService>(out var awayActivityService))
                     {
-                        activityText = AwayActivityManager.Instance.GetActivityDisplayString(selectedSlotIndex);
+                        activityText = awayActivityService.GetActivityDisplayString(selectedSlotIndex);
                     }
                     selectedHeroActivityText.text = activityText;
                 }

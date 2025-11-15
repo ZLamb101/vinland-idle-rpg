@@ -80,7 +80,17 @@ public class AwayActivityManager : MonoBehaviour, IAwayActivityService
         // Register with service locator
         Services.Register<IAwayActivityService>(this);
     }
-    
+
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Services.Unregister<IAwayActivityService>();    
+            Instance = null;
+        }
+    }
+
     /// <summary>
     /// Start tracking a mining activity
     /// Only resets start time if starting a NEW activity (different resource or no current activity)

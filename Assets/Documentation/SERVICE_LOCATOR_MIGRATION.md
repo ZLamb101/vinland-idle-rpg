@@ -443,7 +443,12 @@ public class MyPanel : Injectable
   - [x] ResourceManager.cs already implements IResourceService and registers with Services
   - [x] ResourcePanel.cs uses service references
   - [x] Fixed OnDestroy() to check Instance before unregistering
-- [ ] Phase 4.3: Migrate Away Activity System
+- [x] Phase 4.3: Migrate Away Activity System ✅ **COMPLETE**
+  - [x] Created comprehensive IAwayActivityService interface with 36 methods
+  - [x] AwayActivityManager implements IAwayActivityService and registers with Services
+  - [x] Migrated all consumer files to use TryGet pattern (SaveData, ReturnToCharacterSelect, CombatManager, CharacterSelectionManager, CharacterManager, CharacterSlot, ResourceManager)
+  - [x] Fixed OnDestroy() to check Instance before unregistering
+  - [x] Zero .Instance usages in production code
 - [ ] Phase 5.1: Migrate Dialogue System
 - [ ] Phase 5.2: Migrate GameLog System
 - [ ] Phase 6: Cleanup & Finalization
@@ -460,6 +465,6 @@ public class MyPanel : Injectable
 
 ---
 
-**Last Updated**: 2025-01-10  
-**Next Phase**: Phase 1 Implementation
+**Last Updated**: 2025-01-15  
+**Next Phase**: Phase 5 - UI & Utility Systems
 

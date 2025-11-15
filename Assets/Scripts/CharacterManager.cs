@@ -20,7 +20,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     public event Action<string> OnNameChanged;
     public event Action<float, float> OnHealthChanged; // (currentHealth, maxHealth)
     public event Action OnPlayerDied; // When health reaches 0
-    
+
     void Awake()
     {
         // Singleton pattern
@@ -42,13 +42,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         
         // Ensure game runs in background (essential for idle games)
         Application.runInBackground = true;
-        
-        // Ensure AwayActivityManager exists
-        if (AwayActivityManager.Instance == null)
-        {
-            GameObject awayManagerObj = new GameObject("AwayActivityManager");
-            awayManagerObj.AddComponent<AwayActivityManager>();
-        }
+ 
     }
     
     void Start()
@@ -87,16 +81,9 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     void OnApplicationQuit()
     {
         // Save away activity state when game closes
-        if (AwayActivityManager.Instance != null)
+        if (Services.TryGet<IAwayActivityService>(out var awayActivityService))
         {
-            AwayActivityManager.Instance.SaveAwayState();
-            
-            // Save last played time
-            int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
-            if (currentSlot >= 0)
-            {
-                AwayActivityManager.Instance.SaveLastPlayedTime(currentSlot);
-            }
+            awayActivityService.SaveAwayState();
         }
         
         // Auto-save character data

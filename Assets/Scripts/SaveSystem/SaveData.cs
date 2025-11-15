@@ -126,19 +126,19 @@ public class SaveData
         }
         
         // Away activity
-        if (AwayActivityManager.Instance != null)
+        if (Services.TryGet<IAwayActivityService>(out var awayActivityService))
         {
-            data.awayActivityType = (int)AwayActivityManager.Instance.GetCurrentActivity();
-            data.awayActivityStartTime = AwayActivityManager.Instance.GetActivityStartTime().Ticks.ToString();
+            data.awayActivityType = (int)awayActivityService.GetCurrentActivity();
+            data.awayActivityStartTime = awayActivityService.GetActivityStartTime().Ticks.ToString();
             
-            if (AwayActivityManager.Instance.GetCurrentResource() != null)
+            if (awayActivityService.GetCurrentResource() != null)
             {
-                data.awayResourceName = AwayActivityManager.Instance.GetCurrentResource().name;
+                data.awayResourceName = awayActivityService.GetCurrentResource().name;
             }
             
-            if (AwayActivityManager.Instance.GetCurrentMonsters() != null)
+            if (awayActivityService.GetCurrentMonsters() != null)
             {
-                foreach (var monster in AwayActivityManager.Instance.GetCurrentMonsters())
+                foreach (var monster in awayActivityService.GetCurrentMonsters())
                 {
                     if (monster != null)
                     {
@@ -148,7 +148,7 @@ public class SaveData
                 }
             }
             
-            data.awayMobCount = AwayActivityManager.Instance.GetMobCount();
+            data.awayMobCount = awayActivityService.GetMobCount();
         }
         
         return data;

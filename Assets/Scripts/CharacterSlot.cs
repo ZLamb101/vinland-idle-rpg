@@ -111,9 +111,9 @@ public class CharacterSlot : MonoBehaviour
                 {
                     // Get activity from AwayActivityManager if available
                     string activityDisplay = "";
-                    if (AwayActivityManager.Instance != null)
+                    if (Services.TryGet<IAwayActivityService>(out var awayActivityService))
                     {
-                        activityDisplay = AwayActivityManager.Instance.GetActivityDisplayString(slotIndex);
+                        activityDisplay = awayActivityService.GetActivityDisplayString(slotIndex);
                     }
                     activityText.text = activityDisplay;
                     activityText.color = unlockedTextColor;
@@ -130,9 +130,9 @@ public class CharacterSlot : MonoBehaviour
                 if (!characterData.isEmpty)
                 {
                     string lastPlayedDisplay = "";
-                    if (AwayActivityManager.Instance != null)
+                    if (Services.TryGet<IAwayActivityService>(out var awayActivityService))
                     {
-                        lastPlayedDisplay = AwayActivityManager.Instance.GetTimeSinceLastPlayed(slotIndex);
+                        lastPlayedDisplay = awayActivityService.GetTimeSinceLastPlayed(slotIndex);
                     }
                     lastPlayedText.text = $"Last played: {lastPlayedDisplay}";
                     lastPlayedText.color = unlockedTextColor;

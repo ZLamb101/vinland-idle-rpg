@@ -26,15 +26,15 @@ public class ReturnToCharacterSelect : MonoBehaviour
     public void ReturnToSelect()
     {
         // Save away activity state BEFORE ending anything (so we save the current activity)
-        if (AwayActivityManager.Instance != null)
+        if (Services.TryGet<IAwayActivityService>(out var awayActivityService))
         {
-            AwayActivityManager.Instance.SaveAwayState();
+            awayActivityService.SaveAwayState();
             
             // Save last played time for this character
             int currentSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
             if (currentSlot >= 0)
             {
-                AwayActivityManager.Instance.SaveLastPlayedTime(currentSlot);
+                awayActivityService.SaveLastPlayedTime(currentSlot);
             }
         }
         
