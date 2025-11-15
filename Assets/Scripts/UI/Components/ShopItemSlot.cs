@@ -66,7 +66,7 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         }
         else if (inventoryPanel == null)
         {
-            inventoryPanel = ComponentInjector.GetOrFind<InventoryPanel>();
+            inventoryPanel = ComponentInjector.FindComponent<InventoryPanel>();
         }
         
         UpdateDisplay();

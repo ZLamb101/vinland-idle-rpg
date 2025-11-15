@@ -28,7 +28,7 @@ public class MonsterPanel : MonoBehaviour
         // Find mob count selector if not assigned
         if (mobCountSelector == null)
         {
-            mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
+            mobCountSelector = ComponentInjector.FindComponent<MobCountSelector>();
         }
         
         // Setup fight button if assigned
@@ -117,7 +117,7 @@ public class MonsterPanel : MonoBehaviour
         // Try to find selector again if not assigned (in case it wasn't found in Awake)
         if (mobCountSelector == null)
         {
-            mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
+            mobCountSelector = ComponentInjector.FindComponent<MobCountSelector>();
         }
         
         int mobCount = 1;

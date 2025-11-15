@@ -51,7 +51,7 @@ public class CombatPanel : MonoBehaviour
         // Find mob count selector if not assigned
         if (mobCountSelector == null)
         {
-            mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
+            mobCountSelector = ComponentInjector.FindComponent<MobCountSelector>();
         }
         
         // Get combat service
@@ -331,7 +331,7 @@ public class CombatPanel : MonoBehaviour
         // Try to find selector if not assigned
         if (mobCountSelector == null)
         {
-            mobCountSelector = ComponentInjector.GetOrFind<MobCountSelector>();
+            mobCountSelector = ComponentInjector.FindComponent<MobCountSelector>();
         }
         
         if (mobCountSelector != null)

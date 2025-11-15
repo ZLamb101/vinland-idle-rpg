@@ -68,7 +68,7 @@ public class ReturnToCharacterSelect : MonoBehaviour
             if (characterService != null)
             {
                 // Try to find CharacterLoader, but don't worry if it's not found
-                CharacterLoader loader = ComponentInjector.GetOrFind<CharacterLoader>();
+                CharacterLoader loader = ComponentInjector.FindComponent<CharacterLoader>();
                 if (loader != null)
                 {
                     loader.SaveCurrentCharacter();

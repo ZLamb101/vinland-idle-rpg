@@ -44,7 +44,7 @@ public class ShopPanel : MonoBehaviour
     void Start()
     {
         // Cache inventoryPanel reference once
-        inventoryPanel = ComponentInjector.GetOrFind<InventoryPanel>();
+        inventoryPanel = ComponentInjector.FindComponent<InventoryPanel>();
         
         // Get shop service
         shopService = Services.Get<IShopService>();

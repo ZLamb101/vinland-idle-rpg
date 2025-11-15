@@ -34,7 +34,7 @@ public class CharacterLoader : MonoBehaviour
         }
         
         // Check if we're in character selection scene (don't load if we are)
-        CharacterSelectionManager charSelectManager = ComponentInjector.GetOrFind<CharacterSelectionManager>();
+        CharacterSelectionManager charSelectManager = ComponentInjector.FindComponent<CharacterSelectionManager>();
         if (charSelectManager != null)
         {
             return;
@@ -75,7 +75,7 @@ public class CharacterLoader : MonoBehaviour
     {
         yield return new WaitForSeconds(0.2f);
         
-        CharacterSelectionManager charSelectManager = ComponentInjector.GetOrFind<CharacterSelectionManager>();
+        CharacterSelectionManager charSelectManager = ComponentInjector.FindComponent<CharacterSelectionManager>();
         if (charSelectManager != null) yield break;
         
         if (!Services.TryGet<ICharacterService>(out var characterService))
@@ -244,7 +244,7 @@ public class CharacterLoader : MonoBehaviour
         Debug.Log($"[CharacterLoader] Searching for AwayRewardsPanel in scene...");
         
         // Find the AwayRewardsPanel in the scene (searches active and inactive objects)
-        AwayRewardsPanel panel = ComponentInjector.GetOrFind<AwayRewardsPanel>();
+        AwayRewardsPanel panel = ComponentInjector.FindComponent<AwayRewardsPanel>();
         
         // If not found, try searching inactive objects
         if (panel == null)
