@@ -4,12 +4,6 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// Bootstrap script that initializes all persistent managers before loading the first scene.
 /// This ensures all managers exist with DontDestroyOnLoad before any scene needs them.
-/// 
-/// SETUP:
-/// 1. Create a new scene called "Bootstrap.unity"
-/// 2. Add this script to an empty GameObject
-/// 3. In Build Settings, make Bootstrap scene index 0 (first scene)
-/// 4. Set firstSceneName to your actual first scene
 /// </summary>
 public class GameBootstrap : MonoBehaviour
 {
@@ -47,9 +41,6 @@ public class GameBootstrap : MonoBehaviour
         // UI and utilities
         CreateManager<DialogueManager>();
         
-        // Note: GameLog is NOT created here - it's a UI component that should
-        // exist in scenes where the log UI is needed. It will register itself.
-        
         Log("═══════════════════════════════════════");
         Log($"All {9} managers created successfully!");
         Log($"Loading first scene: {firstSceneName}");
@@ -79,11 +70,6 @@ public class GameBootstrap : MonoBehaviour
         // Create new GameObject with manager component
         GameObject managerObj = new GameObject(managerName);
         T manager = managerObj.AddComponent<T>();
-        
-        // Manager's Awake() will automatically:
-        // - Handle singleton pattern (prevent duplicates)
-        // - Call DontDestroyOnLoad(gameObject)
-        // - Register with Services.Register<IService>(this)
         
         Log($"✓ Created {managerName}");
     }

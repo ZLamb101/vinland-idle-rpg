@@ -7,12 +7,6 @@ using UnityEngine;
 /// </summary>
 public class CharacterManager : MonoBehaviour, ICharacterService
 {
-    // Private instance for internal singleton pattern
-    private static CharacterManager instance;
-    
-    // Public property marked as obsolete
-    [System.Obsolete("Use Services.Get<ICharacterService>() instead. Direct Instance access is deprecated.", true)]
-    public static CharacterManager Instance => instance;
     
     private CharacterData characterData = new CharacterData(); // Not serialized - loaded at runtime
     private bool dataHasBeenLoaded = false; // Track if character data has been loaded from save
@@ -28,17 +22,16 @@ public class CharacterManager : MonoBehaviour, ICharacterService
 
     void Awake()
     {
-        // Singleton pattern
-        if (instance != null && instance != this)
+        // Prevent duplicates - GameBootstrap creates all managers
+        if (Services.IsRegistered<ICharacterService>())
         {
+            Debug.LogWarning("[CharacterManager] Service already registered. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
         
-        instance = this;
         DontDestroyOnLoad(gameObject); // Persist between scenes
         
-        // Register with service locator
         Services.Register<ICharacterService>(this);
         
         // Reset loaded flag when singleton is first created or reset
@@ -59,8 +52,6 @@ public class CharacterManager : MonoBehaviour, ICharacterService
             // Initialize health to max for new characters
             characterData.currentHealth = characterData.GetMaxHealth();
             
-            // Don't fire events here if data hasn't been loaded - CharacterLoader will do it
-            // This prevents empty/default values from being displayed before character is loaded
         }
         else
         {
@@ -75,12 +66,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     
     void OnDestroy()
     {
-        // Only unregister if we're the actual instance
-        if (instance == this)
-        {
-            Services.Unregister<ICharacterService>();
-            instance = null;
-        }
+        Services.Unregister<ICharacterService>();
     }
     
     void OnApplicationQuit()

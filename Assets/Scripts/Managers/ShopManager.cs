@@ -7,10 +7,6 @@ using UnityEngine;
 /// </summary>
 public class ShopManager : MonoBehaviour, IShopService
 {
-    private static ShopManager instance;
-    
-    [System.Obsolete("Use Services.Get<IShopService>() instead. Direct Instance access is deprecated.", true)]
-    public static ShopManager Instance => instance;
     
     [Header("Shop State")]
     private ShopData currentShop;
@@ -34,13 +30,13 @@ public class ShopManager : MonoBehaviour, IShopService
     
     void Awake()
     {
-        if (instance != null && instance != this)
+        if (Services.IsRegistered<IShopService>())
         {
+            Debug.LogWarning("[ShopManager] Service already registered. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
         
-        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
@@ -49,12 +45,7 @@ public class ShopManager : MonoBehaviour, IShopService
     
     void OnDestroy()
     {
-        // Only unregister if we're the actual instance
-        if (instance == this)
-        {
-            Services.Unregister<IShopService>();
-            instance = null;
-        }
+        Services.Unregister<IShopService>();
     }
     
     /// <summary>

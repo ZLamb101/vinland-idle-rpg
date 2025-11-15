@@ -42,10 +42,6 @@ public class CombatMonsterInstance
 /// </summary>
 public class CombatManager : MonoBehaviour, ICombatService
 {
-    private static CombatManager instance;
-    
-    [System.Obsolete("Use Services.Get<ICombatService>() instead. Direct Instance access is deprecated.", true)]
-    public static CombatManager Instance => instance;
     
     [Header("Combat State")]
     private CombatState currentState = CombatState.Idle;
@@ -96,13 +92,13 @@ public class CombatManager : MonoBehaviour, ICombatService
     
     void Awake()
     {
-        if (instance != null && instance != this)
+        if (Services.IsRegistered<ICombatService>())
         {
+            Debug.LogWarning("[CombatManager] Service already registered. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
         
-        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
@@ -124,12 +120,7 @@ public class CombatManager : MonoBehaviour, ICombatService
     
     void OnDestroy()
     {
-        // Only unregister if we're the actual instance
-        if (instance == this)
-        {
-            Services.Unregister<ICombatService>();
-            instance = null;
-        }
+        Services.Unregister<ICombatService>();
     }
     
     /// <summary>

@@ -8,10 +8,6 @@ using UnityEngine;
 /// </summary>
 public class EquipmentManager : MonoBehaviour, IEquipmentService
 {
-    private static EquipmentManager instance;
-    
-    [System.Obsolete("Use Services.Get<IEquipmentService>() instead. Direct Instance access is deprecated.", true)]
-    public static EquipmentManager Instance => instance;
     
     [Header("Equipment Slots")]
     private Dictionary<EquipmentSlot, EquipmentData> equippedItems = new Dictionary<EquipmentSlot, EquipmentData>();
@@ -27,13 +23,13 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     
     void Awake()
     {
-        if (instance != null && instance != this)
+        if (Services.IsRegistered<IEquipmentService>())
         {
+            Debug.LogWarning("[EquipmentManager] Service already registered. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
         
-        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
@@ -53,12 +49,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
 
     void OnDestroy()
     {
-        // Only unregister if we're the actual instance
-        if (instance == this)
-        {
-            Services.Unregister<IEquipmentService>();
-            instance = null;
-        }
+        Services.Unregister<IEquipmentService>();
     }
 
     /// <summary>

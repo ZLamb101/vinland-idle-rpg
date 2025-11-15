@@ -7,10 +7,6 @@ using UnityEngine;
 /// </summary>
 public class ResourceManager : MonoBehaviour, IResourceService
 {
-    private static ResourceManager instance;
-    
-    [System.Obsolete("Use Services.Get<IResourceService>() instead. Direct Instance access is deprecated.", true)]
-    public static ResourceManager Instance => instance;
     
     [Header("Gathering State")]
     private bool isGathering = false;
@@ -32,13 +28,13 @@ public class ResourceManager : MonoBehaviour, IResourceService
 
     void Awake()
     {
-        if (instance != null && instance != this)
+        if (Services.IsRegistered<IResourceService>())
         {
+            Debug.LogWarning("[ResourceManager] Service already registered. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
         
-        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
@@ -53,12 +49,7 @@ public class ResourceManager : MonoBehaviour, IResourceService
 
     void OnDestroy()
     {
-        // Only unregister if we're the actual instance
-        if (instance == this)
-        {
-            Services.Unregister<IResourceService>();
-            instance = null;
-        }
+        Services.Unregister<IResourceService>();
     }
     
     void Update()

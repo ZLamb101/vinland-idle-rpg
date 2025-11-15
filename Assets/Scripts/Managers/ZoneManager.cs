@@ -7,10 +7,6 @@ using UnityEngine;
 /// </summary>
 public class ZoneManager : MonoBehaviour, IZoneService
 {
-    private static ZoneManager instance;
-    
-    [System.Obsolete("Use Services.Get<IZoneService>() instead. Direct Instance access is deprecated.", true)]
-    public static ZoneManager Instance => instance;
     
     [Header("Zone Settings")]
     public ZoneData[] allZones; // All zones in the game
@@ -25,14 +21,13 @@ public class ZoneManager : MonoBehaviour, IZoneService
     
     void Awake()
     {
-        // Singleton pattern
-        if (instance != null && instance != this)
+        if (Services.IsRegistered<IZoneService>())
         {
+            Debug.LogWarning("[ZoneManager] Service already registered. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
         
-        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
@@ -41,13 +36,7 @@ public class ZoneManager : MonoBehaviour, IZoneService
 
     void OnDestroy()
     {
-        // Only unregister if we're the actual instance
-        // This prevents duplicate ZoneManagers from unregistering the service
-        if (instance == this)
-        {
-            Services.Unregister<IZoneService>();
-            instance = null;
-        }
+        Services.Unregister<IZoneService>();
     }
     
     void Start()

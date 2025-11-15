@@ -6,10 +6,6 @@ using UnityEngine;
 /// </summary>
 public class DialogueManager : MonoBehaviour, IDialogueService
 {
-    private static DialogueManager instance;
-    
-    [System.Obsolete("Use Services.Get<IDialogueService>() instead. Direct Instance access is deprecated.", true)]
-    public static DialogueManager Instance => instance;
     
     [Header("Dialogue State")]
     private NPCData currentNPC;
@@ -24,13 +20,13 @@ public class DialogueManager : MonoBehaviour, IDialogueService
     
     void Awake()
     {
-        if (instance != null && instance != this)
+        if (Services.IsRegistered<IDialogueService>())
         {
+            Debug.LogWarning("[DialogueManager] Service already registered. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
         
-        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
@@ -39,12 +35,7 @@ public class DialogueManager : MonoBehaviour, IDialogueService
     
     void OnDestroy()
     {
-        // Only unregister if we're the actual instance
-        if (instance == this)
-        {
-            Services.Unregister<IDialogueService>();
-            instance = null;
-        }
+        Services.Unregister<IDialogueService>();
     }
     
     /// <summary>

@@ -8,10 +8,6 @@ using UnityEngine;
 /// </summary>
 public class TalentManager : MonoBehaviour, ITalentService
 {
-    private static TalentManager instance;
-    
-    [System.Obsolete("Use Services.Get<ITalentService>() instead. Direct Instance access is deprecated.", true)]
-    public static TalentManager Instance => instance;
     
     [Header("Talent Points")]
     private int unspentTalentPoints = 0;
@@ -32,13 +28,13 @@ public class TalentManager : MonoBehaviour, ITalentService
     
     void Awake()
     {
-        if (instance != null && instance != this)
+        if (Services.IsRegistered<ITalentService>())
         {
+            Debug.LogWarning("[TalentManager] Service already registered. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
         
-        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
@@ -64,12 +60,7 @@ public class TalentManager : MonoBehaviour, ITalentService
             characterService.OnLevelChanged -= OnPlayerLevelUp;
         }
         
-        // Only unregister if we're the actual instance
-        if (instance == this)
-        {
-            Services.Unregister<ITalentService>();
-            instance = null;
-        }
+        Services.Unregister<ITalentService>();
     }
     
     /// <summary>
