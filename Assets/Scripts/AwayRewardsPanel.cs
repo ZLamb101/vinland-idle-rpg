@@ -260,8 +260,7 @@ public class AwayRewardsPanel : MonoBehaviour
         ApplyRewards(currentRewards);
         
         // Clear away state using service pattern
-        var awayService = ServiceMigrationHelper.GetAwayActivityService();
-        if (awayService != null)
+        if (Services.TryGet<IAwayActivityService>(out var awayService))
         {
             awayService.ClearAwayState();
         }
@@ -275,58 +274,29 @@ public class AwayRewardsPanel : MonoBehaviour
     /// </summary>
     void ApplyRewards(AwayRewards rewards)
     {
-        var characterService = ServiceMigrationHelper.GetCharacterService();
-        if (characterService == null)
+        if (!Services.TryGet<ICharacterService>(out var characterService))
         {
-            Debug.LogError("[AwayRewardsPanel] CharacterService not found! Cannot apply rewards.");
+            Debug.LogError("[AwayRewards] CharacterService not available");
             return;
         }
         
-        // Apply mining rewards (items)
-        if (rewards.activityType == AwayActivityType.Mining)
-        {
-            foreach (var kvp in rewards.itemsGathered)
-            {
-                // Find the item by name and add to inventory
-                ItemData itemData = FindItemByName(kvp.Key);
-                if (itemData != null)
-                {
-                    InventoryItem item = itemData.CreateInventoryItem(kvp.Value);
-                    InventoryData.AddItemResult result = characterService.AddItemToInventoryDetailed(item);
-                    
-                    if (!result.success && result.itemsRemaining > 0)
-                    {
-                        Debug.LogWarning($"[AwayRewards] Inventory full! Could only add {result.itemsAdded} of {kvp.Value} {kvp.Key}. {result.itemsRemaining} items were lost.");
-                    }
-                }
-            }
-        }
+        characterService.AddXP(rewards.xpEarned);
+        characterService.AddGold(rewards.goldEarned);
         
-        // Apply fighting rewards (XP, gold, items)
-        if (rewards.activityType == AwayActivityType.Fighting)
+        foreach (var kvp in rewards.itemsGathered)
         {
-            if (rewards.xpEarned > 0)
+            ItemData itemData = FindItemByName(kvp.Key);
+            if (itemData != null)
             {
-                characterService.AddXP(rewards.xpEarned);
-            }
-            
-            if (rewards.goldEarned > 0)
-            {
-                characterService.AddGold(rewards.goldEarned);
-            }
-            
-            foreach (var kvp in rewards.itemsDropped)
-            {
-                ItemData itemData = FindItemByName(kvp.Key);
-                if (itemData != null)
+                InventoryItem item = itemData.CreateInventoryItem(kvp.Value);
+                
+                if (characterService.AddItemToInventory(item))
                 {
-                    InventoryItem item = itemData.CreateInventoryItem(kvp.Value);
-                    InventoryData.AddItemResult result = characterService.AddItemToInventoryDetailed(item);
-                    
-                    if (!result.success && result.itemsRemaining > 0)
-                    {
-                        Debug.LogWarning($"[AwayRewards] Inventory full! Could only add {result.itemsAdded} of {kvp.Value} {kvp.Key}. {result.itemsRemaining} items were lost.");
-                    }
+                    Debug.Log($"[AwayRewards] Added {kvp.Value}x {kvp.Key} to inventory");
+                }
+                else
+                {
+                    Debug.LogWarning($"[AwayRewards] Inventory full! Could not add {kvp.Value}x {kvp.Key}");
                 }
             }
         }

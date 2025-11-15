@@ -8,7 +8,10 @@ using UnityEngine;
 /// </summary>
 public class TalentManager : MonoBehaviour, ITalentService
 {
-    public static TalentManager Instance { get; private set; }
+    private static TalentManager instance;
+    
+    [System.Obsolete("Use Services.Get<ITalentService>() instead. Direct Instance access is deprecated.", true)]
+    public static TalentManager Instance => instance;
     
     [Header("Talent Points")]
     private int unspentTalentPoints = 0;
@@ -29,13 +32,13 @@ public class TalentManager : MonoBehaviour, ITalentService
     
     void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
         
-        Instance = this;
+        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
@@ -62,10 +65,10 @@ public class TalentManager : MonoBehaviour, ITalentService
         }
         
         // Only unregister if we're the actual instance
-        if (Instance == this)
+        if (instance == this)
         {
             Services.Unregister<ITalentService>();
-            Instance = null;
+            instance = null;
         }
     }
     

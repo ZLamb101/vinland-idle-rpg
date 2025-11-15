@@ -7,7 +7,12 @@ using UnityEngine;
 /// </summary>
 public class CharacterManager : MonoBehaviour, ICharacterService
 {
-    public static CharacterManager Instance { get; private set; }
+    // Private instance for internal singleton pattern
+    private static CharacterManager instance;
+    
+    // Public property marked as obsolete
+    [System.Obsolete("Use Services.Get<ICharacterService>() instead. Direct Instance access is deprecated.", true)]
+    public static CharacterManager Instance => instance;
     
     private CharacterData characterData = new CharacterData(); // Not serialized - loaded at runtime
     private bool dataHasBeenLoaded = false; // Track if character data has been loaded from save
@@ -24,13 +29,13 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     void Awake()
     {
         // Singleton pattern
-        if (Instance != null && Instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
         
-        Instance = this;
+        instance = this;
         DontDestroyOnLoad(gameObject); // Persist between scenes
         
         // Register with service locator
@@ -71,10 +76,10 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     void OnDestroy()
     {
         // Only unregister if we're the actual instance
-        if (Instance == this)
+        if (instance == this)
         {
             Services.Unregister<ICharacterService>();
-            Instance = null;
+            instance = null;
         }
     }
     

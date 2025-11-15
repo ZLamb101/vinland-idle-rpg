@@ -8,7 +8,10 @@ using UnityEngine;
 /// </summary>
 public class EquipmentManager : MonoBehaviour, IEquipmentService
 {
-    public static EquipmentManager Instance { get; private set; }
+    private static EquipmentManager instance;
+    
+    [System.Obsolete("Use Services.Get<IEquipmentService>() instead. Direct Instance access is deprecated.", true)]
+    public static EquipmentManager Instance => instance;
     
     [Header("Equipment Slots")]
     private Dictionary<EquipmentSlot, EquipmentData> equippedItems = new Dictionary<EquipmentSlot, EquipmentData>();
@@ -24,13 +27,13 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     
     void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
         
-        Instance = this;
+        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator

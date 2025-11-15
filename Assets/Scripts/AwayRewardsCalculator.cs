@@ -130,8 +130,7 @@ public static class AwayRewardsCalculator
         float playerAttackDamage = 10f; // Base attack damage
         float playerAttackSpeed = 1.5f; // Base attack speed
         
-        var combatService = ServiceMigrationHelper.GetCombatService();
-        if (combatService != null)
+        if (Services.TryGet<ICombatService>(out var combatService))
         {
             // Ensure player stats are up to date
             combatService.CalculatePlayerStats();
@@ -271,8 +270,7 @@ public static class AwayRewardsCalculator
         };
         
         // Add equipment bonuses using service pattern
-        var equipmentService = ServiceMigrationHelper.GetEquipmentService();
-        if (equipmentService != null)
+        if (Services.TryGet<IEquipmentService>(out var equipmentService))
         {
             EquipmentStats equipStats = equipmentService.GetTotalStats();
             stats.xpBonus += equipStats.xpBonus;
@@ -280,8 +278,7 @@ public static class AwayRewardsCalculator
         }
         
         // Add talent bonuses using service pattern
-        var talentService = ServiceMigrationHelper.GetTalentService();
-        if (talentService != null)
+        if (Services.TryGet<ITalentService>(out var talentService))
         {
             TalentBonuses talents = talentService.GetTotalBonuses();
             stats.xpBonus += talents.xpBonus;

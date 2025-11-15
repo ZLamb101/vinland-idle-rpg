@@ -18,7 +18,10 @@ public enum AwayActivityType
 /// </summary>
 public class AwayActivityManager : MonoBehaviour, IAwayActivityService
 {
-    public static AwayActivityManager Instance { get; private set; }
+    private static AwayActivityManager instance;
+    
+    [System.Obsolete("Use Services.Get<IAwayActivityService>() instead. Direct Instance access is deprecated.", true)]
+    public static AwayActivityManager Instance => instance;
     
     private AwayActivityType currentActivity = AwayActivityType.None;
     private DateTime activityStartTime;
@@ -68,13 +71,13 @@ public class AwayActivityManager : MonoBehaviour, IAwayActivityService
     
     void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
         
-        Instance = this;
+        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
@@ -84,10 +87,10 @@ public class AwayActivityManager : MonoBehaviour, IAwayActivityService
 
     void OnDestroy()
     {
-        if (Instance == this)
+        if (instance == this)
         {
             Services.Unregister<IAwayActivityService>();    
-            Instance = null;
+            instance = null;
         }
     }
 

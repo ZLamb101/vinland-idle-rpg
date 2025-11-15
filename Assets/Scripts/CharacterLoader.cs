@@ -42,12 +42,7 @@ public class CharacterLoader : MonoBehaviour
         
         EnsureCharacterManagerExists();
         
-        var characterService = ServiceMigrationHelper.GetCharacterService();
-        if (characterService == null)
-        {
-            StartCoroutine(RetryLoadAfterDelay());
-            return;
-        }
+        var characterService = Services.Get<ICharacterService>();
         
         Debug.Log($"[CharacterLoader] Loading character from slot {currentSlotIndex}");
         SaveData saveData = SaveSystem.LoadCharacter(currentSlotIndex);
@@ -93,8 +88,7 @@ public class CharacterLoader : MonoBehaviour
         CharacterSelectionManager charSelectManager = ComponentInjector.GetOrFind<CharacterSelectionManager>();
         if (charSelectManager != null) yield break;
         
-        var characterService = ServiceMigrationHelper.GetCharacterService();
-        if (characterService == null)
+        if (!Services.TryGet<ICharacterService>(out var characterService))
         {
             Debug.LogError("[CharacterLoader] CharacterService still not available after retry");
             yield break;
@@ -110,41 +104,47 @@ public class CharacterLoader : MonoBehaviour
     
     private void PostLoadInitialization()
     {
-        var characterService = ServiceMigrationHelper.GetCharacterService();
-        if (characterService == null) return;
+        if (!Services.TryGet<ICharacterService>(out var characterService))
+        {
+            Debug.LogError("[CharacterLoader] CharacterService not available for initialization");
+            return;
+        }
         
         Debug.Log($"[CharacterLoader] Initializing character from slot {currentSlotIndex}");
         
         // Refresh GameLog subscription to new character's events
-        var gameLogService = ServiceMigrationHelper.GetGameLogService();
-        if (gameLogService != null && gameLogService is GameLog gameLog)
+        if (Services.TryGet<IGameLogService>(out var gameLogService) && gameLogService is GameLog gameLog)
         {
             gameLog.RefreshCharacterSubscription();
         }
         
-        var combatService = ServiceMigrationHelper.GetCombatService();
-        if (combatService != null && combatService.GetCombatState() != CombatManager.CombatState.Idle)
+        if (Services.TryGet<ICombatService>(out var combatService) && combatService.GetCombatState() != CombatManager.CombatState.Idle)
         {
             combatService.EndCombat();
         }
         
-        var resourceService = ServiceMigrationHelper.GetResourceService();
-        resourceService?.StopGathering();
+        if (Services.TryGet<IResourceService>(out var resourceService))
+        {
+            resourceService.StopGathering();
+        }
         
-        var awayService = ServiceMigrationHelper.GetAwayActivityService();
-        awayService?.StopActivity();
-        
-        CheckForAwayRewards();
-        
-        awayService?.MarkGameSessionStart();
+        if (Services.TryGet<IAwayActivityService>(out var awayService))
+        {
+            awayService.StopActivity();
+            CheckForAwayRewards();
+            awayService.MarkGameSessionStart();
+        }
+        else
+        {
+            CheckForAwayRewards();
+        }
         
         LoadCharacterZone();
     }
     
     private void LoadCharacterZone()
     {
-        var zoneService = ServiceMigrationHelper.GetZoneService();
-        if (zoneService == null) return;
+        if (!Services.TryGet<IZoneService>(out var zoneService)) return;
         
         SaveData saveData = SaveSystem.LoadCharacter(currentSlotIndex);
         if (saveData != null && saveData.currentZoneIndex >= 0)
@@ -160,8 +160,7 @@ public class CharacterLoader : MonoBehaviour
     
     void CheckForAwayRewards()
     {
-        var awayService = ServiceMigrationHelper.GetAwayActivityService();
-        if (awayService == null) return;
+        if (!Services.TryGet<IAwayActivityService>(out var awayService)) return;
         
         // Load saved away activity state
         bool hadAwayActivity = awayService.LoadAwayState(currentSlotIndex);
@@ -256,8 +255,10 @@ public class CharacterLoader : MonoBehaviour
             Debug.Log($"[Away Rewards] XP: {rewards.xpEarned}, Gold: {rewards.goldEarned}, Monsters Killed: {rewards.monstersKilled}");
             
             // Clear away state since we can't show the panel
-            var awayService = ServiceMigrationHelper.GetAwayActivityService();
-            awayService?.ClearAwayState(currentSlotIndex);
+            if (Services.TryGet<IAwayActivityService>(out var awayService))
+            {
+                awayService.ClearAwayState(currentSlotIndex);
+            }
         }
     }
     
@@ -286,8 +287,7 @@ public class CharacterLoader : MonoBehaviour
     
     public void SaveCurrentCharacter()
     {
-        var characterService = ServiceMigrationHelper.GetCharacterService();
-        if (characterService == null) return;
+        if (!Services.TryGet<ICharacterService>(out var characterService)) return;
         
         if (currentSlotIndex < 0)
         {

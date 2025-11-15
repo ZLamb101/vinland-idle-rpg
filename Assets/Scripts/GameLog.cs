@@ -9,7 +9,10 @@ using System.Collections.Generic;
 /// </summary>
 public class GameLog : MonoBehaviour, IGameLogService
 {
-    public static GameLog Instance { get; private set; }
+    private static GameLog instance;
+    
+    [System.Obsolete("Use Services.Get<IGameLogService>() instead. Direct Instance access is deprecated.", true)]
+    public static GameLog Instance => instance;
     
     [Header("UI Components")]
     public GameObject logPanel;
@@ -41,12 +44,12 @@ public class GameLog : MonoBehaviour, IGameLogService
     
     void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
-        Instance = this;
+        instance = this;
         
         // Register with service locator
         Services.Register<IGameLogService>(this);
@@ -104,10 +107,10 @@ public class GameLog : MonoBehaviour, IGameLogService
             characterService.OnLevelUp -= OnLevelUp;
         
         // Only unregister if we're the actual instance
-        if (Instance == this)
+        if (instance == this)
         {
             Services.Unregister<IGameLogService>();
-            Instance = null;
+            instance = null;
         }
     }
     

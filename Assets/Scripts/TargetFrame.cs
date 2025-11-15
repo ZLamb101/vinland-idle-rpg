@@ -21,11 +21,8 @@ public class TargetFrame : MonoBehaviour
     
     void Start()
     {
-        // Get combat service using migration helper (doesn't log errors during scene transitions)
-        combatService = ServiceMigrationHelper.GetCombatService();
-        
-        // Subscribe to combat events
-        if (combatService != null)
+        // Get combat service (doesn't log errors during scene transitions)
+        if (Services.TryGet<ICombatService>(out combatService))
         {
             combatService.OnTargetChanged += OnTargetChanged;
             combatService.OnMonsterHealthChanged += OnMonsterHealthChanged;
@@ -50,8 +47,7 @@ public class TargetFrame : MonoBehaviour
     {
         yield return new WaitForSeconds(0.2f);
         
-        combatService = ServiceMigrationHelper.GetCombatService();
-        if (combatService != null)
+        if (Services.TryGet<ICombatService>(out combatService))
         {
             combatService.OnTargetChanged += OnTargetChanged;
             combatService.OnMonsterHealthChanged += OnMonsterHealthChanged;

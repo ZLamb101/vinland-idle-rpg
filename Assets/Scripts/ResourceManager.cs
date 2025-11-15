@@ -7,7 +7,10 @@ using UnityEngine;
 /// </summary>
 public class ResourceManager : MonoBehaviour, IResourceService
 {
-    public static ResourceManager Instance { get; private set; }
+    private static ResourceManager instance;
+    
+    [System.Obsolete("Use Services.Get<IResourceService>() instead. Direct Instance access is deprecated.", true)]
+    public static ResourceManager Instance => instance;
     
     [Header("Gathering State")]
     private bool isGathering = false;
@@ -29,13 +32,13 @@ public class ResourceManager : MonoBehaviour, IResourceService
 
     void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
         
-        Instance = this;
+        instance = this;
         DontDestroyOnLoad(gameObject);
         
         // Register with service locator
