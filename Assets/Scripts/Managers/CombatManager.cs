@@ -72,6 +72,23 @@ public class CombatManager : MonoBehaviour, ICombatService
         characterService = Services.Get<ICharacterService>();
     }
     
+    /// <summary>
+    /// Helper method to log combat messages with automatic service refresh
+    /// </summary>
+    private void LogCombatMessage(string message, LogType logType = LogType.Info)
+    {
+        // Re-fetch service if null (scene might have reloaded)
+        if (gameLogService == null)
+        {
+            Services.TryGet<IGameLogService>(out gameLogService);
+        }
+        
+        if (gameLogService != null)
+        {
+            gameLogService.AddCombatLogEntry(message, logType);
+        }
+    }
+    
     void OnDestroy()
     {
         Services.Unregister<ICombatService>();
@@ -119,6 +136,12 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (visualManager == null)
         {
             visualManager = ComponentInjector.FindComponent<CombatVisualManager>();
+        }
+        
+        // Re-fetch game log service in case scene was reloaded
+        if (gameLogService == null)
+        {
+            Services.TryGet<IGameLogService>(out gameLogService);
         }
         
         // Ensure we're not in combat already (clean up any stale state)
@@ -219,10 +242,7 @@ public class CombatManager : MonoBehaviour, ICombatService
             monstersToSpawn.Add(selectedMonster);
             
             // Log monster spawn
-            if (gameLogService != null)
-            {
-                gameLogService.AddCombatLogEntry($"Monster {i + 1}: {selectedMonster.monsterName} spawned!", LogType.Info);
-            }
+            LogCombatMessage($"Monster {i + 1}: {selectedMonster.monsterName} spawned!", LogType.Info);
             
             EventBus.Publish(new MonsterSpawnedEvent { monsterData = selectedMonster, monsterIndex = i });
         }
@@ -247,10 +267,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // Log combat start
-        if (gameLogService != null && monstersToSpawn.Count > 0)
+        if (monstersToSpawn.Count > 0)
         {
             string monsterNames = string.Join(", ", monstersToSpawn.ConvertAll(m => m.monsterName));
-            gameLogService.AddCombatLogEntry($"Combat started against {monstersToSpawn.Count} monster(s): {monsterNames}!", LogType.Info);
+            LogCombatMessage($"Combat started against {monstersToSpawn.Count} monster(s): {monsterNames}!", LogType.Info);
         }
         
         // Reset timers
@@ -471,10 +491,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         EventBus.Publish(new PlayerDamageDealtEvent { damage = damage, wasCritical = (damage > playerAttackDamage) }); // Fire event for damage dealt BY player TO monsters (shows above enemies)
         
         // Log combat message
-        if (gameLogService != null && target.monsterData != null)
+        if (target.monsterData != null)
         {
             string critText = (damage > playerAttackDamage) ? " (Critical!)" : "";
-            gameLogService.AddCombatLogEntry($"You deal {damage:F0} damage to {target.monsterData.monsterName}{critText}", LogType.Info);
+            LogCombatMessage($"You deal {damage:F0} damage to {target.monsterData.monsterName}{critText}", LogType.Info);
         }
         
         if (target.currentHealth <= 0)
@@ -536,9 +556,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (stats.dodge > 0 && UnityEngine.Random.value <= stats.dodge)
         {
             // Log dodge message
-            if (gameLogService != null && monster.monsterData != null)
+            if (monster.monsterData != null)
             {
-                gameLogService.AddCombatLogEntry($"{monster.monsterData.monsterName} attacks, but you dodge!", LogType.Success);
+                LogCombatMessage($"{monster.monsterData.monsterName} attacks, but you dodge!", LogType.Success);
             }
             
             return; // Attack dodged, no damage taken
@@ -555,9 +575,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         EventBus.Publish(new PlayerDamageTakenEvent { damage = damage }); // Fire event for damage dealt TO player BY monsters (shows player damage)
         
         // Log combat message
-        if (gameLogService != null && monster.monsterData != null)
+        if (monster.monsterData != null)
         {
-            gameLogService.AddCombatLogEntry($"{monster.monsterData.monsterName} hits you for {damage:F0} damage", LogType.Warning);
+            LogCombatMessage($"{monster.monsterData.monsterName} hits you for {damage:F0} damage", LogType.Warning);
         }
         
         // Sync with CharacterManager
@@ -586,10 +606,7 @@ public class CombatManager : MonoBehaviour, ICombatService
             return;
         
         // Log victory message
-        if (gameLogService != null)
-        {
-            gameLogService.AddCombatLogEntry($"You defeated {defeatedMonster.monsterData.monsterName}!", LogType.Success);
-        }
+        LogCombatMessage($"You defeated {defeatedMonster.monsterData.monsterName}!", LogType.Success);
         
         // Give rewards with equipment bonuses
         if (characterService != null)
@@ -692,11 +709,11 @@ public class CombatManager : MonoBehaviour, ICombatService
     void OnPlayerDefeated()
     {
         // Log defeat message
-        if (gameLogService != null && activeMonsters.Count > 0)
+        if (activeMonsters.Count > 0)
         {
             var target = GetCurrentTarget();
             string monsterName = target != null && target.monsterData != null ? target.monsterData.monsterName : "monsters";
-            gameLogService.AddCombatLogEntry($"You were defeated by {monsterName}!", LogType.Error);
+            LogCombatMessage($"You were defeated by {monsterName}!", LogType.Error);
         }
         
         CombatState oldState = currentState;

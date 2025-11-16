@@ -36,8 +36,7 @@ public class CombatVisualManager : MonoBehaviour
     private List<EnemyVisual> activeEnemies = new List<EnemyVisual>();
     private List<GameObject> activeItemDrops = new List<GameObject>(); // Track active drop visuals for cleanup
     private int currentTargetIndex = 0;
-    private Dictionary<int, Coroutine> activeDamageAnimations = new Dictionary<int, Coroutine>(); // Track damage text animations by enemy index
-    private Dictionary<int, Vector2> damageTextStartPositions = new Dictionary<int, Vector2>(); // Store original starting positions for damage text
+    private List<GameObject> activeDamageTexts = new List<GameObject>(); // Track active damage text GameObjects for cleanup
     
     private ICombatService combatService; // Cached combat service reference
     
@@ -288,42 +287,11 @@ public class CombatVisualManager : MonoBehaviour
             {
                 enemyVisual.monsterDetailsContainer = detailsRect;
                 
-                // Find and store the starting position of damage text for this enemy
-                TextMeshProUGUI[] allTexts = detailsRect.GetComponentsInChildren<TextMeshProUGUI>();
-                foreach (TextMeshProUGUI text in allTexts)
-                {
-                    // Check if this is the damage text
-                    if (text.name.ToLower().Contains("damage") || text.name.ToLower().Contains("hit"))
-                    {
-                        if (text.rectTransform != null)
-                        {
-                            damageTextStartPositions[i] = text.rectTransform.anchoredPosition;
-                            break;
-                        }
-                    }
-                }
-                
-                // If not found by name, try to find by content pattern
-                if (!damageTextStartPositions.ContainsKey(i))
-                {
-                    foreach (TextMeshProUGUI text in allTexts)
-                    {
-                        // Skip health text (contains "/") and name text (letters only)
-                        if (!text.text.Contains("/") && !System.Text.RegularExpressions.Regex.IsMatch(text.text, @"^[A-Za-z\s]+$"))
-                        {
-                            if (text.rectTransform != null)
-                            {
-                                damageTextStartPositions[i] = text.rectTransform.anchoredPosition;
-                                break;
-                            }
-                        }
-                    }
-                }
-                
                 // Initialize monster name in monster details container
                 var monsterInstance = combatService?.GetActiveMonsters();
                 if (monsterInstance != null && i < monsterInstance.Count && monsterInstance[i].monsterData != null)
                 {
+                    TextMeshProUGUI[] allTexts = detailsRect.GetComponentsInChildren<TextMeshProUGUI>();
                     foreach (TextMeshProUGUI text in allTexts)
                     {
                         // Find name text (doesn't contain numbers or "/")
@@ -331,14 +299,10 @@ public class CombatVisualManager : MonoBehaviour
                         {
                             text.text = monsterInstance[i].monsterData.monsterName;
                             break;
+                        }
                     }
                 }
             }
-        }
-        else
-        {
-            // Monster details container not found - continue without it
-        }
         
         // Set callback for when enemy reaches attack range
             enemyVisual.SetOnReachAttackRange(() => {
@@ -589,6 +553,7 @@ public class CombatVisualManager : MonoBehaviour
     
     /// <summary>
     /// Show damage hit text above specific enemy
+    /// Creates independent damage text GameObject that floats above the enemy
     /// </summary>
     public void ShowDamageHitText(int enemyIndex, float damage)
     {
@@ -596,96 +561,74 @@ public class CombatVisualManager : MonoBehaviour
             return;
         
         EnemyVisual enemy = activeEnemies[enemyIndex];
-        if (enemy == null || enemy.monsterDetailsContainer == null)
+        if (enemy == null || combatSceneContainer == null)
             return;
         
-        // Find damage hit text component in monster details container (include inactive objects)
-        TextMeshProUGUI[] texts = enemy.monsterDetailsContainer.GetComponentsInChildren<TextMeshProUGUI>(true);
-        TextMeshProUGUI damageText = null;
+        // Get enemy's current world position
+        Vector2 enemyWorldPos = enemy.GetPosition();
         
-        // Look for damage text (might be named "DamageText" or similar, or might be the one that's currently inactive)
-        foreach (TextMeshProUGUI text in texts)
+        // Convert enemy position to local space of combat scene container
+        Vector2 localPosition = enemyWorldPos;
+        if (enemy.rectTransform != null)
         {
-            // Check if this text component has a name suggesting it's for damage
-            if (text.name.ToLower().Contains("damage") || text.name.ToLower().Contains("hit"))
+            // If enemy and container share the same parent, positions are in same space
+            if (enemy.rectTransform.parent == combatSceneContainer)
             {
-                damageText = text;
-                break;
+                localPosition = enemy.rectTransform.anchoredPosition;
+            }
+            else
+            {
+                // Convert world position to local position in combat container
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    combatSceneContainer,
+                    RectTransformUtility.WorldToScreenPoint(null, enemy.rectTransform.position),
+                    null,
+                    out localPosition
+                );
             }
         }
         
-        // If not found by name, try to find one that's not the health or name text
-        if (damageText == null)
-        {
-            foreach (TextMeshProUGUI text in texts)
-            {
-                // Skip health text (contains "/") and name text (doesn't match damage pattern)
-                // Also skip if it's the container itself (rectTransform parent check)
-                if (text.rectTransform != null && text.rectTransform != enemy.monsterDetailsContainer)
-                {
-                    string textContent = text.text ?? "";
-                    if (!textContent.Contains("/") && !System.Text.RegularExpressions.Regex.IsMatch(textContent, @"^[A-Za-z\s]+$"))
-                    {
-                        damageText = text;
-                        break;
-                    }
-                }
-            }
-        }
+        // Create new damage text GameObject
+        GameObject damageObj = new GameObject($"DamageText_{enemyIndex}");
+        damageObj.transform.SetParent(combatSceneContainer, false);
         
-        // Show damage text if found
-        if (damageText != null)
-        {
-            // Stop any existing animation for this enemy
-            if (activeDamageAnimations.ContainsKey(enemyIndex))
-            {
-                if (activeDamageAnimations[enemyIndex] != null)
-                {
-                    StopCoroutine(activeDamageAnimations[enemyIndex]);
-                }
-                activeDamageAnimations.Remove(enemyIndex);
-            }
-            
-            // Ensure the text GameObject and its parent are active
-            if (damageText.gameObject != null)
-            {
-                damageText.gameObject.SetActive(true);
-            }
-            
-            // Reset position to original starting position before setting new damage
-            RectTransform textRect = damageText.rectTransform;
-            if (textRect != null)
-            {
-                // Use stored starting position if available, otherwise use current position
-                if (damageTextStartPositions.ContainsKey(enemyIndex))
-                {
-                    textRect.anchoredPosition = damageTextStartPositions[enemyIndex];
-                }
-            }
-            
-            // Reset alpha and state
-            CanvasGroup canvasGroup = damageText.GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
-            {
-                canvasGroup = damageText.gameObject.AddComponent<CanvasGroup>();
-            }
-            canvasGroup.alpha = 1f;
-            
-            // Set new damage value
-            damageText.text = $"{damage:F0}";
-            
-            // Animate damage text (rise up and fade out)
-            Coroutine animCoroutine = StartCoroutine(AnimateDamageText(damageText, enemyIndex));
-            activeDamageAnimations[enemyIndex] = animCoroutine;
-        }
+        // Add to tracking list
+        activeDamageTexts.Add(damageObj);
+        
+        // Add RectTransform
+        RectTransform damageRect = damageObj.AddComponent<RectTransform>();
+        damageRect.sizeDelta = new Vector2(100f, 50f);
+        // Position above enemy (offset Y by +30 pixels to appear above enemy's head)
+        damageRect.anchoredPosition = localPosition + new Vector2(0f, 30f);
+        
+        // Add CanvasGroup for fade effect
+        CanvasGroup canvasGroup = damageObj.AddComponent<CanvasGroup>();
+        canvasGroup.alpha = 1f;
+        
+        // Add TextMeshProUGUI for damage text
+        TextMeshProUGUI damageText = damageObj.AddComponent<TextMeshProUGUI>();
+        damageText.text = $"{damage:F0}";
+        damageText.fontSize = 32;
+        damageText.fontStyle = FontStyles.Bold;
+        damageText.color = Color.white;
+        damageText.alignment = TextAlignmentOptions.Center;
+        
+        // Add outline for better visibility
+        var outline = damageObj.AddComponent<UnityEngine.UI.Outline>();
+        outline.effectColor = Color.black;
+        outline.effectDistance = new Vector2(2f, -2f);
+        
+        // Animate damage text (rise up and fade out)
+        StartCoroutine(AnimateDamageText(damageText, damageObj));
     }
     
     /// <summary>
     /// Animate damage text rising up and fading out
     /// </summary>
-    System.Collections.IEnumerator AnimateDamageText(TextMeshProUGUI damageText, int enemyIndex)
+    System.Collections.IEnumerator AnimateDamageText(TextMeshProUGUI damageText, GameObject damageObj)
     {
-        if (damageText == null || damageText.rectTransform == null) yield break;
+        if (damageText == null || damageText.rectTransform == null || damageObj == null) 
+            yield break;
         
         RectTransform rectTransform = damageText.rectTransform;
         CanvasGroup canvasGroup = damageText.GetComponent<CanvasGroup>();
@@ -701,21 +644,15 @@ public class CombatVisualManager : MonoBehaviour
         // Reset alpha and position
         canvasGroup.alpha = 1f;
         rectTransform.anchoredPosition = startPosition;
-        damageText.gameObject.SetActive(true);
         
         float duration = 1f; // 1 second animation
         float elapsed = 0f;
         
         while (elapsed < duration)
         {
-            // Check if damage text or rectTransform has been destroyed
-            if (damageText == null || damageText.rectTransform == null || !damageText.gameObject.activeInHierarchy)
+            // Check if damage text has been destroyed
+            if (damageText == null || rectTransform == null || damageObj == null)
             {
-                // Clean up animation tracking
-                if (activeDamageAnimations.ContainsKey(enemyIndex))
-                {
-                    activeDamageAnimations.Remove(enemyIndex);
-                }
                 yield break;
             }
             
@@ -725,11 +662,8 @@ public class CombatVisualManager : MonoBehaviour
             // Ease out curve for smooth animation
             float easedT = 1f - Mathf.Pow(1f - t, 3f);
             
-            // Interpolate position (rise up) - check again before accessing
-            if (rectTransform != null)
-            {
-                rectTransform.anchoredPosition = Vector2.Lerp(startPosition, endPosition, easedT);
-            }
+            // Interpolate position (rise up)
+            rectTransform.anchoredPosition = Vector2.Lerp(startPosition, endPosition, easedT);
             
             // Interpolate alpha (fade out)
             if (canvasGroup != null)
@@ -740,24 +674,11 @@ public class CombatVisualManager : MonoBehaviour
             yield return null;
         }
         
-        // Hide damage text after animation (check if still valid)
-        if (damageText != null && damageText.gameObject != null)
+        // Clean up: remove from tracking list and destroy
+        if (damageObj != null)
         {
-            damageText.gameObject.SetActive(false);
-            if (canvasGroup != null)
-            {
-                canvasGroup.alpha = 1f;
-            }
-            if (rectTransform != null)
-            {
-                rectTransform.anchoredPosition = startPosition;
-            }
-        }
-        
-        // Clean up animation tracking
-        if (activeDamageAnimations.ContainsKey(enemyIndex))
-        {
-            activeDamageAnimations.Remove(enemyIndex);
+            activeDamageTexts.Remove(damageObj);
+            Destroy(damageObj);
         }
     }
     
@@ -972,6 +893,16 @@ public class CombatVisualManager : MonoBehaviour
             }
         }
         
+        // Clean up any active damage texts
+        foreach (GameObject damageText in activeDamageTexts)
+        {
+            if (damageText != null)
+            {
+                Destroy(damageText);
+            }
+        }
+        activeDamageTexts.Clear();
+        
         // Clean up any active item drop visuals
         foreach (GameObject drop in activeItemDrops)
         {
@@ -1001,17 +932,6 @@ public class CombatVisualManager : MonoBehaviour
     /// </summary>
     void CleanupEnemies()
     {
-        // Stop all damage text animations
-        foreach (var kvp in activeDamageAnimations)
-        {
-            if (kvp.Value != null)
-            {
-                StopCoroutine(kvp.Value);
-            }
-        }
-        activeDamageAnimations.Clear();
-        damageTextStartPositions.Clear();
-        
         foreach (EnemyVisual enemy in activeEnemies)
         {
             if (enemy != null && enemy.gameObject != null)
@@ -1026,6 +946,7 @@ public class CombatVisualManager : MonoBehaviour
     
     /// <summary>
     /// Clean up a specific enemy's visuals when it dies
+    /// Note: Damage texts are now independent and will complete their animation even after enemy is hidden
     /// </summary>
     public void CleanupEnemyVisual(int enemyIndex)
     {
@@ -1035,16 +956,6 @@ public class CombatVisualManager : MonoBehaviour
         EnemyVisual enemy = activeEnemies[enemyIndex];
         if (enemy != null)
         {
-            // Stop any running damage text animations for this enemy
-            if (activeDamageAnimations.ContainsKey(enemyIndex))
-            {
-                if (activeDamageAnimations[enemyIndex] != null)
-                {
-                    StopCoroutine(activeDamageAnimations[enemyIndex]);
-                }
-                activeDamageAnimations.Remove(enemyIndex);
-            }
-            
             // Hide target arrow if this was the target
             if (enemyIndex == currentTargetIndex)
             {
@@ -1053,6 +964,7 @@ public class CombatVisualManager : MonoBehaviour
             
             // Hide the enemy visual (but don't destroy yet - keep it for respawn logic)
             // The monster details container will be hidden automatically since it's a child
+            // Damage texts are now independent GameObjects and will continue their animation
             if (enemy.gameObject != null)
             {
                 enemy.gameObject.SetActive(false);
