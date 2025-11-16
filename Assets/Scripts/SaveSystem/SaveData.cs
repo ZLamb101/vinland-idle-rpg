@@ -148,10 +148,8 @@ public class SaveData
                     // Get the resource path for the talent
                     string resourcePath = GetTalentResourcePath(kvp.Key);
                     data.unlockedTalentsList.Add(new TalentSaveData(resourcePath, kvp.Value));
-                    Debug.Log($"[SaveData] Saving talent: {kvp.Key.talentName} as {resourcePath} at rank {kvp.Value}");
                 }
             }
-            Debug.Log($"[SaveData] Saved {data.unlockedTalentsList.Count} talents, Unspent: {data.unspentTalentPoints}, Total: {data.totalTalentPoints}");
         }
         
         // Zone - Use TryGet for consistency
@@ -261,7 +259,6 @@ public class SaveData
         // Talents
         if (Services.TryGet<ITalentService>(out var talentService))
         {
-            Debug.Log($"[SaveData] Loading talent data. Unspent: {unspentTalentPoints}, Total: {totalTalentPoints}, Talents: {(unlockedTalentsList != null ? unlockedTalentsList.Count : 0)}");
             
             // Convert list to dictionary for TalentManager
             Dictionary<string, int> talentDict = new Dictionary<string, int>();

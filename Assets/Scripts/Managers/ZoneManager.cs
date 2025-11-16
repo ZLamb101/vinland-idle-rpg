@@ -57,13 +57,11 @@ public class ZoneManager : MonoBehaviour, IZoneService
         if (loadedZones != null && loadedZones.Length > 0)
         {
             allZones = loadedZones;
-            Debug.Log($"[ZoneManager] Loaded {allZones.Length} zones from Resources folder");
             
             // Set starting zone to first zone if not already set
             if (startingZone == null && allZones.Length > 0)
             {
                 startingZone = allZones[0];
-                Debug.Log($"[ZoneManager] Set starting zone to: {startingZone.zoneName}");
             }
         }
         else
@@ -80,8 +78,6 @@ public class ZoneManager : MonoBehaviour, IZoneService
     /// </summary>
     public void LoadCurrentZone()
     {
-        Debug.Log("[ZoneManager] LoadCurrentZone() called");
-        
         // Check if zones are configured (allZones array is assigned)
         if (allZones == null || allZones.Length == 0)
         {
@@ -112,12 +108,10 @@ public class ZoneManager : MonoBehaviour, IZoneService
         {
             currentZoneIndex = savedIndex;
             currentZone = allZones[currentZoneIndex];
-            Debug.Log($"[ZoneManager] Loaded zone for slot {currentSlot}: {currentZone.zoneName} (index {currentZoneIndex})");
         }
         else if (startingZone != null)
         {
             SetCurrentZone(startingZone);
-            Debug.Log($"[ZoneManager] No saved zone, using starting zone: {startingZone.zoneName}");
         }
         else
         {
@@ -125,7 +119,6 @@ public class ZoneManager : MonoBehaviour, IZoneService
             if (allZones.Length > 0 && allZones[0] != null)
             {
                 SetCurrentZone(allZones[0]);
-                Debug.Log($"[ZoneManager] No saved zone, defaulting to first zone: {allZones[0].zoneName}");
             }
             else
             {
