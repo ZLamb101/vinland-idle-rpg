@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// Thin MonoBehaviour wrapper for CharacterSessionService.
+/// Handles scene lifecycle timing and coroutines for character loading.
+/// All business logic is in CharacterSessionManager.
+/// </summary>
 public class CharacterLoader : MonoBehaviour
 {
     [Header("Settings")]
     public bool loadOnStart = true;
-    
-    private int currentSlotIndex = -1;
     
     void Start()
     {
@@ -23,310 +24,63 @@ public class CharacterLoader : MonoBehaviour
         LoadActiveCharacter();
     }
     
+    /// <summary>
+    /// Load the active character from PlayerPrefs slot
+    /// </summary>
     public void LoadActiveCharacter()
     {
-        currentSlotIndex = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+        int slotIndex = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
         
-        if (currentSlotIndex < 0 || !SaveSystem.SaveFileExists(currentSlotIndex))
+        if (slotIndex < 0)
         {
-            Debug.Log("[CharacterLoader] No active character to load");
+            Debug.Log("[CharacterLoader] No active character slot specified");
             return;
         }
         
-        // Check if we're in character selection scene (don't load if we are)
-        CharacterSelectionScreen charSelectScreen = ComponentInjector.FindComponent<CharacterSelectionScreen>();
-        if (charSelectScreen != null)
+        // Delegate to CharacterSessionService
+        if (Services.TryGet<ICharacterSessionService>(out var sessionService))
         {
-            return;
-        }
-        
-        EnsureCharacterManagerExists();
-        
-        var characterService = Services.Get<ICharacterService>();
-        
-        Debug.Log($"[CharacterLoader] Loading character from slot {currentSlotIndex}");
-        SaveData saveData = SaveSystem.LoadCharacter(currentSlotIndex);
-        
-        if (saveData != null)
-        {
-            saveData.ApplyToGameState();
-            PostLoadInitialization();
+            sessionService.LoadCharacter(slotIndex);
         }
         else
         {
-            Debug.LogError($"[CharacterLoader] Failed to load character from slot {currentSlotIndex}");
-        }
-    }
-    
-    void EnsureCharacterManagerExists()
-    {
-        // Bootstrap scene creates all managers - CharacterManager should already exist
-        if (Services.IsRegistered<ICharacterService>()) 
-        {
-            Debug.Log("[CharacterLoader] CharacterService already registered (via Bootstrap)");
-            return;
-        }
-        
-        // If we get here, Bootstrap scene didn't run - this is an error
-        Debug.LogError("[CharacterLoader] CharacterManager not found! Bootstrap scene must run first. Check Build Settings.");
-    }
-    
-    System.Collections.IEnumerator RetryLoadAfterDelay()
-    {
-        yield return new WaitForSeconds(0.2f);
-        
-        CharacterSelectionScreen charSelectScreen = ComponentInjector.FindComponent<CharacterSelectionScreen>();
-        if (charSelectScreen != null) yield break;
-        
-        if (!Services.TryGet<ICharacterService>(out var characterService))
-        {
-            Debug.LogError("[CharacterLoader] CharacterService still not available after retry");
-            yield break;
-        }
-        
-        SaveData saveData = SaveSystem.LoadCharacter(currentSlotIndex);
-        if (saveData != null)
-        {
-            saveData.ApplyToGameState();
-            PostLoadInitialization();
-        }
-    }
-    
-    private void PostLoadInitialization()
-    {
-        if (!Services.TryGet<ICharacterService>(out var characterService))
-        {
-            Debug.LogError("[CharacterLoader] CharacterService not available for initialization");
-            return;
-        }
-        
-        Debug.Log($"[CharacterLoader] Initializing character from slot {currentSlotIndex}");
-        
-        // Refresh GameLog subscription to new character's events
-        if (Services.TryGet<IGameLogService>(out var gameLogService) && gameLogService is GameLog gameLog)
-        {
-            gameLog.RefreshCharacterSubscription();
-        }
-        
-        if (Services.TryGet<ICombatService>(out var combatService) && combatService.GetCombatState() != CombatManager.CombatState.Idle)
-        {
-            combatService.EndCombat();
-        }
-        
-        if (Services.TryGet<IResourceService>(out var resourceService))
-        {
-            resourceService.StopGathering();
-        }
-        
-        if (Services.TryGet<IAwayActivityService>(out var awayService))
-        {
-            awayService.StopActivity();
-            CheckForAwayRewards();
-            awayService.MarkGameSessionStart();
-        }
-        else
-        {
-            CheckForAwayRewards();
-        }
-        
-        LoadCharacterZone();
-    }
-    
-    private void LoadCharacterZone()
-    {
-        if (!Services.TryGet<IZoneService>(out var zoneService)) return;
-        
-        SaveData saveData = SaveSystem.LoadCharacter(currentSlotIndex);
-        if (saveData != null && saveData.currentZoneIndex >= 0)
-        {
-            zoneService.LoadCurrentZone();
-        }
-        else
-        {
-            zoneService.SetDefaultZoneForSlot(currentSlotIndex);
-            zoneService.LoadCurrentZone();
-        }
-    }
-    
-    void CheckForAwayRewards()
-    {
-        if (!Services.TryGet<IAwayActivityService>(out var awayService)) return;
-        
-        // Load saved away activity state
-        bool hadAwayActivity = awayService.LoadAwayState(currentSlotIndex);
-        if (!hadAwayActivity) return;
-        
-        // Get activity details
-        AwayActivityType activity = awayService.GetCurrentActivity();
-        DateTime startTime = awayService.GetActivityStartTime();
-        TimeSpan timeAway = DateTime.Now - startTime;
-        
-        // Need at least 30 seconds away to grant rewards (prevent exploits)
-        if (timeAway.TotalSeconds < 30)
-        {
-            Debug.Log($"[CharacterLoader] Away time too short: {timeAway.TotalSeconds:F0}s (need 30s minimum)");
-            awayService.ClearAwayState(currentSlotIndex);
-            return;
-        }
-        
-        // Cap maximum away time (e.g., 24 hours to prevent overflow)
-        DateTime cappedStartTime = DateTime.Now.AddHours(-24);
-        if (startTime < cappedStartTime)
-        {
-            startTime = cappedStartTime;
-            Debug.Log($"[CharacterLoader] Capped away time to 24 hours maximum");
-        }
-        
-        Debug.Log($"[CharacterLoader] Processing away rewards for {activity} ({timeAway.TotalMinutes:F0} minutes)");
-        
-        // Calculate rewards using the AwayRewardsCalculator
-        AwayRewards rewards = AwayRewardsCalculator.CalculateRewards(
-            startTime,
-            activity,
-            awayService.GetCurrentResource(),
-            awayService.GetCurrentMonsters(),
-            awayService.GetMobCount()
-        );
-        
-        // Fallback: If activity name wasn't set (because resources/monsters couldn't be loaded),
-        // use a generic name based on activity type and PlayerPrefs data
-        if (string.IsNullOrEmpty(rewards.activityName))
-        {
-            if (activity == AwayActivityType.Mining)
-            {
-                rewards.activityName = "Mining";
-            }
-            else if (activity == AwayActivityType.Fighting)
-            {
-                string monsterName = awayService.GetMonsterDisplayNameFromPlayerPrefs(currentSlotIndex);
-                if (!string.IsNullOrEmpty(monsterName))
-                {
-                    rewards.activityName = $"Fighting {monsterName}";
-                }
-                else
-                {
-                    rewards.activityName = "Fighting";
-                }
-            }
-            else
-            {
-                rewards.activityName = "doing Nothing";
-            }
-        }
-        
-        // Show rewards panel after a short delay to ensure scene is fully loaded
-        StartCoroutine(ShowAwayRewardsPanelDelayed(rewards));
-    }
-    
-    /// <summary>
-    /// Show the away rewards panel after a short delay to ensure scene is loaded
-    /// </summary>
-    System.Collections.IEnumerator ShowAwayRewardsPanelDelayed(AwayRewards rewards)
-    {
-        // Wait a frame to ensure all GameObjects are initialized
-        yield return new WaitForEndOfFrame();
-        yield return new WaitForSeconds(0.1f); // Small delay to ensure scene is fully loaded
-        
-        ShowAwayRewardsPanel(rewards);
-    }
-    
-    /// <summary>
-    /// Show the away rewards panel with calculated rewards
-    /// </summary>
-    void ShowAwayRewardsPanel(AwayRewards rewards)
-    {
-        if (rewards == null)
-        {
-            Debug.LogWarning("[CharacterLoader] Cannot show away rewards panel - rewards are null");
-            return;
-        }
-        
-        Debug.Log($"[CharacterLoader] Searching for AwayRewardsPanel in scene...");
-        
-        // Find the AwayRewardsPanel in the scene (searches active and inactive objects)
-        AwayRewardsPanel panel = ComponentInjector.FindComponent<AwayRewardsPanel>();
-        
-        // If not found, try searching inactive objects
-        if (panel == null)
-        {
-            AwayRewardsPanel[] allPanels = Resources.FindObjectsOfTypeAll<AwayRewardsPanel>();
-            if (allPanels != null && allPanels.Length > 0)
-            {
-                panel = allPanels[0];
-            }
-        }
-        
-        if (panel != null)
-        {
-            Debug.Log($"[CharacterLoader] ✓ Found AwayRewardsPanel on GameObject '{panel.gameObject.name}'");
-            Debug.Log($"[CharacterLoader] Showing away rewards: {rewards.activityName}, Time: {FormatTimeSpan(rewards.timeAway)}, XP: {rewards.xpEarned}, Gold: {rewards.goldEarned}, Monsters: {rewards.monstersKilled}");
-            panel.ShowRewards(rewards);
-        }
-        else
-        {
-            Debug.LogError("[CharacterLoader] ✗ AwayRewardsPanel component not found in scene!");
-            Debug.LogError("[CharacterLoader] Make sure there's a GameObject with the AwayRewardsPanel component in the questingScene.");
-            Debug.Log($"[Away Rewards] Activity: {rewards.activityName}");
-            Debug.Log($"[Away Rewards] Time away: {FormatTimeSpan(rewards.timeAway)}");
-            Debug.Log($"[Away Rewards] XP: {rewards.xpEarned}, Gold: {rewards.goldEarned}, Monsters Killed: {rewards.monstersKilled}");
-            
-            // Clear away state since we can't show the panel
-            if (Services.TryGet<IAwayActivityService>(out var awayService))
-            {
-                awayService.ClearAwayState(currentSlotIndex);
-            }
+            Debug.LogError("[CharacterLoader] CharacterSessionService not found! Bootstrap scene must run first.");
         }
     }
     
     /// <summary>
-    /// Format a TimeSpan into a readable string
+    /// Save the current character
     /// </summary>
-    string FormatTimeSpan(TimeSpan time)
-    {
-        if (time.TotalDays >= 1)
-        {
-            return $"{(int)time.TotalDays}d {time.Hours}h";
-        }
-        else if (time.TotalHours >= 1)
-        {
-            return $"{time.Hours}h {time.Minutes}m";
-        }
-        else if (time.TotalMinutes >= 1)
-        {
-            return $"{time.Minutes}m {time.Seconds}s";
-        }
-        else
-        {
-            return $"{time.Seconds}s";
-        }
-    }
-    
     public void SaveCurrentCharacter()
     {
-        if (!Services.TryGet<ICharacterService>(out var characterService)) return;
+        int slotIndex = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
         
-        if (currentSlotIndex < 0)
-        {
-            currentSlotIndex = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
-        }
-        
-        if (currentSlotIndex < 0)
+        if (slotIndex < 0)
         {
             Debug.LogWarning("[CharacterLoader] Cannot save - no active character slot");
             return;
         }
         
-        bool saved = SaveSystem.SaveCurrentCharacter(currentSlotIndex);
-        
-        if (saved)
+        // Delegate to CharacterSessionService
+        if (Services.TryGet<ICharacterSessionService>(out var sessionService))
         {
-            Debug.Log($"[CharacterLoader] Saved character to slot {currentSlotIndex}");
+            sessionService.SaveCurrentCharacter(slotIndex);
         }
         else
         {
-            Debug.LogError($"[CharacterLoader] Failed to save character to slot {currentSlotIndex}");
+            Debug.LogError("[CharacterLoader] CharacterSessionService not found!");
         }
     }
     
-    public int GetCurrentSlotIndex() => currentSlotIndex;
+    /// <summary>
+    /// Get the current character slot index
+    /// </summary>
+    public int GetCurrentSlotIndex()
+    {
+        if (Services.TryGet<ICharacterSessionService>(out var sessionService))
+        {
+            return sessionService.GetCurrentSlotIndex();
+        }
+        return -1;
+    }
 }

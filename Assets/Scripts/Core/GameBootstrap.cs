@@ -29,6 +29,7 @@ public class GameBootstrap : MonoBehaviour
         
         // Core gameplay managers
         CreateManager<CharacterManager>();
+        CreateManager<CharacterSessionManager>();
         CreateManager<CombatManager>();
         CreateManager<ZoneManager>();
         CreateManager<ResourceManager>();
@@ -45,7 +46,7 @@ public class GameBootstrap : MonoBehaviour
         CreateManager<DialogueManager>();
         
         Log("═══════════════════════════════════════");
-        Log($"All {10} managers created successfully!");
+        Log($"All {11} managers created successfully!");
         Log($"Loading first scene: {firstSceneName}");
         Log("═══════════════════════════════════════");
         
