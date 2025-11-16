@@ -131,6 +131,13 @@ public class CombatManager : MonoBehaviour, ICombatService
             return;
         }
         
+        // Stop gathering if player is currently gathering resources
+        IResourceService resourceService;
+        if (Services.TryGet<IResourceService>(out resourceService) && resourceService.IsGathering())
+        {
+            resourceService.StopGathering();
+        }
+        
         // IMPORTANT: Re-find visual manager in case scene was reloaded
         // CombatManager persists between scenes, but CombatVisualManager is recreated
         if (visualManager == null)

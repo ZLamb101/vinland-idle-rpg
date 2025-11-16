@@ -66,6 +66,14 @@ public class ResourceManager : MonoBehaviour, IResourceService
             return false;
         }
         
+        // Stop combat if player is currently in combat
+        ICombatService combatService;
+        if (Services.TryGet<ICombatService>(out combatService) && 
+            combatService.GetCombatState() == CombatManager.CombatState.Fighting)
+        {
+            combatService.EndCombat();
+        }
+        
         // Stop any current gathering
         StopGathering();
         

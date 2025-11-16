@@ -2,7 +2,7 @@
   "combat": {
     "playerBaseAttackDamage": 10.0,
     "playerBaseAttackSpeed": 1.5,
-    "playerStartingHealth": 100.0,
+    "playerStartingHealth": 50.0,
     "playerBaseCritDamage": 2.0,
     "monsterRespawnDelay": 0.5
   },
