@@ -3,6 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// Serializable equipment slot data (Unity JsonUtility doesn't support Dictionary)
+/// </summary>
+[System.Serializable]
+public class EquipmentSlotData
+{
+    public string slotName;
+    public string equipmentAssetName;
+    
+    public EquipmentSlotData(string slot, string asset)
+    {
+        slotName = slot;
+        equipmentAssetName = asset;
+    }
+}
+
+/// <summary>
 /// Complete save data structure for a character
 /// Everything in one place with versioning support
 /// </summary>
@@ -24,8 +40,8 @@ public class SaveData
     // Inventory
     public InventoryItem[] inventoryItems;
     
-    // Equipment (stored as asset names for ScriptableObjects)
-    public Dictionary<string, string> equippedItems = new Dictionary<string, string>();
+    // Equipment (stored as list because Unity JsonUtility doesn't serialize Dictionary)
+    public List<EquipmentSlotData> equippedItemsList = new List<EquipmentSlotData>();
     
     // Talents
     public Dictionary<string, int> unlockedTalents = new Dictionary<string, int>();
@@ -94,10 +110,13 @@ public class SaveData
         if (Services.TryGet<IEquipmentService>(out var equipmentService))
         {
             var equipData = equipmentService.GetEquipmentSaveData();
+            data.equippedItemsList.Clear();
             foreach (var kvp in equipData)
             {
-                data.equippedItems[kvp.Key.ToString()] = kvp.Value;
+                Debug.Log($"[SaveData] Saving equipment: Slot={kvp.Key}, Asset={kvp.Value}");
+                data.equippedItemsList.Add(new EquipmentSlotData(kvp.Key.ToString(), kvp.Value));
             }
+            Debug.Log($"[SaveData] Saved {data.equippedItemsList.Count} equipment items");
         }
         
         // Talents - Use TryGet since services might be destroyed during shutdown
@@ -196,17 +215,33 @@ public class SaveData
         }
         
         // Equipment
-        if (Services.TryGet<IEquipmentService>(out var equipmentService) && equippedItems != null)
+        if (Services.TryGet<IEquipmentService>(out var equipmentService))
         {
-            Dictionary<EquipmentSlot, string> equipDict = new Dictionary<EquipmentSlot, string>();
-            foreach (var kvp in equippedItems)
+            Debug.Log($"[SaveData] Loading equipment data. Items in list: {(equippedItemsList != null ? equippedItemsList.Count : 0)}");
+            
+            if (equippedItemsList != null && equippedItemsList.Count > 0)
             {
-                if (Enum.TryParse(kvp.Key, out EquipmentSlot slot))
+                Dictionary<EquipmentSlot, string> equipDict = new Dictionary<EquipmentSlot, string>();
+                foreach (var item in equippedItemsList)
                 {
-                    equipDict[slot] = kvp.Value;
+                    Debug.Log($"[SaveData] Loading equipment: Slot={item.slotName}, Asset={item.equipmentAssetName}");
+                    if (Enum.TryParse(item.slotName, out EquipmentSlot slot))
+                    {
+                        equipDict[slot] = item.equipmentAssetName;
+                    }
                 }
+                equipmentService.LoadEquipmentData(equipDict);
+                Debug.Log($"[SaveData] Loaded {equipDict.Count} equipment items");
             }
-            equipmentService.LoadEquipmentData(equipDict);
+            else
+            {
+                Debug.Log("[SaveData] No equipment to load - clearing all equipment");
+                equipmentService.LoadEquipmentData(null);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[SaveData] EquipmentService not available for loading equipment");
         }
         
         // Talents (would need to implement LoadTalentData in TalentManager)

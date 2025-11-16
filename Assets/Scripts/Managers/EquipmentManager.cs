@@ -71,10 +71,10 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         EquipmentSlot slot = equipment.slot;
         EquipmentData previousEquipment = equippedItems[slot];
         
-        // Unequip previous item if exists
+        // Unequip previous item if exists (without saving, we'll save once after equipping)
         if (previousEquipment != null)
         {
-            UnequipItem(slot);
+            UnequipItemInternal(slot);
         }
         
         // Equip new item
@@ -85,6 +85,10 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         
         // Notify listeners
         EventBus.Publish(new EquipmentChangedEvent { slot = slot, newEquipment = equipment, oldEquipment = previousEquipment });
+        
+        // Auto-save after equipping
+        AutoSave("equipment equipped");
+        
         return true;
     }
     
@@ -92,6 +96,22 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     /// Unequip item from a specific slot
     /// </summary>
     public EquipmentData UnequipItem(EquipmentSlot slot)
+    {
+        EquipmentData unequipped = UnequipItemInternal(slot);
+        
+        if (unequipped != null)
+        {
+            // Auto-save after unequipping
+            AutoSave("equipment unequipped");
+        }
+        
+        return unequipped;
+    }
+    
+    /// <summary>
+    /// Internal unequip without auto-save (used when replacing equipment)
+    /// </summary>
+    private EquipmentData UnequipItemInternal(EquipmentSlot slot)
     {
         EquipmentData unequipped = equippedItems[slot];
         
@@ -108,6 +128,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         
         // Notify listeners
         EventBus.Publish(new EquipmentChangedEvent { slot = slot, newEquipment = null, oldEquipment = unequipped });
+        
         return unequipped;
     }
     
@@ -187,10 +208,70 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         {
             if (kvp.Value != null)
             {
-                saveData[kvp.Key] = kvp.Value.name; // ScriptableObject name
+                // Get the resource path for the equipment
+                string resourcePath = GetResourcePath(kvp.Value);
+                saveData[kvp.Key] = resourcePath;
             }
         }
         return saveData;
+    }
+    
+    /// <summary>
+    /// Get the Resources folder path for an asset
+    /// Converts "Assets/Resources/Equipment/Equipment_IronSword.asset" to "Equipment/Equipment_IronSword"
+    /// </summary>
+    private string GetResourcePath(EquipmentData equipment)
+    {
+#if UNITY_EDITOR
+        // In editor, use AssetDatabase to get the correct path
+        string assetPath = UnityEditor.AssetDatabase.GetAssetPath(equipment);
+        
+        // Find "Resources/" in the path
+        int resourcesIndex = assetPath.IndexOf("Resources/");
+        if (resourcesIndex >= 0)
+        {
+            // Get everything after "Resources/"
+            string relativePath = assetPath.Substring(resourcesIndex + "Resources/".Length);
+            
+            // Remove the file extension
+            int extensionIndex = relativePath.LastIndexOf('.');
+            if (extensionIndex >= 0)
+            {
+                relativePath = relativePath.Substring(0, extensionIndex);
+            }
+            
+            return relativePath;
+        }
+#endif
+        // Fallback: just use the asset name
+        // This works if the equipment is directly in the Resources folder (not in a subfolder)
+        return equipment.name;
+    }
+    
+    /// <summary>
+    /// Clear all equipment slots
+    /// </summary>
+    public void ClearAllEquipment()
+    {
+        // Store old equipment for events
+        Dictionary<EquipmentSlot, EquipmentData> oldEquipment = new Dictionary<EquipmentSlot, EquipmentData>(equippedItems);
+        
+        // Clear all slots
+        foreach (EquipmentSlot slot in Enum.GetValues(typeof(EquipmentSlot)))
+        {
+            equippedItems[slot] = null;
+        }
+        
+        RecalculateStats();
+        
+        // Notify listeners for each slot that was cleared
+        foreach (var kvp in oldEquipment)
+        {
+            if (kvp.Value != null)
+            {
+                EventBus.Publish(new EquipmentChangedEvent { slot = kvp.Key, newEquipment = null, oldEquipment = kvp.Value });
+            }
+        }
     }
     
     /// <summary>
@@ -198,20 +279,75 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     /// </summary>
     public void LoadEquipmentData(Dictionary<EquipmentSlot, string> saveData)
     {
-        if (saveData == null) return;
+        Debug.Log($"[EquipmentManager] LoadEquipmentData called. Save data is null: {saveData == null}");
         
+        // Clear all existing equipment first to ensure clean state per character
+        ClearAllEquipment();
+        
+        if (saveData == null)
+        {
+            Debug.Log("[EquipmentManager] No save data provided, equipment cleared");
+            return;
+        }
+        
+        Debug.Log($"[EquipmentManager] Loading {saveData.Count} equipment items");
+        
+        // Load the character's equipment
         foreach (var kvp in saveData)
         {
-            // Load equipment from Resources or AssetDatabase
-            // This requires equipment to be in Resources folder
+            Debug.Log($"[EquipmentManager] Attempting to load equipment for slot {kvp.Key} with asset name: {kvp.Value}");
+            
+            // Load equipment from Resources folder
             EquipmentData equipment = Resources.Load<EquipmentData>(kvp.Value);
+            
+            // If not found, try with "Equipment/" prefix (for backwards compatibility with old saves)
+            if (equipment == null && !kvp.Value.Contains("/"))
+            {
+                Debug.Log($"[EquipmentManager] First attempt failed, trying with Equipment/ prefix...");
+                equipment = Resources.Load<EquipmentData>("Equipment/" + kvp.Value);
+            }
+            
             if (equipment != null)
             {
+                Debug.Log($"[EquipmentManager] Successfully loaded equipment: {equipment.equipmentName} for slot {kvp.Key}");
                 equippedItems[kvp.Key] = equipment;
+                // Notify listeners that equipment was loaded
+                EventBus.Publish(new EquipmentChangedEvent { slot = kvp.Key, newEquipment = equipment, oldEquipment = null });
+            }
+            else
+            {
+                Debug.LogWarning($"[EquipmentManager] Failed to load equipment asset: {kvp.Value} (make sure it's in a Resources folder)");
             }
         }
         
         RecalculateStats();
+        Debug.Log("[EquipmentManager] Equipment loading complete");
+    }
+    
+    /// <summary>
+    /// Auto-save character data (called when equipment changes)
+    /// </summary>
+    private void AutoSave(string reason = "auto")
+    {
+        // Get active character slot
+        int characterSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+        
+        if (characterSlot < 0)
+        {
+            Debug.LogWarning($"[EquipmentManager] Cannot auto-save ({reason}): no active character slot");
+            return;
+        }
+        
+        bool success = SaveSystem.SaveCurrentCharacter(characterSlot);
+        
+        if (success)
+        {
+            Debug.Log($"[EquipmentManager] Auto-saved character ({reason})");
+        }
+        else
+        {
+            Debug.LogError($"[EquipmentManager] Failed to auto-save character ({reason})");
+        }
     }
 }
 

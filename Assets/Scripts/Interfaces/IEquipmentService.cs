@@ -31,5 +31,6 @@ public interface IEquipmentService
     // Save/Load
     Dictionary<EquipmentSlot, string> GetEquipmentSaveData();
     void LoadEquipmentData(Dictionary<EquipmentSlot, string> saveData);
+    void ClearAllEquipment();
 }
 
