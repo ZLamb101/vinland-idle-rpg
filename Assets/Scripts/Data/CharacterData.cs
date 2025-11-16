@@ -21,11 +21,9 @@ public class CharacterData
     // Health: 50 at level 1, +10% per level
     public float GetMaxHealth()
     {
-        // 50 * (1.1^(level-1))
-        // Level 1: 50 * 1.0 = 50
-        // Level 2: 50 * 1.1 = 55
-        // Level 3: 50 * 1.21 = 60.5
-        return 50f * Mathf.Pow(1.1f, level - 1);
+        // Starting health + (health per level * (level - 1))
+        // Uses additive scaling from config
+        return GameBalance.Combat.playerStartingHealth + (GameBalance.Progression.healthPerLevel * (level - 1));
     }
     
     /// <summary>
@@ -33,20 +31,17 @@ public class CharacterData
     /// </summary>
     public float GetMaxHealthAtLevel(int targetLevel)
     {
-        return 50f * Mathf.Pow(1.1f, targetLevel - 1);
+        return GameBalance.Combat.playerStartingHealth + (GameBalance.Progression.healthPerLevel * (targetLevel - 1));
     }
     
     /// <summary>
     /// Get base attack damage at a specific level
-    /// Attack: 5 at level 1, +10% per level
+    /// Uses additive scaling from config
     /// </summary>
     public float GetBaseAttackAtLevel(int targetLevel)
     {
-        // 5 * (1.1^(level-1))
-        // Level 1: 5 * 1.0 = 5
-        // Level 2: 5 * 1.1 = 5.5
-        // Level 3: 5 * 1.21 = 6.05
-        return 5f * Mathf.Pow(1.1f, targetLevel - 1);
+        // Starting damage + (damage per level * (level - 1))
+        return GameBalance.Combat.playerBaseAttackDamage + (GameBalance.Progression.attackDamagePerLevel * (targetLevel - 1));
     }
     
     /// <summary>
@@ -56,15 +51,15 @@ public class CharacterData
     public float GetBaseCritChanceAtLevel(int targetLevel)
     {
         if (targetLevel <= 1) return 0f;
-        // Level 2: 0.5%, Level 3: 1.0%, Level 4: 1.5%, etc.
-        return (targetLevel - 1) * 0.005f; // 0.5% per level after level 1
+        // Uses additive scaling from config (e.g., 1% per level)
+        return (targetLevel - 1) * GameBalance.Progression.critChancePerLevel;
     }
     
     // XP required for next level (can be calculated dynamically)
     public int GetXPRequiredForNextLevel()
     {
         // Common formula for incremental games: baseXP * level^exponent
-        return Mathf.FloorToInt(100 * Mathf.Pow(level, 1.5f));
+        return Mathf.FloorToInt(GameBalance.Progression.baseXPPerLevel * Mathf.Pow(level, GameBalance.Progression.xpScalingPerLevel));
     }
     
     // Check if character should level up

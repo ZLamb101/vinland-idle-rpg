@@ -24,6 +24,9 @@ public class GameBootstrap : MonoBehaviour
         // Create all persistent managers
         // Order matters for dependencies!
         
+        // Config must load first - other managers may use config values
+        CreateManager<ConfigManager>();
+        
         // Core gameplay managers
         CreateManager<CharacterManager>();
         CreateManager<CombatManager>();
@@ -42,7 +45,7 @@ public class GameBootstrap : MonoBehaviour
         CreateManager<DialogueManager>();
         
         Log("═══════════════════════════════════════");
-        Log($"All {9} managers created successfully!");
+        Log($"All {10} managers created successfully!");
         Log($"Loading first scene: {firstSceneName}");
         Log("═══════════════════════════════════════");
         

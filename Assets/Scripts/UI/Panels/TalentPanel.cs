@@ -33,7 +33,7 @@ public class TalentPanel : MonoBehaviour
     
     [Header("Reset")]
     public Button resetButton;
-    public int resetCost = 100; // Gold cost to reset
+    // Reset cost now comes from GameBalance.Economy.talentResetCost
     
     [Header("Talent Data")]
     public TalentData[] allTalents; // Assign all talent assets here
@@ -298,13 +298,14 @@ public class TalentPanel : MonoBehaviour
         
         // Check if player has enough gold
         int currentGold = characterService.GetGold();
-        if (currentGold < resetCost)
+        int cost = GameBalance.Economy.talentResetCost;
+        if (currentGold < cost)
         {
             return;
         }
         
         // Spend gold and reset
-        characterService.SpendGold(resetCost);
+        characterService.SpendGold(cost);
         talentService.ResetTalents();
         
         RefreshAllButtons();

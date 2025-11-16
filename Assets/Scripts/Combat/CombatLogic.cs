@@ -20,13 +20,13 @@ public static class CombatLogic
         }
         else
         {
-            maxHealth = 100f;
-            currentHealth = 100f;
+            maxHealth = GameBalance.Combat.playerStartingHealth;
+            currentHealth = GameBalance.Combat.playerStartingHealth;
         }
         
         // Base attack values
-        attackDamage = 10f;
-        attackSpeed = 1.5f;
+        attackDamage = GameBalance.Combat.playerBaseAttackDamage;
+        attackSpeed = GameBalance.Combat.playerBaseAttackSpeed;
         
         // Add equipment bonuses
         var equipmentService = Services.Get<IEquipmentService>();
@@ -68,7 +68,7 @@ public static class CombatLogic
         CombatStats stats = new CombatStats
         {
             critChance = 0f,
-            critDamage = 2f, // Base crit is 2x
+            critDamage = GameBalance.Combat.playerBaseCritDamage,
             lifesteal = 0f,
             dodge = 0f,
             armor = 0f,

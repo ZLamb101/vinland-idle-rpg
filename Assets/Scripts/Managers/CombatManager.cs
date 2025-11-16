@@ -18,8 +18,8 @@ public class CombatManager : MonoBehaviour, ICombatService
     [Header("Combat Stats")]
     private float playerCurrentHealth;
     private float playerMaxHealth;
-    private float playerBaseAttackDamage = 10f;
-    private float playerBaseAttackSpeed = 1.5f; // Player attacks every 1.5 seconds
+    private float playerBaseAttackDamage => GameBalance.Combat.playerBaseAttackDamage;
+    private float playerBaseAttackSpeed => GameBalance.Combat.playerBaseAttackSpeed;
     private float playerAttackDamage; // Includes equipment bonuses
     private float playerAttackSpeed; // Includes equipment bonuses
     
@@ -149,8 +149,8 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         else
         {
-            playerMaxHealth = 100f;
-            playerCurrentHealth = 100f;
+            playerMaxHealth = GameBalance.Combat.playerStartingHealth;
+            playerCurrentHealth = GameBalance.Combat.playerStartingHealth;
         }
         
         // Start with base values
@@ -659,7 +659,7 @@ public class CombatManager : MonoBehaviour, ICombatService
             // All monsters defeated - respawn new group after a delay
             // Get mob count from selector (read current value, not cached)
             int mobCount = GetMobCountFromSelector();
-            StartCoroutine(RespawnMonsterGroupAfterDelay(mobCount, 0.5f));
+            StartCoroutine(RespawnMonsterGroupAfterDelay(mobCount, GameBalance.Combat.monsterRespawnDelay));
         }
         else
         {

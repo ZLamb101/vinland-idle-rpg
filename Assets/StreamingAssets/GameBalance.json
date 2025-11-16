@@ -1,0 +1,28 @@
+{
+  "combat": {
+    "playerBaseAttackDamage": 10.0,
+    "playerBaseAttackSpeed": 1.5,
+    "playerStartingHealth": 100.0,
+    "playerBaseCritDamage": 2.0,
+    "monsterRespawnDelay": 0.5
+  },
+  "progression": {
+    "baseXPPerLevel": 100,
+    "xpScalingPerLevel": 1.5,
+    "healthPerLevel": 20.0,
+    "attackDamagePerLevel": 2.0,
+    "critChancePerLevel": 0.01
+  },
+  "economy": {
+    "startingGold": 0,
+    "baseGoldReward": 10,
+    "goldScalingPerLevel": 1.2,
+    "talentResetCost": 100
+  },
+  "drops": {
+    "baseDropChance": 0.25,
+    "minDropQuantity": 1,
+    "maxDropQuantity": 3
+  }
+}
+

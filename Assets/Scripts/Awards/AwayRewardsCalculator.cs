@@ -124,8 +124,8 @@ public static class AwayRewardsCalculator
         }
         
         // Get player combat stats from CombatService
-        float playerAttackDamage = 10f; // Base attack damage
-        float playerAttackSpeed = 1.5f; // Base attack speed
+        float playerAttackDamage = GameBalance.Combat.playerBaseAttackDamage;
+        float playerAttackSpeed = GameBalance.Combat.playerBaseAttackSpeed;
         
         if (Services.TryGet<ICombatService>(out var combatService))
         {
@@ -140,7 +140,7 @@ public static class AwayRewardsCalculator
         }
         else
         {
-            Debug.LogWarning("[AwayRewards] CombatService is null, using base stats");
+            Debug.LogWarning("[AwayRewards] CombatService is null, using base config stats");
         }
         
         // Calculate time per kill based on:
@@ -154,9 +154,15 @@ public static class AwayRewardsCalculator
         }
         averageMonsterHealth /= monsters.Length;
         
-        // Calculate hits needed (accounting for crit chance - assume 10% crit with 2x damage)
-        // Average damage = (90% normal + 10% crit) = 0.9 * damage + 0.1 * damage * 2 = damage * 1.1
-        float averageDamage = playerAttackDamage * 1.1f; // 10% crit chance, 100% crit damage bonus
+        // Get actual player combat stats for crit calculation
+        CombatStats stats = CombatLogic.GetCombatStats();
+        
+        // Calculate expected damage accounting for critical hits
+        // Formula: baseDamage * (1 + critChance * (critMultiplier - 1))
+        // Example: 10 damage, 20% crit, 2.5x crit = 10 * (1 + 0.2 * 1.5) = 10 * 1.3 = 13 avg damage
+        float critMultiplier = 1f + stats.critChance * (stats.critDamage - 1f);
+        float averageDamage = playerAttackDamage * critMultiplier;
+        
         float hitsNeeded = Mathf.Max(1f, Mathf.Ceil(averageMonsterHealth / averageDamage));
         
         // Time per kill = hits needed * attack speed
@@ -179,7 +185,7 @@ public static class AwayRewardsCalculator
         
         rewards.monstersKilled = monstersKilled;
         
-        Debug.Log($"[AwayRewards] Fighting calculation - Time away: {totalSeconds}s ({timeAway.TotalMinutes:F2} min), Average monster health: {averageMonsterHealth}, Player damage: {playerAttackDamage}, Average damage: {averageDamage}, Hits needed: {hitsNeeded}, Time per kill: {timePerKill}s, Kills per second: {killsPerSecond}, Monsters killed: {monstersKilled}, Mob count: {mobCount}");
+        Debug.Log($"[AwayRewards] Fighting calculation - Time away: {totalSeconds}s ({timeAway.TotalMinutes:F2} min), Average monster health: {averageMonsterHealth}, Player damage: {playerAttackDamage}, Crit chance: {stats.critChance:P0}, Crit damage: {stats.critDamage}x, Crit multiplier: {critMultiplier:F2}x, Average damage: {averageDamage:F1}, Hits needed: {hitsNeeded}, Time per kill: {timePerKill:F2}s, Kills per second: {killsPerSecond:F3}, Monsters killed: {monstersKilled}, Mob count: {mobCount}");
         
         // Always calculate rewards if we have kills (should always be at least 1)
         if (monstersKilled <= 0)
@@ -204,8 +210,7 @@ public static class AwayRewardsCalculator
             MonsterData monster = monsters[i];
             int killsForThisType = killsPerMonsterType + (i < remainderKills ? 1 : 0);
             
-            // Calculate XP and gold with bonuses
-            CombatStats stats = CombatLogic.GetCombatStats();
+            // Calculate XP and gold with bonuses (stats already retrieved above, reuse it)
             int xpPerKill = Mathf.RoundToInt(monster.xpReward * (1f + stats.xpBonus));
             int goldPerKill = Mathf.RoundToInt(monster.goldReward * (1f + stats.goldBonus));
             
@@ -252,7 +257,7 @@ public static class AwayRewardsCalculator
         rewards.goldEarned = totalGold;
         rewards.itemsDropped = totalItems;
         
-        Debug.Log($"[AwayRewards] Final rewards - XP: {totalXP}, Gold: {totalGold}, Items: {totalItems.Count}");
+        Debug.Log($"[AwayRewards] Total rewards - XP: {totalXP}, Gold: {totalGold}, Items: {totalItems.Count} types");
     }
 
 }
