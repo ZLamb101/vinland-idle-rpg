@@ -129,10 +129,8 @@ public class SaveData
             data.equippedItemsList.Clear();
             foreach (var kvp in equipData)
             {
-                Debug.Log($"[SaveData] Saving equipment: Slot={kvp.Key}, Asset={kvp.Value}");
                 data.equippedItemsList.Add(new EquipmentSlotData(kvp.Key.ToString(), kvp.Value));
             }
-            Debug.Log($"[SaveData] Saved {data.equippedItemsList.Count} equipment items");
         }
         
         // Talents - Use TryGet since services might be destroyed during shutdown
@@ -238,25 +236,20 @@ public class SaveData
         // Equipment
         if (Services.TryGet<IEquipmentService>(out var equipmentService))
         {
-            Debug.Log($"[SaveData] Loading equipment data. Items in list: {(equippedItemsList != null ? equippedItemsList.Count : 0)}");
-            
             if (equippedItemsList != null && equippedItemsList.Count > 0)
             {
                 Dictionary<EquipmentSlot, string> equipDict = new Dictionary<EquipmentSlot, string>();
                 foreach (var item in equippedItemsList)
                 {
-                    Debug.Log($"[SaveData] Loading equipment: Slot={item.slotName}, Asset={item.equipmentAssetName}");
                     if (Enum.TryParse(item.slotName, out EquipmentSlot slot))
                     {
                         equipDict[slot] = item.equipmentAssetName;
                     }
                 }
                 equipmentService.LoadEquipmentData(equipDict);
-                Debug.Log($"[SaveData] Loaded {equipDict.Count} equipment items");
             }
             else
             {
-                Debug.Log("[SaveData] No equipment to load - clearing all equipment");
                 equipmentService.LoadEquipmentData(null);
             }
         }

@@ -279,37 +279,28 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     /// </summary>
     public void LoadEquipmentData(Dictionary<EquipmentSlot, string> saveData)
     {
-        Debug.Log($"[EquipmentManager] LoadEquipmentData called. Save data is null: {saveData == null}");
-        
         // Clear all existing equipment first to ensure clean state per character
         ClearAllEquipment();
         
         if (saveData == null)
         {
-            Debug.Log("[EquipmentManager] No save data provided, equipment cleared");
             return;
         }
-        
-        Debug.Log($"[EquipmentManager] Loading {saveData.Count} equipment items");
         
         // Load the character's equipment
         foreach (var kvp in saveData)
         {
-            Debug.Log($"[EquipmentManager] Attempting to load equipment for slot {kvp.Key} with asset name: {kvp.Value}");
-            
             // Load equipment from Resources folder
             EquipmentData equipment = Resources.Load<EquipmentData>(kvp.Value);
             
             // If not found, try with "Equipment/" prefix (for backwards compatibility with old saves)
             if (equipment == null && !kvp.Value.Contains("/"))
             {
-                Debug.Log($"[EquipmentManager] First attempt failed, trying with Equipment/ prefix...");
                 equipment = Resources.Load<EquipmentData>("Equipment/" + kvp.Value);
             }
             
             if (equipment != null)
             {
-                Debug.Log($"[EquipmentManager] Successfully loaded equipment: {equipment.equipmentName} for slot {kvp.Key}");
                 equippedItems[kvp.Key] = equipment;
                 // Notify listeners that equipment was loaded
                 EventBus.Publish(new EquipmentChangedEvent { slot = kvp.Key, newEquipment = equipment, oldEquipment = null });
@@ -321,7 +312,6 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         }
         
         RecalculateStats();
-        Debug.Log("[EquipmentManager] Equipment loading complete");
     }
     
     /// <summary>
@@ -340,11 +330,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         
         bool success = SaveSystem.SaveCurrentCharacter(characterSlot);
         
-        if (success)
-        {
-            Debug.Log($"[EquipmentManager] Auto-saved character ({reason})");
-        }
-        else
+        if (!success)
         {
             Debug.LogError($"[EquipmentManager] Failed to auto-save character ({reason})");
         }
