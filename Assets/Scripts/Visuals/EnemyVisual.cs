@@ -98,7 +98,7 @@ public class EnemyVisual : MonoBehaviour, IPointerClickHandler
         spawnPosition = spawnPos;
         attackRange = range;
         
-        // heroPos is already in local space relative to our parent (converted in CombatVisualManager)
+        // heroPos is already in local space relative to our parent (converted in CombatSceneController)
         // Only use X component for horizontal movement, keep Y from spawn position
         targetPosition = new Vector2(heroPos.x, spawnPos.y);
         

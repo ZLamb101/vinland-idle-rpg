@@ -27,7 +27,7 @@ public class CombatManager : MonoBehaviour, ICombatService
     private float playerAttackTimer = 0f;
     
     [Header("Visual Combat")]
-    public CombatVisualManager visualManager;
+    public CombatSceneController combatSceneController;
     
     [Header("Mob Count")]
     [Tooltip("Mob count selector. If not assigned, will try to find it in the scene.")]
@@ -139,10 +139,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // IMPORTANT: Re-find visual manager in case scene was reloaded
-        // CombatManager persists between scenes, but CombatVisualManager is recreated
-        if (visualManager == null)
+        // CombatManager persists between scenes, but CombatSceneController is recreated
+        if (combatSceneController == null)
         {
-            visualManager = ComponentInjector.FindComponent<CombatVisualManager>();
+            combatSceneController = ComponentInjector.FindComponent<CombatSceneController>();
         }
         
         // Re-fetch game log service in case scene was reloaded
@@ -259,18 +259,18 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         // Initialize visual combat
         // Re-find visual manager if it's null (scene might have been reloaded)
-        if (visualManager == null)
+        if (combatSceneController == null)
         {
-            visualManager = ComponentInjector.FindComponent<CombatVisualManager>();
+            combatSceneController = ComponentInjector.FindComponent<CombatSceneController>();
         }
         
-        if (visualManager != null)
+        if (combatSceneController != null)
         {
             // Get hero sprite (if available)
             Sprite heroSprite = null;
             // TODO: Get hero sprite from CharacterManager or CharacterData if available
             
-            visualManager.InitializeCombat(heroSprite, monstersToSpawn);
+            combatSceneController.InitializeCombat(heroSprite, monstersToSpawn);
         }
         
         // Log combat start
@@ -407,9 +407,9 @@ public class CombatManager : MonoBehaviour, ICombatService
             
             // Check if this specific enemy is in attack range
             bool canAttack = true;
-            if (visualManager != null)
+            if (combatSceneController != null)
             {
-                canAttack = visualManager.IsEnemyInAttackRange(i);
+                canAttack = combatSceneController.IsEnemyInAttackRange(i);
             }
             
             if (canAttack)
@@ -460,9 +460,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // Visual combat: spawn projectile targeting current target
-        if (visualManager != null)
+        if (combatSceneController != null)
         {
-            visualManager.HeroAttack(damage, currentTargetIndex, (dealtDamage, targetIndex) => {
+            combatSceneController.HeroAttack(damage, currentTargetIndex, (dealtDamage, targetIndex) => {
                 ApplyPlayerDamage(dealtDamage, stats.lifesteal, targetIndex);
             });
         }
@@ -508,9 +508,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         {
             // Capture enemy position at moment of death before any cleanup
             Vector2 deathPosition = Vector2.zero;
-            if (visualManager != null)
+            if (combatSceneController != null)
             {
-                deathPosition = visualManager.GetEnemyPosition(targetIndex);
+                deathPosition = combatSceneController.GetEnemyPosition(targetIndex);
             }
             OnMonsterDefeated(targetIndex, deathPosition);
         }
@@ -526,10 +526,10 @@ public class CombatManager : MonoBehaviour, ICombatService
             return;
         
         // Visual combat: play attack animation first, then apply damage
-        if (visualManager != null)
+        if (combatSceneController != null)
         {
             monster.isAttackInProgress = true;
-            visualManager.EnemyAttack(monsterIndex, () => {
+            combatSceneController.EnemyAttack(monsterIndex, () => {
                 // Attack animation complete, apply damage
                 ApplyMonsterDamage(monsterIndex);
                 monster.isAttackInProgress = false;
@@ -649,9 +649,9 @@ public class CombatManager : MonoBehaviour, ICombatService
             }
             
             // Show visual drop effect if items were dropped (at this monster's death position)
-            if (droppedItems.Count > 0 && visualManager != null)
+            if (droppedItems.Count > 0 && combatSceneController != null)
             {
-                visualManager.ShowItemDrops(droppedItems, deathPosition, monsterIndex);
+                combatSceneController.ShowItemDrops(droppedItems, deathPosition, monsterIndex);
             }
         }
         
@@ -659,9 +659,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         EventBus.Publish(new MonsterDiedEvent { monsterData = defeatedMonster.monsterData, monsterIndex = monsterIndex });
         
         // Clean up visual for dead enemy
-        if (visualManager != null)
+        if (combatSceneController != null)
         {
-            visualManager.CleanupEnemyVisual(monsterIndex);
+            combatSceneController.CleanupEnemyVisual(monsterIndex);
         }
         
         // Remove from active list (or mark as dead - we'll keep it for now but check IsAlive)
@@ -772,13 +772,13 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         // Clean up visual combat
-        if (visualManager != null)
+        if (combatSceneController != null)
         {
-            visualManager.Cleanup();
+            combatSceneController.Cleanup();
         }
         
         // Clear visual manager reference so it gets re-found next time (in case scene was reloaded)
-        visualManager = null;
+        combatSceneController = null;
         
         CombatState oldState = currentState;
         EventBus.Publish(new CombatStateChangedEvent { oldState = oldState, newState = currentState });

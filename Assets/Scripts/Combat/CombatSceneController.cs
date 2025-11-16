@@ -6,7 +6,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Manages the visual combat scene with hero, enemy, projectiles, and health bars.
 /// </summary>
-public class CombatVisualManager : MonoBehaviour
+public class CombatSceneController : MonoBehaviour
 {
     [Header("Scene References")]
     public RectTransform combatSceneContainer; // Container for all combat visuals
@@ -1035,7 +1035,7 @@ public class CombatVisualManager : MonoBehaviour
             monsterIndex = enemyIndex 
         });
         
-        Debug.Log($"[CombatVisualManager] Spawned new {newMonsterData.monsterName} at enemy slot {enemyIndex}");
+        Debug.Log($"[CombatSceneController] Spawned new {newMonsterData.monsterName} at enemy slot {enemyIndex}");
     }
 }
 

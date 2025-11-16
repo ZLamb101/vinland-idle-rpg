@@ -8,7 +8,7 @@ using System.Collections.Generic;
 /// Manages character selection screen with multiple character slots.
 /// Handles save/load, character creation, and slot unlocking.
 /// </summary>
-public class CharacterSelectionManager : MonoBehaviour
+public class CharacterSelectionScreen : MonoBehaviour
 {
     [Header("Character Slots")]
     public CharacterSlot[] characterSlots = new CharacterSlot[6];

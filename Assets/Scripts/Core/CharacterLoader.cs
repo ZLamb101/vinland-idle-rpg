@@ -34,8 +34,8 @@ public class CharacterLoader : MonoBehaviour
         }
         
         // Check if we're in character selection scene (don't load if we are)
-        CharacterSelectionManager charSelectManager = ComponentInjector.FindComponent<CharacterSelectionManager>();
-        if (charSelectManager != null)
+        CharacterSelectionScreen charSelectScreen = ComponentInjector.FindComponent<CharacterSelectionScreen>();
+        if (charSelectScreen != null)
         {
             return;
         }
@@ -75,8 +75,8 @@ public class CharacterLoader : MonoBehaviour
     {
         yield return new WaitForSeconds(0.2f);
         
-        CharacterSelectionManager charSelectManager = ComponentInjector.FindComponent<CharacterSelectionManager>();
-        if (charSelectManager != null) yield break;
+        CharacterSelectionScreen charSelectScreen = ComponentInjector.FindComponent<CharacterSelectionScreen>();
+        if (charSelectScreen != null) yield break;
         
         if (!Services.TryGet<ICharacterService>(out var characterService))
         {
