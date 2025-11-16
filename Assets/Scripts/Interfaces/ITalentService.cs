@@ -22,5 +22,8 @@ public interface ITalentService
     int GetTotalPoints();
     TalentBonuses GetTotalBonuses();
     Dictionary<TalentData, int> GetAllUnlockedTalents();
+    
+    // Save/Load
+    void LoadTalentData(Dictionary<string, int> talentsByName, int unspentPoints, int totalPoints);
 }
 

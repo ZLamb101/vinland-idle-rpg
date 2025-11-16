@@ -111,6 +111,10 @@ public class TalentManager : MonoBehaviour, ITalentService
         // Notify listeners
         EventBus.Publish(new TalentPointsChangedEvent { unspentPoints = unspentTalentPoints, totalPoints = totalTalentPoints });
         EventBus.Publish(new TalentUnlockedEvent { talent = talent, newRank = newRank, talentPointsRemaining = unspentTalentPoints });
+        
+        // Auto-save after unlocking talent
+        AutoSave($"talent unlocked: {talent.talentName}");
+        
         return true;
     }
     
@@ -195,6 +199,9 @@ public class TalentManager : MonoBehaviour, ITalentService
         
         RecalculateBonuses();
         EventBus.Publish(new TalentPointsChangedEvent { unspentPoints = unspentTalentPoints, totalPoints = totalTalentPoints });
+        
+        // Auto-save after reset
+        AutoSave("talents reset");
     }
     
     // Getters
@@ -202,6 +209,102 @@ public class TalentManager : MonoBehaviour, ITalentService
     public int GetTotalPoints() => totalTalentPoints;
     public TalentBonuses GetTotalBonuses() => totalBonuses;
     public Dictionary<TalentData, int> GetAllUnlockedTalents() => new Dictionary<TalentData, int>(unlockedTalents);
+    
+    /// <summary>
+    /// Load talent data (for character loading)
+    /// </summary>
+    public void LoadTalentData(Dictionary<string, int> talentsByName, int unspentPoints, int totalPoints)
+    {
+        Debug.Log($"[TalentManager] LoadTalentData called. Unspent: {unspentPoints}, Total: {totalPoints}, Talents: {(talentsByName != null ? talentsByName.Count : 0)}");
+        
+        // Clear existing talents
+        unlockedTalents.Clear();
+        
+        // Load talent points
+        this.unspentTalentPoints = unspentPoints;
+        this.totalTalentPoints = totalPoints;
+        
+        // Load unlocked talents
+        if (talentsByName != null)
+        {
+            foreach (var kvp in talentsByName)
+            {
+                // Load talent from Resources
+                TalentData talent = LoadTalentAsset(kvp.Key);
+                
+                if (talent != null)
+                {
+                    Debug.Log($"[TalentManager] Loaded talent: {talent.talentName} at rank {kvp.Value}");
+                    unlockedTalents[talent] = kvp.Value;
+                }
+                else
+                {
+                    Debug.LogWarning($"[TalentManager] Failed to load talent asset: {kvp.Key} (make sure it's in a Resources folder)");
+                }
+            }
+        }
+        
+        // Recalculate bonuses
+        RecalculateBonuses();
+        
+        // Notify listeners
+        EventBus.Publish(new TalentPointsChangedEvent { unspentPoints = this.unspentTalentPoints, totalPoints = this.totalTalentPoints });
+        
+        Debug.Log($"[TalentManager] Talent loading complete. Loaded {unlockedTalents.Count} talents");
+    }
+    
+    /// <summary>
+    /// Load a talent asset from Resources folder
+    /// </summary>
+    private TalentData LoadTalentAsset(string talentName)
+    {
+        // Try loading directly
+        TalentData talent = Resources.Load<TalentData>(talentName);
+        
+        // If not found, try common folders
+        if (talent == null)
+        {
+            string[] commonFolders = { "Talents", "Talents/Combat", "Talents/Defense", "Talents/Utility" };
+            
+            foreach (string folder in commonFolders)
+            {
+                talent = Resources.Load<TalentData>($"{folder}/{talentName}");
+                if (talent != null)
+                {
+                    Debug.Log($"[TalentManager] Found talent in {folder}");
+                    break;
+                }
+            }
+        }
+        
+        return talent;
+    }
+    
+    /// <summary>
+    /// Auto-save character data (called when talents change)
+    /// </summary>
+    private void AutoSave(string reason = "auto")
+    {
+        // Get active character slot
+        int characterSlot = PlayerPrefs.GetInt("ActiveCharacterSlot", -1);
+        
+        if (characterSlot < 0)
+        {
+            Debug.LogWarning($"[TalentManager] Cannot auto-save ({reason}): no active character slot");
+            return;
+        }
+        
+        bool success = SaveSystem.SaveCurrentCharacter(characterSlot);
+        
+        if (success)
+        {
+            Debug.Log($"[TalentManager] Auto-saved character ({reason})");
+        }
+        else
+        {
+            Debug.LogError($"[TalentManager] Failed to auto-save character ({reason})");
+        }
+    }
 }
 
 /// <summary>

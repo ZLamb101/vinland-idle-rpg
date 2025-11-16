@@ -19,6 +19,22 @@ public class EquipmentSlotData
 }
 
 /// <summary>
+/// Serializable talent data (Unity JsonUtility doesn't support Dictionary)
+/// </summary>
+[System.Serializable]
+public class TalentSaveData
+{
+    public string talentAssetName;
+    public int rank;
+    
+    public TalentSaveData(string assetName, int talentRank)
+    {
+        talentAssetName = assetName;
+        rank = talentRank;
+    }
+}
+
+/// <summary>
 /// Complete save data structure for a character
 /// Everything in one place with versioning support
 /// </summary>
@@ -43,8 +59,8 @@ public class SaveData
     // Equipment (stored as list because Unity JsonUtility doesn't serialize Dictionary)
     public List<EquipmentSlotData> equippedItemsList = new List<EquipmentSlotData>();
     
-    // Talents
-    public Dictionary<string, int> unlockedTalents = new Dictionary<string, int>();
+    // Talents (stored as list because Unity JsonUtility doesn't serialize Dictionary)
+    public List<TalentSaveData> unlockedTalentsList = new List<TalentSaveData>();
     public int unspentTalentPoints = 0;
     public int totalTalentPoints = 0;
     
@@ -125,14 +141,19 @@ public class SaveData
             data.unspentTalentPoints = talentService.GetUnspentPoints();
             data.totalTalentPoints = talentService.GetTotalPoints();
             
+            data.unlockedTalentsList.Clear();
             var talents = talentService.GetAllUnlockedTalents();
             foreach (var kvp in talents)
             {
                 if (kvp.Key != null)
                 {
-                    data.unlockedTalents[kvp.Key.name] = kvp.Value;
+                    // Get the resource path for the talent
+                    string resourcePath = GetTalentResourcePath(kvp.Key);
+                    data.unlockedTalentsList.Add(new TalentSaveData(resourcePath, kvp.Value));
+                    Debug.Log($"[SaveData] Saving talent: {kvp.Key.talentName} as {resourcePath} at rank {kvp.Value}");
                 }
             }
+            Debug.Log($"[SaveData] Saved {data.unlockedTalentsList.Count} talents, Unspent: {data.unspentTalentPoints}, Total: {data.totalTalentPoints}");
         }
         
         // Zone - Use TryGet for consistency
@@ -244,14 +265,63 @@ public class SaveData
             Debug.LogWarning("[SaveData] EquipmentService not available for loading equipment");
         }
         
-        // Talents (would need to implement LoadTalentData in TalentManager)
-        // For now, we keep the existing PlayerPrefs-based talent loading
+        // Talents
+        if (Services.TryGet<ITalentService>(out var talentService))
+        {
+            Debug.Log($"[SaveData] Loading talent data. Unspent: {unspentTalentPoints}, Total: {totalTalentPoints}, Talents: {(unlockedTalentsList != null ? unlockedTalentsList.Count : 0)}");
+            
+            // Convert list to dictionary for TalentManager
+            Dictionary<string, int> talentDict = new Dictionary<string, int>();
+            if (unlockedTalentsList != null)
+            {
+                foreach (var talentData in unlockedTalentsList)
+                {
+                    talentDict[talentData.talentAssetName] = talentData.rank;
+                }
+            }
+            
+            talentService.LoadTalentData(talentDict, unspentTalentPoints, totalTalentPoints);
+        }
+        else
+        {
+            Debug.LogWarning("[SaveData] TalentService not available for loading talents");
+        }
         
         // Zone - Use TryGet since ZoneManager might not exist yet during early loading
         if (Services.TryGet<IZoneService>(out var zoneService))
         {
             zoneService.LoadCurrentZone();
         }
+    }
+    
+    /// <summary>
+    /// Get the Resources folder path for a talent asset
+    /// </summary>
+    private static string GetTalentResourcePath(TalentData talent)
+    {
+#if UNITY_EDITOR
+        // In editor, use AssetDatabase to get the correct path
+        string assetPath = UnityEditor.AssetDatabase.GetAssetPath(talent);
+        
+        // Find "Resources/" in the path
+        int resourcesIndex = assetPath.IndexOf("Resources/");
+        if (resourcesIndex >= 0)
+        {
+            // Get everything after "Resources/"
+            string relativePath = assetPath.Substring(resourcesIndex + "Resources/".Length);
+            
+            // Remove the file extension
+            int extensionIndex = relativePath.LastIndexOf('.');
+            if (extensionIndex >= 0)
+            {
+                relativePath = relativePath.Substring(0, extensionIndex);
+            }
+            
+            return relativePath;
+        }
+#endif
+        // Fallback: just use the asset name
+        return talent.name;
     }
 }
 
