@@ -18,3 +18,6 @@ MonoBehaviour:
   gatherRate: 1
   gatheredItem: {fileID: 11400000, guid: d06585f91f3182d41913aae49c3d67d6, type: 2}
   itemsPerGather: 1
+  professionType: 0
+  professionLevelRequired: 1
+  professionXPReward: 10

@@ -93,11 +93,13 @@ public class GameLog : MonoBehaviour, IGameLogService
     {
         // Unsubscribe from old service if it exists
         EventBus.Unsubscribe<CharacterLevelUpEvent>(OnLevelUp);
+        EventBus.Unsubscribe<ProfessionLevelUpEvent>(OnProfessionLevelUp);
         
         // Get fresh character service (CharacterManager can be destroyed/recreated)
         if (Services.TryGet<ICharacterService>(out characterService))
         {
             EventBus.Subscribe<CharacterLevelUpEvent>(OnLevelUp);
+            EventBus.Subscribe<ProfessionLevelUpEvent>(OnProfessionLevelUp);
             Debug.Log("[GameLog] Subscribed to new character's events");
         }
     }
@@ -106,6 +108,7 @@ public class GameLog : MonoBehaviour, IGameLogService
     {
         // Unsubscribe from CharacterManager events
         EventBus.Unsubscribe<CharacterLevelUpEvent>(OnLevelUp);
+        EventBus.Unsubscribe<ProfessionLevelUpEvent>(OnProfessionLevelUp);
         
         // Only unregister if we're the actual instance
         if (instance == this)
@@ -678,6 +681,12 @@ public class GameLog : MonoBehaviour, IGameLogService
         
         foreach (StatChange change in statChanges)
             AddLogEntry($"  • {change.GetDisplayText()}", LogType.Info);
+    }
+    
+    private void OnProfessionLevelUp(ProfessionLevelUpEvent e)
+    {
+        string professionName = e.profession.GetDisplayName();
+        AddLogEntry($"{professionName} Level Up! You reached level {e.newLevel}", LogType.Success);
     }
     
     private List<StatChange> CalculateStatChanges(int oldLevel, int newLevel)

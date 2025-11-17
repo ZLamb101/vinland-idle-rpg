@@ -20,6 +20,9 @@ public class AwayRewards
     public int goldEarned = 0;
     public Dictionary<string, int> itemsDropped = new Dictionary<string, int>(); // Item name -> quantity
     public int monstersKilled = 0;
+    
+    // Profession rewards
+    public Dictionary<ProfessionType, int> professionXPEarned = new Dictionary<ProfessionType, int>();
 }
 
 /// <summary>
@@ -100,6 +103,14 @@ public static class AwayRewardsCalculator
         else
         {
             Debug.LogWarning($"[AwayRewards] No items gathered - gatherCycles: {gatherCycles}, itemsPerGather: {resource.itemsPerGather}");
+        }
+        
+        // Calculate profession XP
+        if (resource.professionXPReward > 0 && gatherCycles > 0)
+        {
+            int totalProfessionXP = gatherCycles * resource.professionXPReward;
+            rewards.professionXPEarned[resource.professionType] = totalProfessionXP;
+            Debug.Log($"[AwayRewards] Earned {totalProfessionXP} {resource.professionType.GetDisplayName()} XP ({gatherCycles} cycles × {resource.professionXPReward} XP)");
         }
     }
     

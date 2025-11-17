@@ -13,6 +13,7 @@ public class CharacterData
     public int gold = 0;
     public float currentHealth = 50f;
     public InventoryData inventory = new InventoryData();
+    public ProfessionData professions = new ProfessionData();
     
     // Character creation data (persists through gameplay)
     public string race = "Human";

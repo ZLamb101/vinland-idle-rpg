@@ -1,0 +1,1157 @@
+fileFormatVersion: 2
+guid: 54814dfdde2f274458fa3e42b823571b
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7883155840675931852
+    second: Profession_Button_0
+  - first:
+      213: 676524959322947984
+    second: Profession_Button_1
+  - first:
+      213: 1285294214245491741
+    second: Profession_Button_2
+  - first:
+      213: -2406138842605323527
+    second: Profession_Button_3
+  - first:
+      213: -1059771378944567320
+    second: Profession_Button_4
+  - first:
+      213: -461530265156765752
+    second: Profession_Button_5
+  - first:
+      213: -1495531918535207918
+    second: Profession_Button_6
+  - first:
+      213: 2539162275076510809
+    second: Profession_Button_7
+  - first:
+      213: -4892224549417168940
+    second: Profession_Button_8
+  - first:
+      213: 7182285689006844937
+    second: Profession_Button_9
+  - first:
+      213: 3306331114834200034
+    second: Profession_Button_10
+  - first:
+      213: 7672854941484184467
+    second: Profession_Button_11
+  - first:
+      213: 153404114168587265
+    second: Profession_Button_12
+  - first:
+      213: -5733384567881625532
+    second: Profession_Button_13
+  - first:
+      213: 3315461329557689623
+    second: Profession_Button_14
+  - first:
+      213: 7969996104344922274
+    second: Profession_Button_15
+  - first:
+      213: 2348585080730139585
+    second: Profession_Button_16
+  - first:
+      213: 58517802527973897
+    second: Profession_Button_17
+  - first:
+      213: 7970651755143119979
+    second: Profession_Button_18
+  - first:
+      213: 2166328254158824004
+    second: Profession_Button_19
+  - first:
+      213: -1081559473752661952
+    second: Profession_Button_20
+  - first:
+      213: -3460266563041018484
+    second: Profession_Button_21
+  - first:
+      213: -5580435504071721152
+    second: Profession_Button_22
+  - first:
+      213: 5048960309379754514
+    second: Profession_Button_23
+  - first:
+      213: -5998374011198100621
+    second: Profession_Button_24
+  - first:
+      213: 1330630117024114441
+    second: Profession_Button_25
+  - first:
+      213: 1400372492726515693
+    second: Profession_Button_26
+  - first:
+      213: 4672245760757701852
+    second: Profession_Button_27
+  - first:
+      213: -6011023029310727990
+    second: Profession_Button_28
+  - first:
+      213: -3595730504544251264
+    second: Profession_Button_29
+  - first:
+      213: -7518617036910124658
+    second: Profession_Button_30
+  - first:
+      213: 8444709329136251985
+    second: Profession_Button_31
+  - first:
+      213: -3186352365949307856
+    second: Profession_Button_32
+  - first:
+      213: -752588859317961170
+    second: Profession_Button_33
+  - first:
+      213: 6238895155855931476
+    second: Profession_Button_34
+  - first:
+      213: 587918921862602786
+    second: Profession_Button_35
+  - first:
+      213: -1772578568794574801
+    second: Profession_Button_36
+  - first:
+      213: 1666208106585556512
+    second: Profession_Button_37
+  - first:
+      213: 3983567383034507055
+    second: Profession_Button_38
+  - first:
+      213: -8062748383183217987
+    second: Profession_Button_39
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Profession_Button_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1328
+        width: 185
+        height: 205
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43917779787699290800000000000000
+      internalID: -7883155840675931852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_1
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 1355
+        width: 11
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 091412abddf736900800000000000000
+      internalID: 676524959322947984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_2
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 1353
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d14a7ff274846d110800000000000000
+      internalID: 1285294214245491741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_3
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 1353
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fa7d3e887dab9ed0800000000000000
+      internalID: -2406138842605323527
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_4
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 1353
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e712e6bb8fea41f0800000000000000
+      internalID: -1059771378944567320
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_5
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 1353
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c73d3c4ba05899f0800000000000000
+      internalID: -461530265156765752
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_6
+      rect:
+        serializedVersion: 2
+        x: 126
+        y: 1353
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 214537dc4adce3be0800000000000000
+      internalID: -1495531918535207918
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_7
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 1352
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9541209d2aaec3320800000000000000
+      internalID: 2539162275076510809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_8
+      rect:
+        serializedVersion: 2
+        x: 183
+        y: 1327
+        width: 841
+        height: 206
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4df4b8241b35b1cb0800000000000000
+      internalID: -4892224549417168940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_9
+      rect:
+        serializedVersion: 2
+        x: 294
+        y: 1351
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90cef90e7ca9ca360800000000000000
+      internalID: 7182285689006844937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_10
+      rect:
+        serializedVersion: 2
+        x: 302
+        y: 1351
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e5838991a272ed20800000000000000
+      internalID: 3306331114834200034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_11
+      rect:
+        serializedVersion: 2
+        x: 318
+        y: 1351
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 393f340bae47b7a60800000000000000
+      internalID: 7672854941484184467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_12
+      rect:
+        serializedVersion: 2
+        x: 422
+        y: 1352
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1042a14aa30012200800000000000000
+      internalID: 153404114168587265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_13
+      rect:
+        serializedVersion: 2
+        x: 654
+        y: 1351
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44095bebc1dee60b0800000000000000
+      internalID: -5733384567881625532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_14
+      rect:
+        serializedVersion: 2
+        x: 694
+        y: 1353
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71594de5382e20e20800000000000000
+      internalID: 3315461329557689623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_15
+      rect:
+        serializedVersion: 2
+        x: 790
+        y: 1352
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a8e9b4ea3d1b9e60800000000000000
+      internalID: 7969996104344922274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_16
+      rect:
+        serializedVersion: 2
+        x: 838
+        y: 1353
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cbb3b500b9d79020800000000000000
+      internalID: 2348585080730139585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_17
+      rect:
+        serializedVersion: 2
+        x: 856
+        y: 1352
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90267b0a1a5efc000800000000000000
+      internalID: 58517802527973897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_18
+      rect:
+        serializedVersion: 2
+        x: 878
+        y: 1351
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6446ad7a817d9e60800000000000000
+      internalID: 7970651755143119979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_19
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 1351
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4426708c118501e10800000000000000
+      internalID: 2166328254158824004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_20
+      rect:
+        serializedVersion: 2
+        x: 909
+        y: 1351
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 040a38393678df0f0800000000000000
+      internalID: -1081559473752661952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_21
+      rect:
+        serializedVersion: 2
+        x: 918
+        y: 1351
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8d37c9e4e9aaffc0800000000000000
+      internalID: -3460266563041018484
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_22
+      rect:
+        serializedVersion: 2
+        x: 926
+        y: 1351
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04fb3d7b97f4e82b0800000000000000
+      internalID: -5580435504071721152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_23
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 1353
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21a60ad96a2811640800000000000000
+      internalID: 5048960309379754514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_24
+      rect:
+        serializedVersion: 2
+        x: 949
+        y: 1353
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37b2a981e9e71cca0800000000000000
+      internalID: -5998374011198100621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_25
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1024
+        height: 1318
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 907a8ac9a09577210800000000000000
+      internalID: 1330630117024114441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_26
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 488
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de73136dc5f1f6310800000000000000
+      internalID: 1400372492726515693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_27
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 416
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdc9949c3c627d040800000000000000
+      internalID: 4672245760757701852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_28
+      rect:
+        serializedVersion: 2
+        x: 165
+        y: 267
+        width: 181
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac8dd31176e849ca0800000000000000
+      internalID: -6011023029310727990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_29
+      rect:
+        serializedVersion: 2
+        x: 526
+        y: 267
+        width: 98
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0829a983826691ec0800000000000000
+      internalID: -3595730504544251264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_30
+      rect:
+        serializedVersion: 2
+        x: 186
+        y: 107
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e81a5c8e3a188a790800000000000000
+      internalID: -7518617036910124658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_31
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 107
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 154f7929462a13570800000000000000
+      internalID: 8444709329136251985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_32
+      rect:
+        serializedVersion: 2
+        x: 681
+        y: 107
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 034bd5ab76dc7c3d0800000000000000
+      internalID: -3186352365949307856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_33
+      rect:
+        serializedVersion: 2
+        x: 696
+        y: 107
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2ebf6a7b644e85f0800000000000000
+      internalID: -752588859317961170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_34
+      rect:
+        serializedVersion: 2
+        x: 754
+        y: 106
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 458b2b3d612059650800000000000000
+      internalID: 6238895155855931476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_35
+      rect:
+        serializedVersion: 2
+        x: 841
+        y: 107
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 220e95ef425b82800800000000000000
+      internalID: 587918921862602786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_36
+      rect:
+        serializedVersion: 2
+        x: 897
+        y: 107
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f207786ee298667e0800000000000000
+      internalID: -1772578568794574801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_37
+      rect:
+        serializedVersion: 2
+        x: 946
+        y: 107
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02688eae17f8f1710800000000000000
+      internalID: 1666208106585556512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_38
+      rect:
+        serializedVersion: 2
+        x: 962
+        y: 107
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2faa94dd69784730800000000000000
+      internalID: 3983567383034507055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Profession_Button_39
+      rect:
+        serializedVersion: 2
+        x: 683
+        y: 82
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dba5203501d5b1090800000000000000
+      internalID: -8062748383183217987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Profession_Button_0: -7883155840675931852
+      Profession_Button_1: 676524959322947984
+      Profession_Button_10: 3306331114834200034
+      Profession_Button_11: 7672854941484184467
+      Profession_Button_12: 153404114168587265
+      Profession_Button_13: -5733384567881625532
+      Profession_Button_14: 3315461329557689623
+      Profession_Button_15: 7969996104344922274
+      Profession_Button_16: 2348585080730139585
+      Profession_Button_17: 58517802527973897
+      Profession_Button_18: 7970651755143119979
+      Profession_Button_19: 2166328254158824004
+      Profession_Button_2: 1285294214245491741
+      Profession_Button_20: -1081559473752661952
+      Profession_Button_21: -3460266563041018484
+      Profession_Button_22: -5580435504071721152
+      Profession_Button_23: 5048960309379754514
+      Profession_Button_24: -5998374011198100621
+      Profession_Button_25: 1330630117024114441
+      Profession_Button_26: 1400372492726515693
+      Profession_Button_27: 4672245760757701852
+      Profession_Button_28: -6011023029310727990
+      Profession_Button_29: -3595730504544251264
+      Profession_Button_3: -2406138842605323527
+      Profession_Button_30: -7518617036910124658
+      Profession_Button_31: 8444709329136251985
+      Profession_Button_32: -3186352365949307856
+      Profession_Button_33: -752588859317961170
+      Profession_Button_34: 6238895155855931476
+      Profession_Button_35: 587918921862602786
+      Profession_Button_36: -1772578568794574801
+      Profession_Button_37: 1666208106585556512
+      Profession_Button_38: 3983567383034507055
+      Profession_Button_39: -8062748383183217987
+      Profession_Button_4: -1059771378944567320
+      Profession_Button_5: -461530265156765752
+      Profession_Button_6: -1495531918535207918
+      Profession_Button_7: 2539162275076510809
+      Profession_Button_8: -4892224549417168940
+      Profession_Button_9: 7182285689006844937
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -21,6 +21,7 @@ public class ResourceManager : MonoBehaviour, IResourceService
     
     private ICharacterService characterService;
     private IAwayActivityService awayActivityService;
+    private IProfessionService professionService;
 
     void Awake()
     {
@@ -41,6 +42,12 @@ public class ResourceManager : MonoBehaviour, IResourceService
     {
         characterService = Services.Get<ICharacterService>();
         awayActivityService = Services.Get<IAwayActivityService>();
+        
+        // ProfessionService may not be available immediately if ProfessionManager hasn't loaded yet
+        if (Services.TryGet<IProfessionService>(out var profService))
+        {
+            professionService = profService;
+        }
     }
 
     void OnDestroy()
@@ -181,6 +188,17 @@ public class ResourceManager : MonoBehaviour, IResourceService
             characterService.AddItemToInventory(items);
             
             EventBus.Publish(new ItemsGatheredEvent { itemsGathered = currentResource.itemsPerGather, resource = currentResource });
+        }
+        
+        // Grant profession XP
+        if (professionService == null)
+        {
+            Services.TryGet<IProfessionService>(out professionService);
+        }
+        
+        if (professionService != null && currentResource.professionXPReward > 0)
+        {
+            professionService.AddProfessionXP(currentResource.professionType, currentResource.professionXPReward);
         }
     }
     

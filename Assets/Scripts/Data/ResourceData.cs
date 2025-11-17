@@ -33,5 +33,15 @@ public class ResourceData : ScriptableObject
     
     [Tooltip("Amount of items given per gather cycle")]
     public int itemsPerGather = 1;
+    
+    [Header("Profession Requirements")]
+    [Tooltip("Which profession this resource belongs to")]
+    public ProfessionType professionType = ProfessionType.Mining;
+    
+    [Tooltip("Minimum profession level required to gather (1 = no requirement)")]
+    public int professionLevelRequired = 1;
+    
+    [Tooltip("Amount of profession XP awarded per gather")]
+    public int professionXPReward = 10;
 }
 

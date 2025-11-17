@@ -156,6 +156,17 @@ public class AwayRewardsPanel : MonoBehaviour
         // Display items
         int itemIndex = 0;
         
+        // Display profession XP
+        foreach (var kvp in rewards.professionXPEarned)
+        {
+            if (itemIndex < itemTextFields.Length && itemTextFields[itemIndex] != null)
+            {
+                itemTextFields[itemIndex].text = $"{kvp.Key.GetDisplayName()} XP: +{kvp.Value}";
+                itemTextFields[itemIndex].gameObject.SetActive(true);
+                itemIndex++;
+            }
+        }
+        
         // Display mining rewards (items gathered)
         if (rewards.activityType == AwayActivityType.Mining)
         {
@@ -193,10 +204,10 @@ public class AwayRewardsPanel : MonoBehaviour
             }
         }
         
-        // Show "No rewards" only if there are no XP, Gold, Items, or Monsters Killed
+        // Show "No rewards" only if there are no XP, Gold, Items, Profession XP, or Monsters Killed
         bool hasAnyRewards = (rewards.xpEarned > 0 || rewards.goldEarned > 0 || 
                               rewards.itemsGathered.Count > 0 || rewards.itemsDropped.Count > 0 ||
-                              rewards.monstersKilled > 0);
+                              rewards.monstersKilled > 0 || rewards.professionXPEarned.Count > 0);
         
         if (!hasAnyRewards && itemIndex < itemTextFields.Length && itemTextFields[itemIndex] != null)
         {
@@ -282,6 +293,16 @@ public class AwayRewardsPanel : MonoBehaviour
         
         characterService.AddXP(rewards.xpEarned);
         characterService.AddGold(rewards.goldEarned);
+        
+        // Apply profession XP
+        if (Services.TryGet<IProfessionService>(out var professionService))
+        {
+            foreach (var kvp in rewards.professionXPEarned)
+            {
+                professionService.AddProfessionXP(kvp.Key, kvp.Value);
+                Debug.Log($"[AwayRewards] Added {kvp.Value} {kvp.Key.GetDisplayName()} XP");
+            }
+        }
         
         foreach (var kvp in rewards.itemsGathered)
         {

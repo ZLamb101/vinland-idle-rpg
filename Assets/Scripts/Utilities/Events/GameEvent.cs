@@ -298,6 +298,23 @@ public class ResourceGatheredEvent : GameEvent
     public int quantity;
 }
 
+// ==================== Profession Events ====================
+
+public class ProfessionXPGainedEvent : GameEvent
+{
+    public ProfessionType profession;
+    public int xpGained;
+    public int currentXP;
+    public int xpRequired;
+}
+
+public class ProfessionLevelUpEvent : GameEvent
+{
+    public ProfessionType profession;
+    public int oldLevel;
+    public int newLevel;
+}
+
 // ==================== Away Activity Events ====================
 
 public class ActivityStartedEvent : GameEvent

@@ -19,22 +19,6 @@ public class EquipmentSlotData
 }
 
 /// <summary>
-/// Serializable talent data (Unity JsonUtility doesn't support Dictionary)
-/// </summary>
-[System.Serializable]
-public class TalentSaveData
-{
-    public string talentAssetName;
-    public int rank;
-    
-    public TalentSaveData(string assetName, int talentRank)
-    {
-        talentAssetName = assetName;
-        rank = talentRank;
-    }
-}
-
-/// <summary>
 /// Complete save data structure for a character
 /// Everything in one place with versioning support
 /// </summary>
@@ -59,10 +43,15 @@ public class SaveData
     // Equipment (stored as list because Unity JsonUtility doesn't serialize Dictionary)
     public List<EquipmentSlotData> equippedItemsList = new List<EquipmentSlotData>();
     
-    // Talents (stored as list because Unity JsonUtility doesn't serialize Dictionary)
-    public List<TalentSaveData> unlockedTalentsList = new List<TalentSaveData>();
+    // Talents
+    public Dictionary<string, int> unlockedTalents = new Dictionary<string, int>();
     public int unspentTalentPoints = 0;
     public int totalTalentPoints = 0;
+    
+    // Professions (stored as string keys because Unity JsonUtility doesn't serialize enum keys)
+    public List<string> professionNames = new List<string>();
+    public List<int> professionLevels = new List<int>();
+    public List<int> professionXP = new List<int>();
     
     // Zone
     public int currentZoneIndex = 0;
@@ -129,8 +118,10 @@ public class SaveData
             data.equippedItemsList.Clear();
             foreach (var kvp in equipData)
             {
+                Debug.Log($"[SaveData] Saving equipment: Slot={kvp.Key}, Asset={kvp.Value}");
                 data.equippedItemsList.Add(new EquipmentSlotData(kvp.Key.ToString(), kvp.Value));
             }
+            Debug.Log($"[SaveData] Saved {data.equippedItemsList.Count} equipment items");
         }
         
         // Talents - Use TryGet since services might be destroyed during shutdown
@@ -139,15 +130,34 @@ public class SaveData
             data.unspentTalentPoints = talentService.GetUnspentPoints();
             data.totalTalentPoints = talentService.GetTotalPoints();
             
-            data.unlockedTalentsList.Clear();
             var talents = talentService.GetAllUnlockedTalents();
             foreach (var kvp in talents)
             {
                 if (kvp.Key != null)
                 {
-                    // Get the resource path for the talent
-                    string resourcePath = GetTalentResourcePath(kvp.Key);
-                    data.unlockedTalentsList.Add(new TalentSaveData(resourcePath, kvp.Value));
+                    data.unlockedTalents[kvp.Key.name] = kvp.Value;
+                }
+            }
+        }
+        
+        // Professions
+        if (Services.TryGet<IProfessionService>(out var professionService))
+        {
+            ProfessionData profData = professionService.GetProfessionData();
+            if (profData != null)
+            {
+                var levels = profData.GetAllLevels();
+                var xps = profData.GetAllXP();
+                
+                data.professionNames.Clear();
+                data.professionLevels.Clear();
+                data.professionXP.Clear();
+                
+                foreach (var kvp in levels)
+                {
+                    data.professionNames.Add(kvp.Key.ToString());
+                    data.professionLevels.Add(kvp.Value);
+                    data.professionXP.Add(xps.ContainsKey(kvp.Key) ? xps[kvp.Key] : 0);
                 }
             }
         }
@@ -204,6 +214,26 @@ public class SaveData
             charData.gold = gold;
             charData.currentHealth = currentHealth;
             
+            // Professions
+            if (professionNames != null && professionNames.Count > 0)
+            {
+                charData.professions = new ProfessionData();
+                for (int i = 0; i < professionNames.Count; i++)
+                {
+                    if (System.Enum.TryParse(professionNames[i], out ProfessionType profType))
+                    {
+                        if (i < professionLevels.Count)
+                        {
+                            charData.professions.SetProfessionLevel(profType, professionLevels[i]);
+                        }
+                        if (i < professionXP.Count)
+                        {
+                            charData.professions.SetProfessionXP(profType, professionXP[i]);
+                        }
+                    }
+                }
+            }
+            
             // Inventory
             if (inventoryItems != null)
             {
@@ -231,23 +261,57 @@ public class SaveData
             characterService.LoadCharacterData(charData);
         }
         
+        // Professions
+        if (Services.TryGet<IProfessionService>(out var professionService))
+        {
+            if (professionNames != null && professionNames.Count > 0)
+            {
+                ProfessionData profData = new ProfessionData();
+                for (int i = 0; i < professionNames.Count; i++)
+                {
+                    if (System.Enum.TryParse(professionNames[i], out ProfessionType profType))
+                    {
+                        if (i < professionLevels.Count)
+                        {
+                            profData.SetProfessionLevel(profType, professionLevels[i]);
+                        }
+                        if (i < professionXP.Count)
+                        {
+                            profData.SetProfessionXP(profType, professionXP[i]);
+                        }
+                    }
+                }
+                professionService.LoadProfessionData(profData);
+            }
+            else
+            {
+                // Initialize fresh profession data
+                professionService.LoadProfessionData(new ProfessionData());
+            }
+        }
+        
         // Equipment
         if (Services.TryGet<IEquipmentService>(out var equipmentService))
         {
+            Debug.Log($"[SaveData] Loading equipment data. Items in list: {(equippedItemsList != null ? equippedItemsList.Count : 0)}");
+            
             if (equippedItemsList != null && equippedItemsList.Count > 0)
             {
                 Dictionary<EquipmentSlot, string> equipDict = new Dictionary<EquipmentSlot, string>();
                 foreach (var item in equippedItemsList)
                 {
+                    Debug.Log($"[SaveData] Loading equipment: Slot={item.slotName}, Asset={item.equipmentAssetName}");
                     if (Enum.TryParse(item.slotName, out EquipmentSlot slot))
                     {
                         equipDict[slot] = item.equipmentAssetName;
                     }
                 }
                 equipmentService.LoadEquipmentData(equipDict);
+                Debug.Log($"[SaveData] Loaded {equipDict.Count} equipment items");
             }
             else
             {
+                Debug.Log("[SaveData] No equipment to load - clearing all equipment");
                 equipmentService.LoadEquipmentData(null);
             }
         }
@@ -256,62 +320,14 @@ public class SaveData
             Debug.LogWarning("[SaveData] EquipmentService not available for loading equipment");
         }
         
-        // Talents
-        if (Services.TryGet<ITalentService>(out var talentService))
-        {
-            
-            // Convert list to dictionary for TalentManager
-            Dictionary<string, int> talentDict = new Dictionary<string, int>();
-            if (unlockedTalentsList != null)
-            {
-                foreach (var talentData in unlockedTalentsList)
-                {
-                    talentDict[talentData.talentAssetName] = talentData.rank;
-                }
-            }
-            
-            talentService.LoadTalentData(talentDict, unspentTalentPoints, totalTalentPoints);
-        }
-        else
-        {
-            Debug.LogWarning("[SaveData] TalentService not available for loading talents");
-        }
+        // Talents (would need to implement LoadTalentData in TalentManager)
+        // For now, we keep the existing PlayerPrefs-based talent loading
         
         // Zone - Use TryGet since ZoneManager might not exist yet during early loading
         if (Services.TryGet<IZoneService>(out var zoneService))
         {
             zoneService.LoadCurrentZone();
         }
-    }
-    
-    /// <summary>
-    /// Get the Resources folder path for a talent asset
-    /// </summary>
-    private static string GetTalentResourcePath(TalentData talent)
-    {
-#if UNITY_EDITOR
-        // In editor, use AssetDatabase to get the correct path
-        string assetPath = UnityEditor.AssetDatabase.GetAssetPath(talent);
-        
-        // Find "Resources/" in the path
-        int resourcesIndex = assetPath.IndexOf("Resources/");
-        if (resourcesIndex >= 0)
-        {
-            // Get everything after "Resources/"
-            string relativePath = assetPath.Substring(resourcesIndex + "Resources/".Length);
-            
-            // Remove the file extension
-            int extensionIndex = relativePath.LastIndexOf('.');
-            if (extensionIndex >= 0)
-            {
-                relativePath = relativePath.Substring(0, extensionIndex);
-            }
-            
-            return relativePath;
-        }
-#endif
-        // Fallback: just use the asset name
-        return talent.name;
     }
 }
 
