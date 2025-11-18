@@ -17,3 +17,4 @@ MonoBehaviour:
   description: Extract valuable flowers and herbs
   icon: {fileID: 728749988041474519, guid: 230c2322ce9cc894abfe4a7ed945e04e, type: 3}
   themeColor: {r: 0.18503025, g: 0.6226415, b: 0.25159118, a: 1}
+

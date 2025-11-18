@@ -26,3 +26,4 @@ public class ProfessionDefinitionData : ScriptableObject
     public Color themeColor = new Color(0.6f, 0.6f, 0.6f); // Gray for mining
 }
 
+

@@ -17,3 +17,4 @@ MonoBehaviour:
   description: Extract valuable ores from rocks and minerals.
   icon: {fileID: -4340791927408268708, guid: 64a0e565cf30ebd48ae29bbeed2d01d0, type: 3}
   themeColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+

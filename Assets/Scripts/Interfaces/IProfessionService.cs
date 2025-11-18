@@ -34,3 +34,4 @@ public interface IProfessionService
     void LoadProfessionData(ProfessionData data);
 }
 
+
