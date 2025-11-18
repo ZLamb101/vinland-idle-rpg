@@ -186,10 +186,10 @@ public class ZoneManager : MonoBehaviour, IZoneService
     
     public bool CanGoToNextZone()
     {
-        if (currentZone == null || allZones == null || allZones.Length == 0 || currentZoneIndex >= allZones.Length - 1) return false;
+        if (currentZone == null) return false;
         
-        ZoneData nextZone = allZones[currentZoneIndex + 1];
-        if (nextZone == null) return false;
+        // Use the nextZone field from current zone instead of array order
+        if (currentZone.nextZone == null) return false;
         
         int playerLevel = 1; // Default level
         if (Services.TryGet<ICharacterService>(out var characterService))
@@ -197,38 +197,34 @@ public class ZoneManager : MonoBehaviour, IZoneService
             playerLevel = characterService.GetLevel();
         }
         
-        return nextZone.CanAccess(playerLevel, currentZone);
+        return currentZone.nextZone.CanAccess(playerLevel, currentZone);
     }
     
     public bool CanGoToPreviousZone()
     {
-        return currentZoneIndex > 0;
+        return currentZone != null && currentZone.previousZone != null;
     }
     
     public void GoToNextZone()
     {
-        if (!CanGoToNextZone() || allZones == null || currentZoneIndex + 1 >= allZones.Length) return;
+        if (!CanGoToNextZone() || currentZone == null || currentZone.nextZone == null) return;
         
-        ZoneData nextZone = allZones[currentZoneIndex + 1];
-        if (nextZone == null) return;
-        
-        SetCurrentZone(nextZone);
+        // Use the nextZone field from current zone
+        SetCurrentZone(currentZone.nextZone);
     }
     
     public void GoToPreviousZone()
     {
-        if (!CanGoToPreviousZone() || allZones == null || currentZoneIndex - 1 < 0) return;
+        if (!CanGoToPreviousZone() || currentZone == null || currentZone.previousZone == null) return;
         
-        ZoneData previousZone = allZones[currentZoneIndex - 1];
-        if (previousZone == null) return;
-        
-        SetCurrentZone(previousZone);
+        // Use the previousZone field from current zone
+        SetCurrentZone(currentZone.previousZone);
     }
     
     public ZoneData GetCurrentZone() => currentZone;
     public int GetCurrentZoneIndex() => currentZoneIndex;
-    public ZoneData GetNextZone() => (CanGoToNextZone() && allZones != null && currentZoneIndex + 1 < allZones.Length) ? allZones[currentZoneIndex + 1] : null;
-    public ZoneData GetPreviousZone() => (CanGoToPreviousZone() && allZones != null && currentZoneIndex - 1 >= 0) ? allZones[currentZoneIndex - 1] : null;
+    public ZoneData GetNextZone() => (currentZone != null && currentZone.nextZone != null && CanGoToNextZone()) ? currentZone.nextZone : null;
+    public ZoneData GetPreviousZone() => (currentZone != null && currentZone.previousZone != null) ? currentZone.previousZone : null;
     
     /// <summary>
     /// Set default zone (zone 1-1, index 0) for a character slot.

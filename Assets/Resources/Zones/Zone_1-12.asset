@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8ad1d7dcec5629245b6436474bf29744, type: 3}
-  m_Name: Zone_1-5
+  m_Name: Zone_1-12
   m_EditorClassIdentifier: Assembly-CSharp::ZoneData
-  zoneName: Zone 1-5
+  zoneName: Zone 1-12
   levelRequired: 1
   prerequisiteZone: {fileID: 0}
   availableQuests: []
@@ -21,6 +21,6 @@ MonoBehaviour:
     position: {x: 540, y: -175}
   resources: []
   npcs: []
-  nextZone: {fileID: 11400000, guid: 21f9a08e16ada4d4598bcd06497fa1be, type: 2}
+  nextZone: {fileID: 11400000, guid: 46f9628389be04e49973e8e4b5619d4d, type: 2}
   isUnlocked: 0
   backgroundImage: {fileID: -1877671754663334195, guid: b8d5181af07c36a4fa5b4e6476536272, type: 3}

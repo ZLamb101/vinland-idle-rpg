@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b8d5181af07c36a4fa5b4e6476536272
+guid: 0d3b3ffb5b432fc4fae6520edcadf5bd
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1877671754663334195
-    second: Background_Barren_0
+      213: 4510435861846138960
+    second: Background_Razorhill_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Background_Barren_0
+      name: Background_Razorhill_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: dcee18acc7b21f5e0800000000000000
-      internalID: -1877671754663334195
+      spriteID: 050a58fd489489e30800000000000000
+      internalID: 4510435861846138960
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Background_Barren_0: -1877671754663334195
+      Background_Razorhill_0: 4510435861846138960
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

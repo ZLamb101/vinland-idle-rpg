@@ -71,6 +71,7 @@ public class ZoneData : ScriptableObject
     
     [Header("Navigation")]
     public ZoneData nextZone; // Next zone to unlock
+    public ZoneData previousZone; // Previous zone to go back to
     public bool isUnlocked = false;
     
     [Header("Zone Properties")]
