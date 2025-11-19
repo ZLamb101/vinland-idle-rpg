@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_TinOre
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Tin Ore
-  description: Yummy Iron ore
+  description: Yummy Tin ore
   icon: {fileID: 3759922667845674566, guid: b4d77add081fd1b43a74fa43912a2219, type: 3}
   itemType: 0
   maxStackSize: 99

@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de4957e97bcfe7c4fad124caa714debb, type: 3}
   m_Name: Resource_DesertHerb
   m_EditorClassIdentifier: Assembly-CSharp::ResourceData
-  resourceName: Copper Ore
-  resourceType: 0
-  resourceIcon: {fileID: -2535253782401239343, guid: 936752552fec32d46a482a4876bd5cb6, type: 3}
+  resourceName: Desert Herb
+  resourceType: 2
+  resourceIcon: {fileID: 1393158752463670176, guid: 1f91d9a5258074542992ca53f13a6605, type: 3}
   gatherRate: 1
-  gatheredItem: {fileID: 11400000, guid: d06585f91f3182d41913aae49c3d67d6, type: 2}
+  gatheredItem: {fileID: 11400000, guid: ca1770017b07b9341a88f72e64809150, type: 2}
   itemsPerGather: 1
-  professionType: 0
+  professionType: 1
   professionLevelRequired: 1
-  professionXPReward: 10
+  professionXPReward: 12

@@ -108,7 +108,7 @@ TextureImporter:
         width: 1536
         height: 1024
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -121,11 +121,55 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Background_Razorhill_Door1
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 320
+        width: 180
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 73a7f3f2910e1c44eba38071607a0b24
+      internalID: -1457438078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Background_Razorhill_Door2
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 370
+        width: 130
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 01ed61a7d79899145a465916e4e4edca
+      internalID: 367831730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 4eed3e9a676b4834f83edd89de2e9bf1
     internalID: 0
     vertices: []
     indices: 
@@ -136,6 +180,8 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       Background_Razorhill_0: 4510435861846138960
+      Background_Razorhill_Door1: -1457438078
+      Background_Razorhill_Door2: 367831730
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

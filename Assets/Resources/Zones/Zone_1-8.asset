@@ -18,7 +18,7 @@ MonoBehaviour:
   availableQuests: []
   monsters:
   - monster: {fileID: 11400000, guid: 210f2eaa01ac8274d9af503227f46f80, type: 2}
-    position: {x: 540, y: -175}
+    position: {x: 650, y: -250}
   resources: []
   npcs: []
   nextZone: {fileID: 11400000, guid: 0e5388e994c7f7b4ba9e99af8d1871c4, type: 2}

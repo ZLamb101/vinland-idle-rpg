@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de4957e97bcfe7c4fad124caa714debb, type: 3}
   m_Name: Resource_Tin
   m_EditorClassIdentifier: Assembly-CSharp::ResourceData
-  resourceName: Copper Ore
+  resourceName: Tin Ore
   resourceType: 0
-  resourceIcon: {fileID: -2535253782401239343, guid: 936752552fec32d46a482a4876bd5cb6, type: 3}
+  resourceIcon: {fileID: -2930009805118874992, guid: 390378e793fe9884b8e778e0f20d7cf0, type: 3}
   gatherRate: 1
-  gatheredItem: {fileID: 11400000, guid: d06585f91f3182d41913aae49c3d67d6, type: 2}
+  gatheredItem: {fileID: 11400000, guid: d3871231e98085b41a24bb84c9ce8aa9, type: 2}
   itemsPerGather: 1
   professionType: 0
-  professionLevelRequired: 1
-  professionXPReward: 10
+  professionLevelRequired: 5
+  professionXPReward: 25

@@ -48,6 +48,9 @@ public class ResourcePanel : MonoBehaviour
             EventBus.Subscribe<GatherProgressChangedEvent>(OnGatherProgressChanged);
             EventBus.Subscribe<ItemsGatheredEvent>(OnItemsGathered);
         }
+        
+        // Subscribe to profession events to update button state when player levels up
+        EventBus.Subscribe<ProfessionLevelUpEvent>(OnProfessionLevelUp);
     }
     
     void OnDestroy()
@@ -57,6 +60,7 @@ public class ResourcePanel : MonoBehaviour
         EventBus.Unsubscribe<ResourceChangedEvent>(OnResourceChanged);
         EventBus.Unsubscribe<GatherProgressChangedEvent>(OnGatherProgressChanged);
         EventBus.Unsubscribe<ItemsGatheredEvent>(OnItemsGathered);
+        EventBus.Unsubscribe<ProfessionLevelUpEvent>(OnProfessionLevelUp);
     }
     
     /// <summary>
@@ -96,10 +100,18 @@ public class ResourcePanel : MonoBehaviour
             resourceNameText.gameObject.SetActive(true);
         }
         
-        // Update resource details text
+        // Update resource details text with gather rate and requirement
         if (resourceDetailsText != null)
         {
-            resourceDetailsText.text = $"{resource.gatherRate:F1}/sec";
+            string detailsText = $"{resource.gatherRate:F1}/sec";
+            
+            // Add profession requirement if > 1
+            if (resource.professionLevelRequired > 1)
+            {
+                detailsText += $"\nReq: {resource.professionType.GetDisplayName()} Lv.{resource.professionLevelRequired}";
+            }
+            
+            resourceDetailsText.text = detailsText;
             resourceDetailsText.gameObject.SetActive(true);
         }
         
@@ -197,17 +209,50 @@ public class ResourcePanel : MonoBehaviour
         }
     }
     
+    void OnProfessionLevelUp(ProfessionLevelUpEvent e)
+    {
+        // Update button state when player levels up a profession
+        // This will enable locked resources that the player can now gather
+        if (resourceData != null && e.profession == resourceData.professionType)
+        {
+            UpdateGatherButtonState();
+        }
+    }
+    
     void UpdateGatherButtonState()
     {
         if (gatherButtonText == null) return;
         
+        // Check if player meets requirements
+        bool canGather = resourceService != null && resourceData != null && 
+                        resourceService.CanGatherResource(resourceData);
+        
         if (isGathering)
         {
             gatherButtonText.text = "Stop Gather";
+            if (gatherButton != null)
+            {
+                gatherButton.interactable = true;
+            }
         }
         else
         {
-            gatherButtonText.text = "Gather";
+            if (canGather)
+            {
+                gatherButtonText.text = "Gather";
+                if (gatherButton != null)
+                {
+                    gatherButton.interactable = true;
+                }
+            }
+            else
+            {
+                gatherButtonText.text = "Locked";
+                if (gatherButton != null)
+                {
+                    gatherButton.interactable = false;
+                }
+            }
         }
     }
     

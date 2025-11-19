@@ -10,21 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8ad1d7dcec5629245b6436474bf29744, type: 3}
-  m_Name: Zone_1-6
+  m_Name: Zone_1-Cook's hut
   m_EditorClassIdentifier: Assembly-CSharp::ZoneData
-  zoneName: Zone 1-6
+  zoneName: Zone 1-Cook's Hut
   levelRequired: 1
   prerequisiteZone: {fileID: 0}
   availableQuests: []
-  monsters:
-  - monster: {fileID: 11400000, guid: 77998f267e7f9ce419e7d19bdfcb45a5, type: 2}
-    position: {x: 300, y: -175}
-  resources:
-  - resource: {fileID: 11400000, guid: 43dfac370de9740419c5b3edbc2d6808, type: 2}
-    position: {x: -500, y: -200}
+  monsters: []
+  resources: []
   npcs: []
-  nextZone: {fileID: 11400000, guid: 9dc80a57df775ba44ad5df55c841d674, type: 2}
+  nextZone: {fileID: 0}
   previousZone: {fileID: 11400000, guid: 21f9a08e16ada4d4598bcd06497fa1be, type: 2}
   extraConnections: []
   isUnlocked: 0
-  backgroundImage: {fileID: 4382981799794339143, guid: 1d22e75a25b6a99468a4b1308ea50bb3, type: 3}
+  backgroundImage: {fileID: -5338500614769444720, guid: 17033224b41fafe4e92f7d60ff52fa18, type: 3}

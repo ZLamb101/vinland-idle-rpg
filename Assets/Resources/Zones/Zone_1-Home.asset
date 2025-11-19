@@ -27,5 +27,15 @@ MonoBehaviour:
     icon: {fileID: 7167971821754250806, guid: f82c644ea8f1ab54ca664557f13f76bc, type: 3}
     position: {x: -250, y: 300}
     scale: 2
+  - displayName: Cook's Hut
+    targetZone: {fileID: 11400000, guid: 80142ef04a839444d93044db8041791c, type: 2}
+    icon: {fileID: -1457438078, guid: 0d3b3ffb5b432fc4fae6520edcadf5bd, type: 3}
+    position: {x: 160, y: 320}
+    scale: 1
+  - displayName: Chief's Hut
+    targetZone: {fileID: 11400000, guid: 03826f513f8ea74449466d95d827cfb3, type: 2}
+    icon: {fileID: 367831730, guid: 0d3b3ffb5b432fc4fae6520edcadf5bd, type: 3}
+    position: {x: 820, y: 370}
+    scale: 1
   isUnlocked: 0
   backgroundImage: {fileID: 4510435861846138960, guid: 0d3b3ffb5b432fc4fae6520edcadf5bd, type: 3}

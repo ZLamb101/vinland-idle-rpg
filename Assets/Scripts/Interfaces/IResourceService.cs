@@ -12,6 +12,9 @@ public interface IResourceService
     bool StartGathering(ZoneData zone);
     void StopGathering();
     
+    // Requirements
+    bool CanGatherResource(ResourceData resource);
+    
     // Getters
     bool IsGathering();
     ResourceData GetCurrentResource();

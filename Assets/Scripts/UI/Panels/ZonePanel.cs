@@ -238,21 +238,24 @@ public class ZonePanel : MonoBehaviour
 
         // Update next zone button
         bool canGoNext = zoneService.CanGoToNextZone();
+        ZoneData nextZone = zoneService.GetNextZone();
+        bool hasNextZone = nextZone != null;
+        
         if (nextZoneButton != null)
         {
-            nextZoneButton.interactable = canGoNext;
+            nextZoneButton.gameObject.SetActive(hasNextZone);
+            if (hasNextZone)
+            {
+                nextZoneButton.interactable = canGoNext;
+            }
         }
 
         if (nextZoneText != null)
         {
-            if (canGoNext)
+            nextZoneText.gameObject.SetActive(hasNextZone);
+            if (hasNextZone)
             {
-                ZoneData nextZone = zoneService.GetNextZone();
                 nextZoneText.text = $"{nextZone.zoneName} →";
-            }
-            else
-            {
-                nextZoneText.text = "Next →";
             }
         }
     }

@@ -19,7 +19,9 @@ MonoBehaviour:
   monsters:
   - monster: {fileID: 11400000, guid: 3b51a948409d8874c94e99d45b23e83b, type: 2}
     position: {x: 540, y: -175}
-  resources: []
+  resources:
+  - resource: {fileID: 11400000, guid: 36341e51826718e479fc04257cfa7fe9, type: 2}
+    position: {x: -300, y: -200}
   npcs: []
   nextZone: {fileID: 11400000, guid: 46f9628389be04e49973e8e4b5619d4d, type: 2}
   previousZone: {fileID: 11400000, guid: 6540995917526b643874df2daf8ca3b8, type: 2}

@@ -73,6 +73,13 @@ public class ResourceManager : MonoBehaviour, IResourceService
             return false;
         }
         
+        // Check profession level requirement
+        if (!CanGatherResource(resource))
+        {
+            Debug.LogWarning($"[ResourceManager] Cannot gather {resource.resourceName}. Requires {resource.professionType.GetDisplayName()} level {resource.professionLevelRequired}.");
+            return false;
+        }
+        
         // Stop combat if player is currently in combat
         ICombatService combatService;
         if (Services.TryGet<ICombatService>(out combatService) && 
@@ -200,6 +207,34 @@ public class ResourceManager : MonoBehaviour, IResourceService
         {
             professionService.AddProfessionXP(currentResource.professionType, currentResource.professionXPReward);
         }
+    }
+    
+    /// <summary>
+    /// Check if the player meets the requirements to gather a resource
+    /// </summary>
+    public bool CanGatherResource(ResourceData resource)
+    {
+        if (resource == null)
+        {
+            return false;
+        }
+        
+        // Check profession level requirement
+        if (professionService == null)
+        {
+            Services.TryGet<IProfessionService>(out professionService);
+        }
+        
+        if (professionService != null)
+        {
+            int playerProfessionLevel = professionService.GetProfessionLevel(resource.professionType);
+            if (playerProfessionLevel < resource.professionLevelRequired)
+            {
+                return false;
+            }
+        }
+        
+        return true;
     }
     
     // Getters
