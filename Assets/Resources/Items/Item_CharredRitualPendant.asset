@@ -10,14 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
-  m_Name: Item_GoblinEar
+  m_Name: Item_CharredRitualPendant
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: Goblin Ear
-  description: Proof of a goblin slain - often traded for bounty coin.
-  icon: {fileID: -8123184718651246048, guid: 9711a5cc892babc4c8ae515d6a99f04d, type: 3}
+  itemName: Charred Ritual Pendant
+  description: A burnt pendant once used in forbidden rites, still warm with lingering
+    magic.
+  icon: {fileID: -3168418149456668847, guid: 2cc540a510d52714b830ecf6a95b26a9, type: 3}
   itemType: 0
   maxStackSize: 99
-  baseValue: 1
+  baseValue: 19
   equipmentData: {fileID: 0}
-  canBeQuestReward: 0
+  canBeQuestReward: 1
   questRewardQuantity: 1

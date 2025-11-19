@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterName: Scorpion
   monsterSprite: {fileID: 8398120645025914946, guid: a98edff239d27614fbece23589da8bc6, type: 3}
-  level: 1
+  flipSprite: 0
+  level: 2
   health: 70
   attackDamage: 7
   attackSpeed: 2
+  attackRange: 100
   xpReward: 10
   goldReward: 5
   dropTable:

@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
-  m_Name: Item_GoblinEar
+  m_Name: Item_TinOre
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: Goblin Ear
-  description: Proof of a goblin slain - often traded for bounty coin.
-  icon: {fileID: -8123184718651246048, guid: 9711a5cc892babc4c8ae515d6a99f04d, type: 3}
+  itemName: Tin Ore
+  description: Yummy Iron ore
+  icon: {fileID: 3759922667845674566, guid: b4d77add081fd1b43a74fa43912a2219, type: 3}
   itemType: 0
   maxStackSize: 99
   baseValue: 1

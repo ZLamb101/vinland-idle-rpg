@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
-  m_Name: Item_GoblinEar
+  m_Name: Item_TurtleShellSegment
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: Goblin Ear
-  description: Proof of a goblin slain - often traded for bounty coin.
-  icon: {fileID: -8123184718651246048, guid: 9711a5cc892babc4c8ae515d6a99f04d, type: 3}
+  itemName: Turtle Shell Segment
+  description: "Still smells faintly of swamp\u2026 and attitude."
+  icon: {fileID: -9181340995688910878, guid: b0221e3455e913d4c90dc64b33ca9d74, type: 3}
   itemType: 0
   maxStackSize: 99
-  baseValue: 1
+  baseValue: 45
   equipmentData: {fileID: 0}
   canBeQuestReward: 0
   questRewardQuantity: 1

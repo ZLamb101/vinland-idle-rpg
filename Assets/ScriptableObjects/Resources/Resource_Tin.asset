@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de4957e97bcfe7c4fad124caa714debb, type: 3}
+  m_Name: Resource_Tin
+  m_EditorClassIdentifier: Assembly-CSharp::ResourceData
+  resourceName: Copper Ore
+  resourceType: 0
+  resourceIcon: {fileID: -2535253782401239343, guid: 936752552fec32d46a482a4876bd5cb6, type: 3}
+  gatherRate: 1
+  gatheredItem: {fileID: 11400000, guid: d06585f91f3182d41913aae49c3d67d6, type: 2}
+  itemsPerGather: 1
+  professionType: 0
+  professionLevelRequired: 1
+  professionXPReward: 10

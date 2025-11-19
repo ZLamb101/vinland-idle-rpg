@@ -15,7 +15,7 @@ MonoBehaviour:
   monsterName: Centaur
   monsterSprite: {fileID: -2901703798221810564, guid: adcca60dc3459764d8fa529a8546035b, type: 3}
   flipSprite: 0
-  level: 1
+  level: 5
   health: 400
   attackDamage: 25
   attackSpeed: 2

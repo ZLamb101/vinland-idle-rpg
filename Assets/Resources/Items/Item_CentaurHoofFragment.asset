@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_CentaurHoofFragment
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Centaur Hoof Fragment
-  description: A Hoof from aCentaur
+  description: Smells faintly like dust, sweat, and bad decisions.
   icon: {fileID: 1287575389838319223, guid: 1ff045c1ac340b84181583e5d433fe87, type: 3}
   itemType: 0
   maxStackSize: 99

@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
-  m_Name: Item_GoblinEar
+  m_Name: Item_DesertHerb
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: Goblin Ear
-  description: Proof of a goblin slain - often traded for bounty coin.
-  icon: {fileID: -8123184718651246048, guid: 9711a5cc892babc4c8ae515d6a99f04d, type: 3}
+  itemName: Desert Herb
+  description: "Said to hold the sun\u2019s warmth within its leaves."
+  icon: {fileID: 1154961461163436817, guid: ce3199589d257e5468f0f1f45eb8b624, type: 3}
   itemType: 0
   maxStackSize: 99
-  baseValue: 1
+  baseValue: 8
   equipmentData: {fileID: 0}
   canBeQuestReward: 0
   questRewardQuantity: 1

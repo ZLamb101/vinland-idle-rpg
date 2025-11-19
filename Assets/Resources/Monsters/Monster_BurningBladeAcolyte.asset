@@ -10,22 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3c1fdc907f8cc04b8e19aabcf3fba18, type: 3}
-  m_Name: Monster_Centaur 7
+  m_Name: Monster_BurningBladeAcolyte
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
-  monsterName: Centaur
-  monsterSprite: {fileID: -2901703798221810564, guid: adcca60dc3459764d8fa529a8546035b, type: 3}
+  monsterName: Burning Blade Acolyte
+  monsterSprite: {fileID: 766519524516807416, guid: 8d21ef71558cf2c4fbc6839332e8ffcc, type: 3}
   flipSprite: 0
-  level: 1
-  health: 400
-  attackDamage: 25
+  level: 10
+  health: 500
+  attackDamage: 50
   attackSpeed: 2
-  attackRange: 500
-  xpReward: 30
-  goldReward: 5
+  attackRange: 100
+  xpReward: 200
+  goldReward: 100
   dropTable:
-  - item: {fileID: 11400000, guid: d1213fcb441d75f4ca1537da0db84b5f, type: 2}
+  - item: {fileID: 11400000, guid: be26e4be8f3978045a511170af4fbea0, type: 2}
     quantity: 1
     dropChance: 1
-  - item: {fileID: 11400000, guid: fd63b04a6abe3bf42b95bdcf08f48b65, type: 2}
-    quantity: 1
-    dropChance: 0.25

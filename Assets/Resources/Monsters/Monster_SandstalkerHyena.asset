@@ -10,22 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3c1fdc907f8cc04b8e19aabcf3fba18, type: 3}
-  m_Name: Monster_Raptor
+  m_Name: Monster_SandstalkerHyena
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
-  monsterName: Raptor
-  monsterSprite: {fileID: -7970112860141335647, guid: 0ec0351421f858a49baaee38138ea721, type: 3}
+  monsterName: Sandstalker Hyena
+  monsterSprite: {fileID: 6244547748011401436, guid: 8d21ef71558cf2c4fbc6839332e8ffcc, type: 3}
   flipSprite: 1
-  level: 3
-  health: 110
-  attackDamage: 12
+  level: 12
+  health: 600
+  attackDamage: 60
   attackSpeed: 2
   attackRange: 100
-  xpReward: 30
-  goldReward: 5
+  xpReward: 240
+  goldReward: 120
   dropTable:
-  - item: {fileID: 11400000, guid: 2246114e30743094388657cadb794eb2, type: 2}
+  - item: {fileID: 11400000, guid: d7435122d8149d142bee272afffaac61, type: 2}
     quantity: 1
     dropChance: 1
-  - item: {fileID: 11400000, guid: 22fd0e150ef634c40be5c60496e741bd, type: 2}
-    quantity: 1
-    dropChance: 0.25

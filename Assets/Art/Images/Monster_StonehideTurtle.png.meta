@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e615b6f6cf24e704c8d5de5724023cad
+guid: 971a1e554dbed404b8d9b960893402e9
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6209198569807001414
-    second: Monster_Boar_0
+      213: 3991291993272723132
+    second: Monster_StonehideTurtle_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Monster_Boar_0
+      name: Monster_StonehideTurtle_0
       rect:
         serializedVersion: 2
-        x: 38
-        y: 92
-        width: 984
-        height: 859
+        x: 0
+        y: 0
+        width: 1022
+        height: 1023
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ab84aca6cce74d9a0800000000000000
-      internalID: -6209198569807001414
+      spriteID: cb6a1edcbeae36730800000000000000
+      internalID: 3991291993272723132
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 1a5890a723d348b46962884a43096594
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Monster_Boar_0: -6209198569807001414
+      Monster_StonehideTurtle_0: 3991291993272723132
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

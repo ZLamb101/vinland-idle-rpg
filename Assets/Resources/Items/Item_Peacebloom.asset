@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
-  m_Name: Item_IronOre
+  m_Name: Item_Peacebloom
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: Iron Ore
-  description: Yummy Iron ore
-  icon: {fileID: 6798122076391323099, guid: 8602054f4649ee341af2b943b9212596, type: 3}
+  itemName: Peacebloom
+  description: A delicate blue blossom known for its calming, curative properties.
+  icon: {fileID: -3835519885586890732, guid: 657d423303a2f2e4ab15d0f5ee98323e, type: 3}
   itemType: 0
   maxStackSize: 99
-  baseValue: 1
+  baseValue: 5
   equipmentData: {fileID: 0}
   canBeQuestReward: 0
   questRewardQuantity: 1

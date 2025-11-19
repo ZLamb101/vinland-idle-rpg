@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
-  m_Name: Item_GoblinEar
+  m_Name: Item_PrimitiveCharmSpike
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: Goblin Ear
-  description: Proof of a goblin slain - often traded for bounty coin.
-  icon: {fileID: -8123184718651246048, guid: 9711a5cc892babc4c8ae515d6a99f04d, type: 3}
+  itemName: Primitive Charm Spike
+  description: A brutal charm spike infused with the savagery of its former owner.
+  icon: {fileID: 4412834574544687078, guid: c0951fe060b794248aaa55e4026b12f5, type: 3}
   itemType: 0
   maxStackSize: 99
-  baseValue: 1
+  baseValue: 15
   equipmentData: {fileID: 0}
   canBeQuestReward: 0
   questRewardQuantity: 1
