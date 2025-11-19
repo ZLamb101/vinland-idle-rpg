@@ -20,5 +20,12 @@ MonoBehaviour:
   resources: []
   npcs: []
   nextZone: {fileID: 11400000, guid: 00953d5874dfbc34d8e363c949dffc61, type: 2}
+  previousZone: {fileID: 11400000, guid: b4ecb9b6a24ee1f4bae97608fff6a9a1, type: 2}
+  extraConnections:
+  - displayName: Zepplin
+    targetZone: {fileID: 11400000, guid: 68cfe0d3f571238469913da271410daa, type: 2}
+    icon: {fileID: 7167971821754250806, guid: f82c644ea8f1ab54ca664557f13f76bc, type: 3}
+    position: {x: -250, y: 300}
+    scale: 2
   isUnlocked: 0
   backgroundImage: {fileID: 4510435861846138960, guid: 0d3b3ffb5b432fc4fae6520edcadf5bd, type: 3}

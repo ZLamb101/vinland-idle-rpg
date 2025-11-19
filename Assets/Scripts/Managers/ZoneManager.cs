@@ -227,6 +227,95 @@ public class ZoneManager : MonoBehaviour, IZoneService
     public ZoneData GetPreviousZone() => (currentZone != null && currentZone.previousZone != null) ? currentZone.previousZone : null;
     
     /// <summary>
+    /// Get all extra connections available from the current zone.
+    /// Returns an empty list if no connections exist.
+    /// </summary>
+    public System.Collections.Generic.List<ZoneConnection> GetExtraConnections()
+    {
+        if (currentZone == null || currentZone.extraConnections == null)
+        {
+            return new System.Collections.Generic.List<ZoneConnection>();
+        }
+        return currentZone.extraConnections;
+    }
+    
+    /// <summary>
+    /// Check if navigation to a specific extra connection is possible.
+    /// </summary>
+    /// <param name="index">Index of the connection in the extraConnections list</param>
+    /// <returns>True if navigation is possible, false otherwise</returns>
+    public bool CanNavigateToConnection(int index)
+    {
+        if (currentZone == null || currentZone.extraConnections == null)
+        {
+            return false;
+        }
+        
+        if (index < 0 || index >= currentZone.extraConnections.Count)
+        {
+            return false;
+        }
+        
+        ZoneConnection connection = currentZone.extraConnections[index];
+        if (connection == null || connection.targetZone == null)
+        {
+            return false;
+        }
+        
+        // Check if player meets requirements for target zone
+        int playerLevel = 1;
+        if (Services.TryGet<ICharacterService>(out var characterService))
+        {
+            playerLevel = characterService.GetLevel();
+        }
+        
+        return connection.targetZone.CanAccess(playerLevel, currentZone);
+    }
+    
+    /// <summary>
+    /// Navigate to an extra connection by index.
+    /// </summary>
+    /// <param name="index">Index of the connection in the extraConnections list</param>
+    public void NavigateToConnection(int index)
+    {
+        if (!CanNavigateToConnection(index)) return;
+        
+        ZoneConnection connection = currentZone.extraConnections[index];
+        SetCurrentZone(connection.targetZone);
+    }
+    
+    /// <summary>
+    /// Navigate to an extra connection by display name.
+    /// This is a convenience method for name-based navigation.
+    /// </summary>
+    /// <param name="displayName">The display name of the connection (e.g., "Hidden Cave")</param>
+    /// <returns>True if navigation was successful, false otherwise</returns>
+    public bool NavigateToConnection(string displayName)
+    {
+        if (currentZone == null || currentZone.extraConnections == null)
+        {
+            return false;
+        }
+        
+        for (int i = 0; i < currentZone.extraConnections.Count; i++)
+        {
+            ZoneConnection connection = currentZone.extraConnections[i];
+            if (connection != null && connection.displayName == displayName)
+            {
+                if (CanNavigateToConnection(i))
+                {
+                    NavigateToConnection(i);
+                    return true;
+                }
+                return false;
+            }
+        }
+        
+        Debug.LogWarning($"[ZoneManager] No connection found with name '{displayName}' in zone {currentZone.zoneName}");
+        return false;
+    }
+    
+    /// <summary>
     /// Set default zone (zone 1-1, index 0) for a character slot.
     /// Used when creating new characters or when a character has no saved zone.
     /// </summary>

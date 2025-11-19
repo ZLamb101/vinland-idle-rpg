@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3c1fdc907f8cc04b8e19aabcf3fba18, type: 3}
+  m_Name: Monster_Centaur 7
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  monsterName: Centaur
+  monsterSprite: {fileID: -2901703798221810564, guid: adcca60dc3459764d8fa529a8546035b, type: 3}
+  flipSprite: 0
+  level: 1
+  health: 400
+  attackDamage: 25
+  attackSpeed: 2
+  attackRange: 500
+  xpReward: 30
+  goldReward: 5
+  dropTable:
+  - item: {fileID: 11400000, guid: d1213fcb441d75f4ca1537da0db84b5f, type: 2}
+    quantity: 1
+    dropChance: 1
+  - item: {fileID: 11400000, guid: fd63b04a6abe3bf42b95bdcf08f48b65, type: 2}
+    quantity: 1
+    dropChance: 0.25

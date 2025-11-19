@@ -22,5 +22,7 @@ MonoBehaviour:
   resources: []
   npcs: []
   nextZone: {fileID: 11400000, guid: 21f9a08e16ada4d4598bcd06497fa1be, type: 2}
+  previousZone: {fileID: 11400000, guid: 91858408dabb12b40bd5484edbf5d253, type: 2}
+  extraConnections: []
   isUnlocked: 0
   backgroundImage: {fileID: -1877671754663334195, guid: b8d5181af07c36a4fa5b4e6476536272, type: 3}

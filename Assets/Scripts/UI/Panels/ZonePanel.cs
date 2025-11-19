@@ -39,9 +39,15 @@ public class ZonePanel : MonoBehaviour
     public Transform resourceContainer; // Container for resource panels (parent RectTransform)
     public GameObject resourcePanelPrefab; // Prefab for creating resource panels dynamically
     
+    [Header("Zone Connections")]
+    [Tooltip("Container GameObject for zone connection buttons. Should be an empty GameObject with RectTransform. Create as child of ZonePanel.")]
+    public Transform connectionContainer; // Container for connection buttons (parent RectTransform)
+    public GameObject connectionButtonPrefab; // Prefab for creating connection buttons dynamically
+    
     private List<GameObject> currentNPCPanels = new List<GameObject>(); // Track spawned NPC panels
     private List<GameObject> currentMonsterPanels = new List<GameObject>(); // Track spawned monster panels
     private List<GameObject> currentResourcePanels = new List<GameObject>(); // Track spawned resource panels
+    private List<GameObject> currentConnectionButtons = new List<GameObject>(); // Track spawned connection buttons
 
     private IZoneService zoneService;
 
@@ -204,6 +210,9 @@ public class ZonePanel : MonoBehaviour
 
         // Update NPC display - spawn NPC panels dynamically
         UpdateNPCDisplay(currentZone);
+        
+        // Update zone connection buttons - spawn connection buttons dynamically
+        UpdateConnectionDisplay(currentZone);
     }
 
     void UpdateNavigationButtons()
@@ -557,5 +566,70 @@ public class ZonePanel : MonoBehaviour
             }
         }
         currentResourcePanels.Clear();
+    }
+    
+    /// <summary>
+    /// Update zone connection display by spawning/removing connection buttons
+    /// </summary>
+    void UpdateConnectionDisplay(ZoneData zone)
+    {
+        if (zone == null) return;
+        
+        // Clear existing connection buttons
+        ClearConnectionButtons();
+        
+        // Get extra connections from zone
+        List<ZoneConnection> connections = zone.extraConnections;
+        if (connections == null || connections.Count == 0)
+        {
+            return;
+        }
+        
+        if (connectionContainer == null)
+        {
+            return;
+        }
+        
+        if (connectionButtonPrefab == null)
+        {
+            return;
+        }
+        
+        // Spawn connection buttons for each extra connection
+        for (int i = 0; i < connections.Count; i++)
+        {
+            ZoneConnection connection = connections[i];
+            if (connection == null || connection.targetZone == null) continue;
+            
+            GameObject connectionButtonObj = Instantiate(connectionButtonPrefab, connectionContainer);
+            ZoneConnectionButton connectionButton = connectionButtonObj.GetComponent<ZoneConnectionButton>();
+            
+            if (connectionButton != null)
+            {
+                // Use the connection's position and scale from the data
+                connectionButton.Initialize(connection, i, connection.position, connection.scale);
+                currentConnectionButtons.Add(connectionButtonObj);
+            }
+            else
+            {
+                Debug.LogWarning("[ZonePanel] ConnectionButtonPrefab is missing ZoneConnectionButton component!");
+                Destroy(connectionButtonObj);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Clear all existing connection buttons
+    /// </summary>
+    void ClearConnectionButtons()
+    {
+        foreach (GameObject button in currentConnectionButtons)
+        {
+            if (button != null)
+            {
+                Destroy(button);
+            }
+        }
+        currentConnectionButtons.Clear();
     }
 }

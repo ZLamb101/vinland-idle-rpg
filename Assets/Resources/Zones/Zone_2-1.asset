@@ -12,19 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ad1d7dcec5629245b6436474bf29744, type: 3}
   m_Name: Zone_2-1
   m_EditorClassIdentifier: Assembly-CSharp::ZoneData
-  zoneName: Zone 1-1
+  zoneName: Zone 2-1
   levelRequired: 1
   prerequisiteZone: {fileID: 0}
-  availableQuests:
-  - {fileID: 11400000, guid: c6c6072e0daa6be4788323caec51a7ce, type: 2}
-  - {fileID: 11400000, guid: 729b1c409b0a6a64098d39e3f76bc773, type: 2}
-  monsters:
-  - monster: {fileID: 11400000, guid: 89ee92cf6f85e884baae3a8b23317734, type: 2}
-    position: {x: 540, y: -175}
-  resource: {fileID: 0}
-  npcs:
-  - npc: {fileID: 11400000, guid: d621a9889936ab7419bed89b4695c249, type: 2}
-    position: {x: -760, y: -221}
-  nextZone: {fileID: 11400000, guid: 8aa0f8ef764cae54fb54e737325108b1, type: 2}
+  availableQuests: []
+  monsters: []
+  resources: []
+  npcs: []
+  nextZone: {fileID: 0}
+  previousZone: {fileID: 0}
+  extraConnections:
+  - displayName: Zepplin
+    targetZone: {fileID: 11400000, guid: 21f9a08e16ada4d4598bcd06497fa1be, type: 2}
+    icon: {fileID: 7167971821754250806, guid: f82c644ea8f1ab54ca664557f13f76bc, type: 3}
+    position: {x: -250, y: 300}
+    scale: 2
   isUnlocked: 0
-  backgroundImage: {fileID: -626569156867048193, guid: 808106ee90920d244a2a5f0db27bf40f, type: 3}
+  backgroundImage: {fileID: 1417011363364721183, guid: f04771c5067fcd84eb1487d5527d7be2, type: 3}

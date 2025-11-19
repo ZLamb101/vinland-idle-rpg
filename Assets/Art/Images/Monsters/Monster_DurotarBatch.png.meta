@@ -1,0 +1,507 @@
+fileFormatVersion: 2
+guid: 8d21ef71558cf2c4fbc6839332e8ffcc
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4145271921116297447
+    second: Monster_DurotarBatch_0
+  - first:
+      213: 9146145229031241469
+    second: Monster_DurotarBatch_1
+  - first:
+      213: 7190239709367618576
+    second: Monster_DurotarBatch_2
+  - first:
+      213: 696662092241112754
+    second: Monster_DurotarBatch_3
+  - first:
+      213: 766519524516807416
+    second: Monster_DurotarBatch_4
+  - first:
+      213: 8044084074481901796
+    second: Monster_DurotarBatch_5
+  - first:
+      213: -8192757947983677235
+    second: Monster_DurotarBatch_6
+  - first:
+      213: 8446309764584802702
+    second: Monster_DurotarBatch_7
+  - first:
+      213: 6244547748011401436
+    second: Monster_DurotarBatch_8
+  - first:
+      213: 3263058911483195063
+    second: Monster_DurotarBatch_9
+  - first:
+      213: -6041981738005398657
+    second: Monster_DurotarBatch_10
+  - first:
+      213: -5594944052293019268
+    second: Monster_DurotarBatch_11
+  - first:
+      213: 686168512259225044
+    second: Monster_DurotarBatch_12
+  - first:
+      213: 7124221231970872250
+    second: Monster_DurotarBatch_13
+  - first:
+      213: 6430224480626483757
+    second: Monster_DurotarBatch_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Monster_Quillboar_Brute
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 504
+        width: 353
+        height: 471
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e8b98389d6f68930800000000000000
+      internalID: 4145271921116297447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_DurotarBatch_1
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 983
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df67a80a0a2adee70800000000000000
+      internalID: 9146145229031241469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_Harpy_Screecher
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 513
+        width: 428
+        height: 464
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01cc3ce8becd8c360800000000000000
+      internalID: 7190239709367618576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_Dustwind_Bandit
+      rect:
+        serializedVersion: 2
+        x: 1132
+        y: 520
+        width: 394
+        height: 482
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2be03885b7a0ba900800000000000000
+      internalID: 696662092241112754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_Burning_Blade_Acolyte
+      rect:
+        serializedVersion: 2
+        x: 827
+        y: 515
+        width: 299
+        height: 453
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f2c934427933aa00800000000000000
+      internalID: 766519524516807416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_Venomwing_Buzzard
+      rect:
+        serializedVersion: 2
+        x: 841
+        y: 60
+        width: 313
+        height: 412
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e0eedaa8d352af60800000000000000
+      internalID: 8044084074481901796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_WitchDoctor
+      rect:
+        serializedVersion: 2
+        x: 1162
+        y: 60
+        width: 338
+        height: 456
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc8bcabad0a7d4e80800000000000000
+      internalID: -8192757947983677235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_DurotarBatch_7
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 455
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e898dfcfaf1573570800000000000000
+      internalID: 8446309764584802702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_Sandstalker_Hyena
+      rect:
+        serializedVersion: 2
+        x: 414
+        y: 70
+        width: 419
+        height: 397
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd06f2f771719a650800000000000000
+      internalID: 6244547748011401436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_Stonehide_Turtle
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 56
+        width: 385
+        height: 410
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bee024aac6b84d20800000000000000
+      internalID: 3263058911483195063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_DurotarBatch_10
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 446
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7b7acefe91962ca0800000000000000
+      internalID: -6041981738005398657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_DurotarBatch_11
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 448
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c79d3e81704ca52b0800000000000000
+      internalID: -5594944052293019268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_DurotarBatch_12
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 23
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d5f44d50a2c58900800000000000000
+      internalID: 686168512259225044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_DurotarBatch_13
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 13
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abb6be8f6715ed260800000000000000
+      internalID: 7124221231970872250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Monster_DurotarBatch_14
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 0
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2223c9a81fbc3950800000000000000
+      internalID: 6430224480626483757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: b6e26e7bc17925148a00cb33a197f5b7
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Monster_Burning_Blade_Acolyte: 766519524516807416
+      Monster_DurotarBatch_1: 9146145229031241469
+      Monster_DurotarBatch_10: -6041981738005398657
+      Monster_DurotarBatch_11: -5594944052293019268
+      Monster_DurotarBatch_12: 686168512259225044
+      Monster_DurotarBatch_13: 7124221231970872250
+      Monster_DurotarBatch_14: 6430224480626483757
+      Monster_DurotarBatch_7: 8446309764584802702
+      Monster_Dustwind_Bandit: 696662092241112754
+      Monster_Harpy_Screecher: 7190239709367618576
+      Monster_Quillboar_Brute: 4145271921116297447
+      Monster_Sandstalker_Hyena: 6244547748011401436
+      Monster_Stonehide_Turtle: 3263058911483195063
+      Monster_Venomwing_Buzzard: 8044084074481901796
+      Monster_WitchDoctor: -8192757947983677235
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

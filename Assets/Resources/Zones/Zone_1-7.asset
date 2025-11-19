@@ -16,11 +16,11 @@ MonoBehaviour:
   levelRequired: 1
   prerequisiteZone: {fileID: 0}
   availableQuests: []
-  monsters:
-  - monster: {fileID: 11400000, guid: 03759e825945c804b81aa7fac56efef8, type: 2}
-    position: {x: 540, y: -175}
+  monsters: []
   resources: []
   npcs: []
   nextZone: {fileID: 11400000, guid: bc8a3d3ccf3643943b42d0013a86a662, type: 2}
+  previousZone: {fileID: 11400000, guid: 00953d5874dfbc34d8e363c949dffc61, type: 2}
+  extraConnections: []
   isUnlocked: 0
-  backgroundImage: {fileID: -1877671754663334195, guid: b8d5181af07c36a4fa5b4e6476536272, type: 3}
+  backgroundImage: {fileID: 4382981799794339143, guid: 1d22e75a25b6a99468a4b1308ea50bb3, type: 3}
