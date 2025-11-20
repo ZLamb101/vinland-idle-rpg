@@ -32,6 +32,9 @@ public class NPCData : ScriptableObject
     public string npcName = "Merchant";
     public Sprite npcSprite;
     
+    [Tooltip("Flip the NPC sprite horizontally")]
+    public bool flipSprite = false;
+    
     [Header("NPC Type")]
     [Tooltip("Type of NPC - determines interaction behavior")]
     public NPCType npcType = NPCType.TalkableNPC;

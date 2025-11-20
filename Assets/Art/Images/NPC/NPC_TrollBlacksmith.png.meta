@@ -130,12 +130,12 @@ TextureImporter:
       name: NPC_TrollBlacksmith_0
       rect:
         serializedVersion: 2
-        x: 2
-        y: 0
+        x: 1
+        y: 41
         width: 1022
-        height: 1531
+        height: 1459
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -148,209 +148,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: NPC_TrollBlacksmith_1
-      rect:
-        serializedVersion: 2
-        x: 434
-        y: 31
-        width: 8
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f8f5e417a0fd75b70800000000000000
-      internalID: 8887817625582591887
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: NPC_TrollBlacksmith_2
-      rect:
-        serializedVersion: 2
-        x: 440
-        y: 31
-        width: 10
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 055ef6eec44056b50800000000000000
-      internalID: 6585674758563554640
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: NPC_TrollBlacksmith_3
-      rect:
-        serializedVersion: 2
-        x: 458
-        y: 31
-        width: 12
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a11b370ac71200c40800000000000000
-      internalID: 5476413966034120986
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: NPC_TrollBlacksmith_4
-      rect:
-        serializedVersion: 2
-        x: 467
-        y: 31
-        width: 23
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b1ef1b9a90efdde20800000000000000
-      internalID: 3377134613052915227
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: NPC_TrollBlacksmith_5
-      rect:
-        serializedVersion: 2
-        x: 495
-        y: 31
-        width: 15
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f24f96eea437bad50800000000000000
-      internalID: 6749615232209515567
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: NPC_TrollBlacksmith_6
-      rect:
-        serializedVersion: 2
-        x: 525
-        y: 31
-        width: 13
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c096981f13c3930d0800000000000000
-      internalID: -3442654254944655092
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: NPC_TrollBlacksmith_7
-      rect:
-        serializedVersion: 2
-        x: 562
-        y: 31
-        width: 12
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 707a6c48b59c99b20800000000000000
-      internalID: 3141763609974449927
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: NPC_TrollBlacksmith_8
-      rect:
-        serializedVersion: 2
-        x: 572
-        y: 34
-        width: 6
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 99a8bbc2eaabd6260800000000000000
-      internalID: 7092530245415963289
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: NPC_TrollBlacksmith_9
-      rect:
-        serializedVersion: 2
-        x: 578
-        y: 32
-        width: 8
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 907525628d697de70800000000000000
-      internalID: 9139939823871743753
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 1f83dffd47b795444b01f1927f3743e9
     internalID: 0
     vertices: []
     indices: 

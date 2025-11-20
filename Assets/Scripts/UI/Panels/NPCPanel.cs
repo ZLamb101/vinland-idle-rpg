@@ -53,6 +53,15 @@ public class NPCPanel : MonoBehaviour
             {
                 npcImage.sprite = npc.npcSprite;
             }
+            
+            // Flip sprite if needed
+            RectTransform imageRect = npcImage.GetComponent<RectTransform>();
+            if (imageRect != null)
+            {
+                Vector3 scale = imageRect.localScale;
+                scale.x = npc.flipSprite ? -1f : 1f;
+                imageRect.localScale = scale;
+            }
         }
         
         // Update NPC name text
