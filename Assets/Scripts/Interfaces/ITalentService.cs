@@ -25,5 +25,6 @@ public interface ITalentService
     
     // Save/Load
     void LoadTalentData(Dictionary<string, int> talentsByName, int unspentPoints, int totalPoints);
+    void ClearAllTalents();
 }
 

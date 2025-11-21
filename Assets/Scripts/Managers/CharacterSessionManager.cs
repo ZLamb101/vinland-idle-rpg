@@ -62,6 +62,13 @@ public class CharacterSessionManager : MonoBehaviour, ICharacterSessionService
         }
         
         Debug.Log($"[CharacterSessionManager] Loading character from slot {currentSlotIndex}");
+        
+        // Clear existing talent data before loading
+        if (Services.TryGet<ITalentService>(out var talentService))
+        {
+            talentService.ClearAllTalents();
+        }
+        
         SaveData saveData = SaveSystem.LoadCharacter(currentSlotIndex);
         
         if (saveData != null)
@@ -430,6 +437,12 @@ public class CharacterSessionManager : MonoBehaviour, ICharacterSessionService
         if (Services.TryGet<IAwayActivityService>(out var awayActivityService))
         {
             awayActivityService.StopActivity();
+        }
+        
+        // Clear talent data
+        if (Services.TryGet<ITalentService>(out var talentService))
+        {
+            talentService.ClearAllTalents();
         }
         
         Debug.Log("[CharacterSessionManager] ✓ State reset complete - managers remain active for next character");

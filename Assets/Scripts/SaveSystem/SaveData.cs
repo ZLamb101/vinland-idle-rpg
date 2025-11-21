@@ -350,8 +350,12 @@ public class SaveData
             Debug.LogWarning("[SaveData] EquipmentService not available for loading equipment");
         }
         
-        // Talents (would need to implement LoadTalentData in TalentManager)
-        // For now, we keep the existing PlayerPrefs-based talent loading
+        // Talents
+        if (Services.TryGet<ITalentService>(out var talentService))
+        {
+            talentService.LoadTalentData(unlockedTalents, unspentTalentPoints, totalTalentPoints);
+            Debug.Log($"[SaveData] Loaded talents: {unlockedTalents.Count} unlocked, {unspentTalentPoints} unspent points");
+        }
         
         // Zone - Use TryGet since ZoneManager might not exist yet during early loading
         if (Services.TryGet<IZoneService>(out var zoneService))

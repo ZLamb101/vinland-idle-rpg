@@ -44,7 +44,7 @@ public class TalentManager : MonoBehaviour, ITalentService
         // Subscribe to level up events
         if (characterService != null)
         {
-            EventBus.Subscribe<CharacterLevelChangedEvent>(OnPlayerLevelUp);
+            EventBus.Subscribe<CharacterLevelUpEvent>(OnPlayerLevelUp);
         }
         
         RecalculateBonuses();
@@ -52,7 +52,7 @@ public class TalentManager : MonoBehaviour, ITalentService
     
     void OnDestroy()
     {
-        EventBus.Unsubscribe<CharacterLevelChangedEvent>(OnPlayerLevelUp);
+        EventBus.Unsubscribe<CharacterLevelUpEvent>(OnPlayerLevelUp);
         
         Services.Unregister<ITalentService>();
     }
@@ -60,7 +60,7 @@ public class TalentManager : MonoBehaviour, ITalentService
     /// <summary>
     /// Award talent point when player levels up
     /// </summary>
-    void OnPlayerLevelUp(CharacterLevelChangedEvent e)
+    void OnPlayerLevelUp(CharacterLevelUpEvent e)
     {
         AddTalentPoints(1);
     }
@@ -251,6 +251,22 @@ public class TalentManager : MonoBehaviour, ITalentService
         EventBus.Publish(new TalentPointsChangedEvent { unspentPoints = this.unspentTalentPoints, totalPoints = this.totalTalentPoints });
         
         Debug.Log($"[TalentManager] Talent loading complete. Loaded {unlockedTalents.Count} talents");
+    }
+    
+    /// <summary>
+    /// Clear all talent data (used when switching characters)
+    /// </summary>
+    public void ClearAllTalents()
+    {
+        unlockedTalents.Clear();
+        unspentTalentPoints = 0;
+        totalTalentPoints = 0;
+        totalBonuses = new TalentBonuses();
+        
+        EventBus.Publish(new TalentPointsChangedEvent { unspentPoints = 0, totalPoints = 0 });
+        EventBus.Publish(new TalentBonusesRecalculatedEvent { talentBonuses = totalBonuses });
+        
+        Debug.Log("[TalentManager] All talent data cleared");
     }
     
     /// <summary>
