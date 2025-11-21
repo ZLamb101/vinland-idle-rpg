@@ -155,7 +155,11 @@ public class CharacterSelectionScreen : MonoBehaviour
                         // Parse save time if available
                         lastPlayedDate = !string.IsNullOrEmpty(saveData.saveTime) && long.TryParse(saveData.saveTime, out long ticks)
                             ? new System.DateTime(ticks)
-                            : System.DateTime.Now
+                            : System.DateTime.Now,
+                            
+                        // Populate away activity data
+                        awayActivityType = saveData.awayActivityType,
+                        awayActivityDisplay = GetActivityDisplayFromSaveData(saveData)
                     };
                     
                     slotHasBeenUnlocked[i] = true;
@@ -554,6 +558,13 @@ public class CharacterSelectionScreen : MonoBehaviour
                     {
                         activityText = awayActivityService.GetActivityDisplayString(selectedSlotIndex);
                     }
+                    
+                    // Fallback to saved data if PlayerPrefs (service) returns empty but we have saved data
+                    if (string.IsNullOrEmpty(activityText) && !string.IsNullOrEmpty(charData.awayActivityDisplay))
+                    {
+                        activityText = charData.awayActivityDisplay;
+                    }
+                    
                     selectedHeroActivityText.text = activityText;
                 }
                 
@@ -652,6 +663,43 @@ public class CharacterSelectionScreen : MonoBehaviour
         }
         
         UpdateSlotLocks();
+    }
+    
+    /// <summary>
+    /// Helper to generate activity display string from SaveData
+    /// </summary>
+    private string GetActivityDisplayFromSaveData(SaveData data)
+    {
+        if (data == null) return "";
+        
+        // AwayActivityType enum: 0=None, 1=Mining, 2=Fighting
+        if (data.awayActivityType == 1) // Mining
+        {
+            return !string.IsNullOrEmpty(data.awayResourceName) 
+                ? $"Currently Mining {data.awayResourceName}" 
+                : "Currently Mining";
+        }
+        else if (data.awayActivityType == 2) // Fighting
+        {
+            if (data.awayMonsterDisplayNames != null && data.awayMonsterDisplayNames.Count > 0)
+            {
+                return data.awayMonsterDisplayNames.Count == 1 
+                    ? $"Currently Fighting {data.awayMonsterDisplayNames[0]}"
+                    : $"Currently Fighting {data.awayMonsterDisplayNames.Count} Monster Types";
+            }
+            else if (data.awayMonsterNames != null && data.awayMonsterNames.Count > 0)
+            {
+                return $"Currently Fighting {data.awayMonsterNames[0]}";
+            }
+            else
+            {
+                return "Currently Fighting";
+            }
+        }
+        else
+        {
+            return "Currently doing Nothing";
+        }
     }
 }
 

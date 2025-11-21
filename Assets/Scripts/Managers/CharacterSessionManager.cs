@@ -371,7 +371,14 @@ public class CharacterSessionManager : MonoBehaviour, ICharacterSessionService
     {
         Debug.Log($"[CharacterSessionManager] Saving and exiting to character selection (slot {slotIndex})");
         
-        // Save away activity state BEFORE ending anything
+        // 1. Save current character state to disk (JSON) FIRST
+        // This ensures we capture the active state (fighting/mining) before we stop it
+        if (Services.TryGet<ICharacterService>(out var characterService))
+        {
+            SaveCurrentCharacter(slotIndex);
+        }
+        
+        // 2. Save away activity state to PlayerPrefs (for Character Selection UI)
         if (Services.TryGet<IAwayActivityService>(out var awayActivityService))
         {
             awayActivityService.SaveAwayState();
@@ -383,13 +390,7 @@ public class CharacterSessionManager : MonoBehaviour, ICharacterSessionService
             }
         }
         
-        // Stop gathering when leaving
-        if (Services.TryGet<IResourceService>(out var resourceService))
-        {
-            resourceService.StopGathering();
-        }
-        
-        // Save current zone per character slot before leaving
+        // 3. Save current zone per character slot
         if (Services.TryGet<IZoneService>(out var zoneService))
         {
             if (slotIndex >= 0)
@@ -400,10 +401,18 @@ public class CharacterSessionManager : MonoBehaviour, ICharacterSessionService
             }
         }
         
-        // Save current character
-        if (Services.TryGet<ICharacterService>(out var characterService))
+        // 4. Clear active character slot to prevent auto-save on quit
+        // This "disconnects" the session so CharacterManager.OnApplicationQuit won't overwrite our save
+        PlayerPrefs.SetInt("ActiveCharacterSlot", -1);
+        PlayerPrefs.Save();
+        Debug.Log("[CharacterSessionManager] Cleared active character slot to prevent overwrite on quit");
+        
+        // 5. Now it's safe to stop activities
+        
+        // Stop gathering
+        if (Services.TryGet<IResourceService>(out var resourceService))
         {
-            SaveCurrentCharacter(slotIndex);
+            resourceService.StopGathering();
         }
         
         // Prepare managers for character switch (reset state, but keep managers alive)

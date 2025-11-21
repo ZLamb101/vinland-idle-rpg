@@ -24,6 +24,10 @@ public class SavedCharacterData
     public DateTime lastPlayedDate;
     public bool isEmpty = true; // Is this slot empty?
     
+    // Away Activity (for display)
+    public int awayActivityType = 0;
+    public string awayActivityDisplay = "";
+    
     // Convert from CharacterData
     public void SaveFrom(CharacterData data, string race, string charClass)
     {
