@@ -70,6 +70,9 @@ public class CombatManager : MonoBehaviour, ICombatService
     {
         Services.TryGet<IGameLogService>(out gameLogService);
         characterService = Services.Get<ICharacterService>();
+        
+        // Subscribe to events
+        EventBus.Subscribe<TalentBonusesRecalculatedEvent>(OnTalentBonusesChanged);
     }
     
     /// <summary>
@@ -91,6 +94,7 @@ public class CombatManager : MonoBehaviour, ICombatService
     
     void OnDestroy()
     {
+        EventBus.Unsubscribe<TalentBonusesRecalculatedEvent>(OnTalentBonusesChanged);
         Services.Unregister<ICombatService>();
     }
     
@@ -164,6 +168,21 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         // Spawn monster group (all at once)
         SpawnMonsterGroup(mobCount);
+    }
+    
+    /// <summary>
+    /// Handle talent bonus updates
+    /// </summary>
+    private void OnTalentBonusesChanged(TalentBonusesRecalculatedEvent e)
+    {
+        // Recalculate stats to apply new bonuses immediately
+        CalculatePlayerStats();
+        
+        // Log update if in combat
+        if (currentState == CombatState.Fighting)
+        {
+            LogCombatMessage("Combat stats updated from talents!", LogType.Info);
+        }
     }
     
     /// <summary>
