@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 /// <summary>
 /// Base class for all game events
@@ -7,6 +8,34 @@ using System;
 public abstract class GameEvent
 {
     public DateTime timestamp = DateTime.Now;
+}
+
+// ==================== Quest Events ====================
+
+public class QuestAcceptedEvent : GameEvent
+{
+    public QuestData quest;
+}
+
+public class QuestObjectiveUpdatedEvent : GameEvent
+{
+    public QuestData quest;
+    public int objectiveIndex;
+    public int currentAmount;
+    public int targetAmount;
+}
+
+public class QuestCompletedEvent : GameEvent
+{
+    public QuestData quest;
+}
+
+public class QuestTurnedInEvent : GameEvent
+{
+    public QuestData quest;
+    public int xpReward;
+    public int goldReward;
+    public ItemData itemReward;
 }
 
 // ==================== Character Events ====================
@@ -49,6 +78,12 @@ public class CharacterHealthChangedEvent : GameEvent
 public class CharacterDiedEvent : GameEvent
 {
     public string deathReason;
+}
+
+public class CharacterLoadedEvent : GameEvent
+{
+    public int slotIndex;
+    public string characterName;
 }
 
 // ==================== Combat Events ====================
@@ -229,6 +264,13 @@ public class DialogueStartedEvent : GameEvent
     public NPCData npc;
 }
 
+public class DialogueWithActionsStartedEvent : GameEvent
+{
+    public NPCData npc;
+    public bool hasActions;
+    public string acceptButtonText = "Accept";
+}
+
 public class DialogueTextChangedEvent : GameEvent
 {
     public string dialogueText;
@@ -358,4 +400,3 @@ public enum NotificationType
     Warning,
     Error
 }
-

@@ -8,7 +8,7 @@ public interface ICharacterService
     // Events migrated to EventBus - see GameEvent.cs
     
     // XP Management
-    void AddXP(int amount);
+    void AddXP(int amount); // Smoothly animated XP gain with level-up handling
     int GetCurrentXP();
     int GetXPRequiredForNextLevel();
     

@@ -12,13 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5, type: 3}
   m_Name: Quest_ABoarsMenace
   m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  id: 505b2505-c43c-4e7c-ac38-0bbf7ae11712
   questName: A Boar's Menace
   description: Hunt some Boars
+  dialoguePages:
+  - The boars have been terrorizing our village for weeks now.
+  - My daughter was nearly attacked yesterday while gathering herbs.
+  - Please, help us deal with this menace before someone gets hurt!
   levelRequired: 1
-  duration: 3
-  xpReward: 34
-  goldReward: 1
+  prerequisiteQuest: {fileID: 0}
+  objectives:
+  - type: 0
+    targetID: Boar
+    amount: 8
+    description: Rami Need's you to slay 8 Boars
+  turnInNPC: {fileID: 11400000, guid: d621a9889936ab7419bed89b4695c249, type: 2}
+  xpReward: 400
+  goldReward: 200
   itemReward: {fileID: 11400000, guid: f573099df85a12d40ac0bc6a68dade01, type: 2}
-  itemRewardQuantity: 1
-  questIcon: {fileID: 0}
-  questColor: {r: 1, g: 1, b: 1, a: 1}
+  itemRewardQuantity: 5

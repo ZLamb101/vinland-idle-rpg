@@ -33,6 +33,7 @@ public class GameBootstrap : MonoBehaviour
         CreateManager<CombatManager>();
         CreateManager<ZoneManager>();
         CreateManager<ResourceManager>();
+        CreateManager<QuestManager>();
         
         // Equipment and progression
         CreateManager<EquipmentManager>();
@@ -47,7 +48,7 @@ public class GameBootstrap : MonoBehaviour
         CreateManager<DialogueManager>();
         
         Log("═══════════════════════════════════════");
-        Log($"All {12} managers created successfully!");
+        Log($"All {13} managers created successfully!");
         Log($"Loading first scene: {firstSceneName}");
         Log("═══════════════════════════════════════");
         

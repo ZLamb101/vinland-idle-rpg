@@ -88,6 +88,16 @@ public class CharacterSessionManager : MonoBehaviour, ICharacterSessionService
             return;
         }
         
+        // Publish character loaded event so UI can refresh
+        CharacterData charData = characterService.GetCharacterData();
+        EventBus.Publish(new CharacterLoadedEvent 
+        { 
+            slotIndex = currentSlotIndex,
+            characterName = charData.characterName
+        });
+        
+        Debug.Log($"[CharacterSessionManager] Character loaded: {charData.characterName} (Slot {currentSlotIndex})");
+        
         Debug.Log($"[CharacterSessionManager] Initializing character from slot {currentSlotIndex}");
         
         // Refresh GameLog subscription to new character's events

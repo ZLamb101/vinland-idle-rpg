@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPCData
   npcName: Rami
   npcSprite: {fileID: 1406004857870835685, guid: a810761661b60af489e14c4172c66c46, type: 3}
+  flipSprite: 0
+  npcType: 0
   dialogueLines:
   - text: Hello Mon
-  hasShop: 0
+  availableQuests:
+  - {fileID: 11400000, guid: c6c6072e0daa6be4788323caec51a7ce, type: 2}
+  shopData: {fileID: 0}

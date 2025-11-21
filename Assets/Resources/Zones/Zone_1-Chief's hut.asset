@@ -20,7 +20,7 @@ MonoBehaviour:
   resources: []
   npcs:
   - npc: {fileID: 11400000, guid: 38de382e9edda7b4e8b3401810d77a46, type: 2}
-    position: {x: 0, y: 0}
+    position: {x: -16, y: -164}
   nextZone: {fileID: 0}
   previousZone: {fileID: 11400000, guid: 21f9a08e16ada4d4598bcd06497fa1be, type: 2}
   extraConnections: []

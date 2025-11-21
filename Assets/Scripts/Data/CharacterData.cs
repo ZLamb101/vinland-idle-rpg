@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -15,6 +16,9 @@ public class CharacterData
     public InventoryData inventory = new InventoryData();
     public ProfessionData professions = new ProfessionData();
     
+    public List<PlayerQuest> activeQuests = new List<PlayerQuest>();
+    public List<string> completedQuestIDs = new List<string>();
+
     // Character creation data (persists through gameplay)
     public string race = "Human";
     public string characterClass = "Warrior";
@@ -79,4 +83,3 @@ public class CharacterData
         }
     }
 }
-

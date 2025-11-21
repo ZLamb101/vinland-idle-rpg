@@ -77,35 +77,61 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     // --- XP Management ---
     public void AddXP(int amount)
     {
-        characterData.currentXP += amount;
-        EventBus.Publish(new CharacterXPChangedEvent { newXP = characterData.currentXP, xpGained = amount });
+        if (amount <= 0) return;
+        StartCoroutine(AnimateXPGain(amount));
+    }
+    
+    private System.Collections.IEnumerator AnimateXPGain(int totalAmount)
+    {
+        int remainingXP = totalAmount;
         
-        // Check for level up
-        bool leveledUp = false;
-        while (characterData.CanLevelUp())
+        while (remainingXP > 0)
         {
-            int oldLevel = characterData.level;
-            characterData.LevelUp();
-            int newLevel = characterData.level;
+            int xpNeeded = characterData.GetXPRequiredForNextLevel();
+            int currentXP = characterData.currentXP;
+            int xpToNextLevel = xpNeeded - currentXP;
             
-            EventBus.Publish(new CharacterLevelChangedEvent { newLevel = newLevel });
-            EventBus.Publish(new CharacterLevelUpEvent { oldLevel = oldLevel, newLevel = newLevel }); // Emit level-up event with both levels
-            EventBus.Publish(new CharacterXPChangedEvent { newXP = characterData.currentXP, xpGained = 0 }); // Update XP after level up
-            
-            // Update max health on level up and heal to full
-            characterData.currentHealth = characterData.GetMaxHealth();
-            EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = characterData.currentHealth });
-            
-            leveledUp = true;
-            
-            Debug.Log($"[CharacterManager] Level up! {oldLevel} -> {newLevel}");
+            if (remainingXP >= xpToNextLevel && xpToNextLevel > 0)
+            {
+                // Fill to level up
+                int xpToAdd = xpToNextLevel;
+                characterData.currentXP += xpToAdd;
+                remainingXP -= xpToAdd;
+                
+                EventBus.Publish(new CharacterXPChangedEvent { newXP = characterData.currentXP, xpGained = xpToAdd });
+                
+                // Wait for bar to fill
+                yield return new UnityEngine.WaitForSeconds(0.5f);
+                
+                // Level up
+                int oldLevel = characterData.level;
+                characterData.LevelUp();
+                int newLevel = characterData.level;
+                
+                EventBus.Publish(new CharacterLevelChangedEvent { newLevel = newLevel });
+                EventBus.Publish(new CharacterLevelUpEvent { oldLevel = oldLevel, newLevel = newLevel });
+                EventBus.Publish(new CharacterXPChangedEvent { newXP = characterData.currentXP, xpGained = 0 });
+                
+                // Update max health on level up and heal to full
+                characterData.currentHealth = characterData.GetMaxHealth();
+                EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = characterData.currentHealth });
+                
+                Debug.Log($"[CharacterManager] Level up! {oldLevel} -> {newLevel}");
+                
+                // Wait a bit before continuing to next level
+                yield return new UnityEngine.WaitForSeconds(0.5f);
+            }
+            else
+            {
+                // Add remaining XP (doesn't cause level up)
+                characterData.currentXP += remainingXP;
+                EventBus.Publish(new CharacterXPChangedEvent { newXP = characterData.currentXP, xpGained = remainingXP });
+                remainingXP = 0;
+            }
         }
         
-        // Auto-save after leveling up (important milestone)
-        if (leveledUp)
-        {
-            AutoSave("level up");
-        }
+        // Auto-save after XP gain
+        AutoSave("XP gain");
     }
     
     public int GetCurrentXP() => characterData.currentXP;

@@ -19,11 +19,6 @@ public class ZonePanel : MonoBehaviour
     public TextMeshProUGUI previousZoneText;
     public TextMeshProUGUI nextZoneText;
 
-    [Header("Quest Display")]
-    public Button questIconButton; // Button to toggle quest action panel
-    public GameObject questActionPanel; // The existing quest board container
-    public GameObject questPanelPrefab; // Prefab for creating quest panels dynamically
-
     [Header("Monster Display")]
     [Tooltip("Container GameObject for monster panels. Should be an empty GameObject with RectTransform. Create as child of ZonePanel.")]
     public Transform monsterContainer; // Container for monster panels (parent RectTransform)
@@ -62,7 +57,6 @@ public class ZonePanel : MonoBehaviour
 
         // Subscribe to zone changes via EventBus
         EventBus.Subscribe<ZoneChangedEvent>(OnZoneChanged);
-        EventBus.Subscribe<QuestsUpdatedEvent>(OnQuestsChanged);
         
         // Setup navigation buttons
         if (previousZoneButton != null)
@@ -70,25 +64,8 @@ public class ZonePanel : MonoBehaviour
 
         if (nextZoneButton != null)
             nextZoneButton.onClick.AddListener(GoToNextZone);
-
-        // Setup quest icon button
-        if (questIconButton != null)
-            questIconButton.onClick.AddListener(ToggleQuestZone);
-        
-        // Resource gathering is now handled by ResourcePanel components
         
         UpdateNavigationButtons();
-        InitializeQuestPanel();
-        
-        // Initialize quests for current zone when scene loads
-        if (zoneService != null)
-        {
-            ZoneData currentZone = zoneService.GetCurrentZone();
-            if (currentZone != null)
-            {
-                InitializeQuestsForZone(currentZone);
-            }
-        }
         
         // Update display after everything is initialized
         // This will display the zone if it's already loaded, or wait for OnZoneChanged if not
@@ -104,7 +81,6 @@ public class ZonePanel : MonoBehaviour
         if (Services.TryGet<IZoneService>(out zoneService))
         {
             EventBus.Subscribe<ZoneChangedEvent>(OnZoneChanged);
-            EventBus.Subscribe<QuestsUpdatedEvent>(OnQuestsChanged);
             
             // Setup navigation buttons
             if (previousZoneButton != null)
@@ -112,21 +88,8 @@ public class ZonePanel : MonoBehaviour
 
             if (nextZoneButton != null)
                 nextZoneButton.onClick.AddListener(GoToNextZone);
-
-            // Setup quest icon button
-            if (questIconButton != null)
-                questIconButton.onClick.AddListener(ToggleQuestZone);
             
             UpdateNavigationButtons();
-            InitializeQuestPanel();
-            
-            // Initialize quests for current zone
-            ZoneData currentZone = zoneService.GetCurrentZone();
-            if (currentZone != null)
-            {
-                InitializeQuestsForZone(currentZone);
-            }
-            
             UpdateZoneDisplay();
         }
         else
@@ -139,9 +102,6 @@ public class ZonePanel : MonoBehaviour
     {
         // Unsubscribe from EventBus
         EventBus.Unsubscribe<ZoneChangedEvent>(OnZoneChanged);
-        EventBus.Unsubscribe<QuestsUpdatedEvent>(OnQuestsChanged);
-
-        // Resource gathering events are now handled by ResourcePanel components
     }
 
     void OnZoneChanged(ZoneChangedEvent e)
@@ -162,13 +122,6 @@ public class ZonePanel : MonoBehaviour
 
         UpdateZoneDisplay();
         UpdateNavigationButtons();
-        InitializeQuestsForZone(zone);
-    }
-
-    void OnQuestsChanged(QuestsUpdatedEvent e)
-    {
-        // Quest loading is handled by the existing questActionPanel
-        // No need to duplicate quest display logic here
     }
 
     void UpdateZoneDisplay()
@@ -274,114 +227,6 @@ public class ZonePanel : MonoBehaviour
         if (zoneService != null)
         {
             zoneService.GoToNextZone();
-        }
-    }
-
-    void InitializeQuestPanel()
-    {
-        // Hide quest action panel initially
-        if (questActionPanel != null)
-        {
-            questActionPanel.SetActive(false);
-        }
-    }
-
-    void ToggleQuestZone()
-    {
-        if (questActionPanel != null)
-        {
-            bool isShowing = questActionPanel.activeSelf;
-            questActionPanel.SetActive(!isShowing);
-        }
-    }
-
-    void InitializeQuestsForZone(ZoneData zone)
-    {
-        if (zone == null || questActionPanel == null) return;
-
-        // IMPORTANT: Clear static active quest reference when re-initializing
-        // This prevents stale references from previous character sessions
-        QuestPanel.ClearActiveQuestReference();
-
-        var characterService = Services.Get<ICharacterService>();
-        int playerLevel = characterService != null ? characterService.GetLevel() : 1;
-        QuestData[] availableQuests = zone.GetAllQuests(); // Get all quests, including locked ones
-
-        // Find QuestPanel components in the questActionPanel and update them
-        QuestPanel[] questPanels = questActionPanel.GetComponentsInChildren<QuestPanel>(true); // Include inactive
-
-        // If no QuestPanel components found, create them dynamically
-        if (questPanels.Length == 0 && availableQuests.Length > 0)
-        {
-            CreateQuestPanels(availableQuests);
-            questPanels = questActionPanel.GetComponentsInChildren<QuestPanel>(true);
-        }
-
-        // Update existing quest panels with new quest data
-        for (int i = 0; i < questPanels.Length && i < availableQuests.Length; i++)
-        {
-            if (questPanels[i] != null && availableQuests[i] != null)
-            {
-                questPanels[i].SetQuest(availableQuests[i]);
-            }
-        }
-
-        // Hide extra quest panels if we have more panels than quests
-        for (int i = availableQuests.Length; i < questPanels.Length; i++)
-        {
-            if (questPanels[i] != null)
-            {
-                questPanels[i].gameObject.SetActive(false);
-            }
-        }
-
-        // Show quest panels that have quests
-        for (int i = 0; i < availableQuests.Length && i < questPanels.Length; i++)
-        {
-            if (questPanels[i] != null)
-            {
-                questPanels[i].gameObject.SetActive(true);
-            }
-        }
-
-        // Hide the quest action panel after initializing quests
-        if (questActionPanel != null)
-        {
-            questActionPanel.SetActive(false);
-        }
-    }
-
-    void CreateQuestPanels(QuestData[] quests)
-    {
-        for (int i = 0; i < quests.Length; i++)
-        {
-            GameObject questPanelObj;
-
-            if (questPanelPrefab != null)
-            {
-                questPanelObj = Instantiate(questPanelPrefab, questActionPanel.transform);
-                questPanelObj.name = $"QuestPanel_{i}";
-
-                // Set the quest data
-                QuestPanel questPanel = questPanelObj.GetComponent<QuestPanel>();
-                if (questPanel != null)
-                {
-                    questPanel.SetQuest(quests[i]);
-                }
-                else
-                {
-                }
-            }
-            else
-            {
-                // Fallback: create simple quest panel
-                questPanelObj = new GameObject($"QuestPanel_{i}");
-                questPanelObj.transform.SetParent(questActionPanel.transform);
-
-                // Add QuestPanel component
-                QuestPanel questPanel = questPanelObj.AddComponent<QuestPanel>();
-                questPanel.SetQuest(quests[i]);
-            }
         }
     }
 

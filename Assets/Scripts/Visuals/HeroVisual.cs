@@ -84,10 +84,13 @@ public class HeroVisual : MonoBehaviour
         Projectile projectile = Instantiate(projectilePrefab, projectileParent);
         projectile.Launch(spawnLocalPos, targetLocalPos, damage, onProjectileHit, onProjectileMiss);
         
-        // Play attack animation (simple scale bounce)
-        if (attackAnimationCoroutine != null)
-            StopCoroutine(attackAnimationCoroutine);
-        attackAnimationCoroutine = StartCoroutine(PlayAttackAnimation());
+        // Play attack animation only if this GameObject is active
+        if (gameObject.activeInHierarchy)
+        {
+            if (attackAnimationCoroutine != null)
+                StopCoroutine(attackAnimationCoroutine);
+            attackAnimationCoroutine = StartCoroutine(PlayAttackAnimation());
+        }
     }
     
     IEnumerator PlayAttackAnimation()

@@ -56,6 +56,10 @@ public class SaveData
     // Zone
     public int currentZoneIndex = 0;
     
+    // Quests
+    public List<PlayerQuest> activeQuests = new List<PlayerQuest>();
+    public List<string> completedQuestIDs = new List<string>();
+    
     // Away activity
     public int awayActivityType = 0; // AwayActivityType enum
     public string awayActivityStartTime = ""; // DateTime.Ticks as string
@@ -108,6 +112,19 @@ public class SaveData
                     data.inventoryItems[i].itemDataAssetName = charData.inventory.items[i].itemDataAssetName;
                     data.inventoryItems[i].equipmentAssetName = charData.inventory.items[i].equipmentAssetName;
                 }
+            }
+            
+            // Quests
+            if (charData.activeQuests != null)
+            {
+                data.activeQuests = new List<PlayerQuest>(charData.activeQuests);
+                Debug.Log($"[SaveData] Saved {data.activeQuests.Count} active quests");
+            }
+            
+            if (charData.completedQuestIDs != null)
+            {
+                data.completedQuestIDs = new List<string>(charData.completedQuestIDs);
+                Debug.Log($"[SaveData] Saved {data.completedQuestIDs.Count} completed quests");
             }
         }
         
@@ -256,6 +273,19 @@ public class SaveData
                 
                 // Load equipment references
                 charData.inventory.LoadAllEquipmentReferences();
+            }
+            
+            // Quests
+            if (activeQuests != null)
+            {
+                charData.activeQuests = new List<PlayerQuest>(activeQuests);
+                Debug.Log($"[SaveData] Loaded {charData.activeQuests.Count} active quests");
+            }
+            
+            if (completedQuestIDs != null)
+            {
+                charData.completedQuestIDs = new List<string>(completedQuestIDs);
+                Debug.Log($"[SaveData] Loaded {charData.completedQuestIDs.Count} completed quests");
             }
             
             characterService.LoadCharacterData(charData);

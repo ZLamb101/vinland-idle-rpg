@@ -43,6 +43,9 @@ public class NPCData : ScriptableObject
     [Tooltip("Dialogue lines this NPC will say when talked to")]
     public DialogueLine[] dialogueLines = new DialogueLine[1];
     
+    [Header("Quests")]
+    public List<QuestData> availableQuests = new List<QuestData>();
+    
     [Header("Shop")]
     [Tooltip("Shop data for this NPC (only used if npcType is ShopNPC)")]
     public ShopData shopData;

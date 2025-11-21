@@ -47,10 +47,4 @@ public class InventoryToggle : MonoBehaviour
     {
         if (inventoryPanel != null) inventoryPanel.SetActive(true);
     }
-    
-    public void ShowQuestPanel()
-    {
-        // Method kept for backwards compatibility so existing button bindings don't break.
-        if (inventoryPanel != null) inventoryPanel.SetActive(false);
-    }
 }

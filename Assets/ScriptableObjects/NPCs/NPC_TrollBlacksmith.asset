@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPCData
   npcName: Drogga Anvilborn
   npcSprite: {fileID: -4171104036807461212, guid: 250808d0744f6cf4984fd158535c304b, type: 3}
+  flipSprite: 1
   npcType: 0
   dialogueLines:
   - text: Hello, traveler!
+  availableQuests: []
   shopData: {fileID: 0}

@@ -6,14 +6,12 @@ using System;
 /// </summary>
 public interface IDialogueService
 {
-    // Events migrated to EventBus - see GameEvent.cs
-    
-    // Dialogue Control
     void StartDialogue(NPCData npc);
+    void StartCustomDialogue(NPCData npc, string[] customLines);
+    void StartCustomDialogueWithActions(NPCData npc, string[] customLines, System.Action onAccept, System.Action onDecline = null, string acceptButtonText = "Accept");
     void NextDialogue();
     void EndDialogue();
     
-    // State Getters
     bool IsDialogueActive();
     NPCData GetCurrentNPC();
     bool HasMoreDialogue();
