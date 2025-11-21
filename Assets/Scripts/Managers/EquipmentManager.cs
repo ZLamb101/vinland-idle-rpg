@@ -53,8 +53,12 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     /// <summary>
     /// Equip an item to its designated slot
     /// </summary>
-    public bool EquipItem(EquipmentData equipment)
+    /// <summary>
+    /// Equip an item to its designated slot
+    /// </summary>
+    public bool EquipItem(EquipmentData equipment, out EquipmentData unequippedItem)
     {
+        unequippedItem = null;
         if (equipment == null) return false;
         
         // Check level requirement
@@ -75,6 +79,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         if (previousEquipment != null)
         {
             UnequipItemInternal(slot);
+            unequippedItem = previousEquipment;
         }
         
         // Equip new item

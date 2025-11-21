@@ -174,7 +174,7 @@ public class EquipmentPanel : MonoBehaviour
                     if (!added)
                     {
                         // Re-equip the item
-                        equipmentService.EquipItem(unequipped);
+                        equipmentService.EquipItem(unequipped, out _);
                     }
                 }
             }

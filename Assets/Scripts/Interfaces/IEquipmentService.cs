@@ -9,7 +9,7 @@ public interface IEquipmentService
     // Events migrated to EventBus - see GameEvent.cs
     
     // Equipment Management
-    bool EquipItem(EquipmentData equipment);
+    bool EquipItem(EquipmentData equipment, out EquipmentData unequippedItem);
     EquipmentData UnequipItem(EquipmentSlot slot);
     EquipmentData GetEquipment(EquipmentSlot slot);
     bool IsSlotEmpty(EquipmentSlot slot);

@@ -258,15 +258,32 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         EquipmentSlot equipSlot = currentItem.equipmentData.slot;
         
         // Try to equip the item
-        bool equipped = equipmentService.EquipItem(currentItem.equipmentData);
+        EquipmentData unequippedItem;
+        bool equipped = equipmentService.EquipItem(currentItem.equipmentData, out unequippedItem);
         
         if (equipped)
         {
-            // Remove from inventory
             var characterService = Services.Get<ICharacterService>();
             if (characterService != null)
             {
-                characterService.RemoveItemFromInventory(slotIndex, 1);
+                if (unequippedItem != null)
+                {
+                    // Swap: Create inventory item from unequipped and place in this slot
+                    InventoryItem newItem = unequippedItem.CreateInventoryItem();
+                    newItem.SetEquipmentData(unequippedItem);
+                    
+                    // Directly update the inventory data at this slot
+                    InventoryData inventoryData = characterService.GetInventoryData();
+                    if (inventoryData != null && slotIndex >= 0 && slotIndex < inventoryData.items.Length)
+                    {
+                        inventoryData.items[slotIndex] = newItem;
+                    }
+                }
+                else
+                {
+                    // No item returned (slot was empty), so just remove the equipped item
+                    characterService.RemoveItemFromInventory(slotIndex, 1);
+                }
                 
                 // Refresh inventory UI
                 if (inventoryPanel != null)

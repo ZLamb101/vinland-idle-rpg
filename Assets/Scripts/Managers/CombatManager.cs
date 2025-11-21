@@ -73,6 +73,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         // Subscribe to events
         EventBus.Subscribe<TalentBonusesRecalculatedEvent>(OnTalentBonusesChanged);
+        EventBus.Subscribe<StatsRecalculatedEvent>(OnStatsRecalculated);
     }
     
     /// <summary>
@@ -95,6 +96,7 @@ public class CombatManager : MonoBehaviour, ICombatService
     void OnDestroy()
     {
         EventBus.Unsubscribe<TalentBonusesRecalculatedEvent>(OnTalentBonusesChanged);
+        EventBus.Unsubscribe<StatsRecalculatedEvent>(OnStatsRecalculated);
         Services.Unregister<ICombatService>();
     }
     
@@ -182,6 +184,21 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (currentState == CombatState.Fighting)
         {
             LogCombatMessage("Combat stats updated from talents!", LogType.Info);
+        }
+    }
+
+    /// <summary>
+    /// Handle equipment stat updates
+    /// </summary>
+    private void OnStatsRecalculated(StatsRecalculatedEvent e)
+    {
+        // Recalculate stats to apply new bonuses immediately
+        CalculatePlayerStats();
+        
+        // Log update if in combat
+        if (currentState == CombatState.Fighting)
+        {
+            LogCombatMessage("Combat stats updated from equipment!", LogType.Info);
         }
     }
     
