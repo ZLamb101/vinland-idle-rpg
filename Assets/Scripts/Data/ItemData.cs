@@ -21,6 +21,9 @@ public class ItemData : ScriptableObject
     [Header("Equipment (if itemType = Equipment)")]
     public EquipmentData equipmentData; // Reference to equipment data if this is equipment
     
+    [Header("Recipe (if itemType = Recipe)")]
+    public RecipeData recipeData; // Recipe to unlock when this item is used
+    
     [Header("Quest Rewards")]
     public bool canBeQuestReward = true;
     public int questRewardQuantity = 1;

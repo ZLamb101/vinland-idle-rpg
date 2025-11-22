@@ -209,5 +209,6 @@ public enum ItemType
     Material,
     Equipment,
     Consumable,
-    Quest
+    Quest,
+    Recipe
 }

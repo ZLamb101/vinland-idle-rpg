@@ -8,7 +8,8 @@ public enum ProfessionType
     Mining,     // Ore resources
     Herbalism,  // Herb resources
     Fishing,    // Fish resources
-    Woodcutting // Wood resources (future)
+    Woodcutting, // Wood resources (future)
+    Cooking     // Cooking profession
 }
 
 /// <summary>
@@ -51,6 +52,8 @@ public static class ProfessionTypeExtensions
                 return "Fishing";
             case ProfessionType.Woodcutting:
                 return "Woodcutting";
+            case ProfessionType.Cooking:
+                return "Cooking";
             default:
                 return profession.ToString();
         }

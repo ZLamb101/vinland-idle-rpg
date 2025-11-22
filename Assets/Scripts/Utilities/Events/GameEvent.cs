@@ -400,3 +400,57 @@ public enum NotificationType
     Warning,
     Error
 }
+
+// ==================== Cooking Events ====================
+
+public class CraftingStartedEvent : GameEvent
+{
+    public RecipeData recipe;
+    public int quantity;
+    public int currentIndex; // Which item in the queue (1-based)
+}
+
+public class CraftingProgressEvent : GameEvent
+{
+    public float progress; // 0 to 1
+    public RecipeData recipe;
+    public int currentIndex;
+    public int totalQuantity;
+}
+
+public class CraftingCompletedEvent : GameEvent
+{
+    public RecipeData recipe;
+    public ItemData craftedItem;
+    public int quantity;
+    public int xpGained;
+}
+
+public class CraftingCancelledEvent : GameEvent
+{
+    public RecipeData recipe;
+    public int itemsCrafted;
+    public int itemsRemaining;
+}
+
+public class RecipeUnlockedEvent : GameEvent
+{
+    public RecipeData recipe;
+}
+
+// ==================== Message Events ====================
+
+public enum GameMessageType
+{
+    Info,
+    Success,
+    Warning,
+    Error
+}
+
+public class MessageEvent : GameEvent
+{
+    public string message;
+    public GameMessageType messageType;
+}
+

@@ -79,6 +79,47 @@ public class ZoneData : ScriptableObject
     [Header("Zone Properties")]
     public Sprite backgroundImage; // Background image for this zone
     
+    [Header("Crafting Stations")]
+    [Tooltip("List of crafting stations available in this zone (cooking pot, anvil, cauldron, etc.)")]
+    public CraftingStation[] craftingStations;
+    
+    /// <summary>
+    /// Check if this zone has a crafting station for a specific profession
+    /// </summary>
+    public bool HasCraftingStation(ProfessionType profession)
+    {
+        if (craftingStations == null) return false;
+        
+        foreach (CraftingStation station in craftingStations)
+        {
+            if (station != null && station.professionType == profession && station.isAvailable)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /// <summary>
+    /// Get the crafting station for a specific profession
+    /// </summary>
+    public CraftingStation GetCraftingStation(ProfessionType profession)
+    {
+        if (craftingStations == null) return null;
+        
+        foreach (CraftingStation station in craftingStations)
+        {
+            if (station != null && station.professionType == profession && station.isAvailable)
+            {
+                return station;
+            }
+        }
+        
+        return null;
+    }
+    
+    
     /// <summary>
     /// Check if this zone is accessible to the player
     /// </summary>

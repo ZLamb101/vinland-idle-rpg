@@ -241,10 +241,11 @@ public class InventoryPanel : MonoBehaviour
     
     void OnSlotClicked(int slotIndex)
     {
-        // Handle slot selection
+        // Handle double-click to use item
         if (selectedSlot == slotIndex)
         {
-            // Deselect if clicking the same slot
+            // Double-click detected - try to use the item
+            UseItemInSlot(slotIndex);
             selectedSlot = -1;
         }
         else
@@ -253,14 +254,30 @@ public class InventoryPanel : MonoBehaviour
         }
         
         RefreshDisplay();
+    }
+
+    private void UseItemInSlot(int slotIndex)
+    {
+        if (inventoryData == null) return;
         
-        // Handle item interaction (for future use)
-        // Can add item usage logic here
+        InventoryItem item = inventoryData.GetItem(slotIndex);
+        if (item == null || item.IsEmpty()) return;
+        
+        if (item.itemType == ItemType.Recipe || item.itemType == ItemType.Consumable)
+        {
+            var characterService = Services.Get<ICharacterService>();
+            if (characterService != null)
+            {
+                bool success = characterService.UseItem(slotIndex);
+                if (success)
+                {
+                    Debug.Log($"[InventoryPanel] Used item: {item.itemName}");
+                    RefreshDisplay();
+                }
+            }
+        }
     }
     
-    /// <summary>
-    /// Add an item to the inventory.
-    /// </summary>
     public bool AddItem(InventoryItem item)
     {
         if (inventoryData == null) return false;
@@ -271,18 +288,9 @@ public class InventoryPanel : MonoBehaviour
             RefreshDisplay();
         }
         
-        // Warn if some items couldn't be added
-        if (!result.success && result.itemsRemaining > 0)
-        {
-            Debug.LogWarning($"[inventoryPanel] Inventory full! Could only add {result.itemsAdded} of {result.itemsAdded + result.itemsRemaining} {item.itemName}. {result.itemsRemaining} items were lost.");
-        }
-        
         return result.success;
     }
     
-    /// <summary>
-    /// Remove an item from the selected slot.
-    /// </summary>
     public bool RemoveSelectedItem(int quantity = 1)
     {
         if (selectedSlot < 0 || inventoryData == null) return false;
@@ -299,9 +307,6 @@ public class InventoryPanel : MonoBehaviour
     public InventoryData GetInventoryData() => inventoryData;
     public int GetSelectedSlot() => selectedSlot;
     
-    /// <summary>
-    /// Show tooltip for an inventory item
-    /// </summary>
     public void ShowTooltip(InventoryItem item)
     {
         if (tooltip != null)
@@ -310,9 +315,6 @@ public class InventoryPanel : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Hide tooltip
-    /// </summary>
     public void HideTooltip()
     {
         if (tooltip != null)
@@ -321,36 +323,25 @@ public class InventoryPanel : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Called when drag starts from a slot
-    /// </summary>
     public void OnDragStart(int slotIndex)
     {
         draggingSlotIndex = slotIndex;
         HideTooltip(); // Hide tooltip during drag
     }
     
-    /// <summary>
-    /// Called when drag ends
-    /// </summary>
     public void OnDragEnd()
     {
         draggingSlotIndex = -1;
     }
     
-    /// <summary>
-    /// Handle drag end event - swap items between slots
-    /// </summary>
     void OnSlotDragEnd(int fromSlot, int toSlot)
     {
         if (inventoryData == null) return;
         
-        // Swap the items
         bool success = inventoryData.SwapItems(fromSlot, toSlot);
         
         if (success)
         {
-            // Refresh display to show the swapped items
             RefreshDisplay();
         }
     }

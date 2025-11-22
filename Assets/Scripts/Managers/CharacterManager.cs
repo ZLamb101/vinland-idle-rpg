@@ -329,6 +329,128 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         return characterData.inventory.GetItem(slotIndex);
     }
     
+    /// <summary>
+    /// Use/consume an item from inventory (consumables, recipes, etc.)
+    /// </summary>
+    public bool UseItem(int slotIndex)
+    {
+        InventoryItem item = GetInventoryItem(slotIndex);
+        
+        if (item == null || item.IsEmpty())
+        {
+            Debug.LogWarning("[CharacterManager] Cannot use item: slot is empty");
+            return false;
+        }
+        
+        // Handle different item types
+        switch (item.itemType)
+        {
+            case ItemType.Recipe:
+                return UseRecipeItem(item, slotIndex);
+                
+            case ItemType.Consumable:
+                return UseConsumableItem(item, slotIndex);
+                
+            case ItemType.Equipment:
+                Debug.LogWarning("[CharacterManager] Equipment items should be equipped, not used");
+                return false;
+                
+            default:
+                Debug.LogWarning($"[CharacterManager] Item type {item.itemType} cannot be used");
+                return false;
+        }
+    }
+    
+    /// <summary>
+    /// Use a recipe item to unlock a recipe
+    /// </summary>
+    private bool UseRecipeItem(InventoryItem item, int slotIndex)
+    {
+        // Get the recipe data from the item
+        ItemData itemData = Resources.Load<ItemData>($"Items/{item.itemDataAssetName}");
+        if (itemData == null || itemData.recipeData == null)
+        {
+            Debug.LogError($"[CharacterManager] Recipe item {item.itemName} has no recipe data!");
+            return false;
+        }
+        
+        RecipeData recipe = itemData.recipeData;
+        
+        // Get cooking service
+        ICraftingService craftingService = Services.Get<ICraftingService>();
+        if (craftingService == null)
+        {
+            Debug.LogError("[CharacterManager] craftingService not found!");
+            return false;
+        }
+        
+        // Check if already unlocked
+        if (craftingService.IsRecipeUnlocked(recipe))
+        {
+            Debug.Log($"[CharacterManager] Recipe '{recipe.recipeName}' is already known");
+            EventBus.Publish(new MessageEvent 
+            { 
+                message = $"You already know this recipe!",
+                messageType = GameMessageType.Warning
+            });
+            return false;
+        }
+        
+        // Check level requirement
+        IProfessionService professionService = Services.Get<IProfessionService>();
+        if (professionService != null)
+        {
+            int professionLevel = professionService.GetProfessionLevel(recipe.profession);
+            if (professionLevel < recipe.levelRequired)
+            {
+                Debug.Log($"[CharacterManager] Recipe requires {recipe.profession} level {recipe.levelRequired}");
+                EventBus.Publish(new MessageEvent 
+                { 
+                    message = $"Requires {recipe.profession} level {recipe.levelRequired}",
+                    messageType = GameMessageType.Error
+                });
+                return false;
+            }
+        }
+        
+        // Unlock the recipe
+        craftingService.UnlockRecipe(recipe);
+        
+        // Remove the recipe item from inventory
+        RemoveItemFromInventory(slotIndex, 1);
+        
+        // Publish success message
+        EventBus.Publish(new MessageEvent 
+        { 
+            message = $"Learned: {recipe.recipeName}!",
+            messageType = GameMessageType.Success
+        });
+        
+        Debug.Log($"[CharacterManager] Learned recipe: {recipe.recipeName}");
+        return true;
+    }
+    
+    /// <summary>
+    /// Use a consumable item (health potions, buffs, etc.)
+    /// </summary>
+    private bool UseConsumableItem(InventoryItem item, int slotIndex)
+    {
+        // TODO: Implement consumable effects (health potions, buffs, etc.)
+        // For now, just log a message
+        Debug.Log($"[CharacterManager] Used consumable: {item.itemName}");
+        
+        // Remove the consumable from inventory
+        RemoveItemFromInventory(slotIndex, 1);
+        
+        EventBus.Publish(new MessageEvent 
+        { 
+            message = $"Used {item.itemName}",
+            messageType = GameMessageType.Info
+        });
+        
+        return true;
+    }
+    
     // --- Save/Load (for future implementation) ---
     public CharacterData GetCharacterData() => characterData;
     

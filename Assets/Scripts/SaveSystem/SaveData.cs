@@ -53,6 +53,9 @@ public class SaveData
     public List<int> professionLevels = new List<int>();
     public List<int> professionXP = new List<int>();
     
+    // Cooking
+    public List<string> unlockedRecipeNames = new List<string>();
+    
     // Zone
     public int currentZoneIndex = 0;
     
@@ -176,6 +179,16 @@ public class SaveData
                     data.professionLevels.Add(kvp.Value);
                     data.professionXP.Add(xps.ContainsKey(kvp.Key) ? xps[kvp.Key] : 0);
                 }
+            }
+        }
+        
+        // Cooking
+        if (Services.TryGet<ICraftingService>(out var craftingService))
+        {
+            CraftingData craftingData = craftingService.GetCraftingData();
+            if (craftingData != null && craftingData.unlockedRecipeNames != null)
+            {
+                data.unlockedRecipeNames = new List<string>(craftingData.unlockedRecipeNames);
             }
         }
         
@@ -355,6 +368,18 @@ public class SaveData
         {
             talentService.LoadTalentData(unlockedTalents, unspentTalentPoints, totalTalentPoints);
             Debug.Log($"[SaveData] Loaded talents: {unlockedTalents.Count} unlocked, {unspentTalentPoints} unspent points");
+        }
+        
+        // Cooking
+        if (Services.TryGet<ICraftingService>(out var craftingService))
+        {
+            CraftingData craftingData = new CraftingData();
+            if (unlockedRecipeNames != null && unlockedRecipeNames.Count > 0)
+            {
+                craftingData.unlockedRecipeNames = new List<string>(unlockedRecipeNames);
+            }
+            craftingService.LoadCraftingData(craftingData);
+            Debug.Log($"[SaveData] Loaded {craftingData.unlockedRecipeNames.Count} unlocked recipes");
         }
         
         // Zone - Use TryGet since ZoneManager might not exist yet during early loading

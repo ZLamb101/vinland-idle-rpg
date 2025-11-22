@@ -47,6 +47,7 @@ public interface ICharacterService
     InventoryData.AddItemResult AddItemToInventoryDetailed(InventoryItem item);
     bool RemoveItemFromInventory(int slotIndex, int quantity = 1);
     InventoryItem GetInventoryItem(int slotIndex);
+    bool UseItem(int slotIndex); // Use/consume an item (consumables, recipes, etc.)
     
     // Data Management
     CharacterData GetCharacterData();

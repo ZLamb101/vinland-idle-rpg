@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6e375372a8cf6c44842e1da029cf9d3, type: 3}
+  m_Name: Recipe_Cooking_CookedMeat
+  m_EditorClassIdentifier: Assembly-CSharp::RecipeData
+  recipeName: Cooked Meat
+  recipeIcon: {fileID: 447418254258899714, guid: 5deab201dfd8f58478f36c22772a58e1, type: 3}
+  description: Some Cooked Meat
+  profession: 4
+  levelRequired: 1
+  materials:
+  - item: {fileID: 11400000, guid: 22fd0e150ef634c40be5c60496e741bd, type: 2}
+    quantity: 1
+  outputItem: {fileID: 11400000, guid: b7618802e11cb024abf964edb8ca10d7, type: 2}
+  outputQuantity: 1
+  experienceGained: 35
+  craftTime: 2.5
