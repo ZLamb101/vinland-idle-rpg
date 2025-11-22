@@ -53,8 +53,7 @@ public class SaveData
     public List<int> professionLevels = new List<int>();
     public List<int> professionXP = new List<int>();
     
-    // Cooking
-    public List<string> unlockedRecipeNames = new List<string>();
+    // Note: Crafting data (unlocked recipes) is now stored in AccountSaveData (account-wide)
     
     // Zone
     public int currentZoneIndex = 0;
@@ -182,15 +181,7 @@ public class SaveData
             }
         }
         
-        // Cooking
-        if (Services.TryGet<ICraftingService>(out var craftingService))
-        {
-            CraftingData craftingData = craftingService.GetCraftingData();
-            if (craftingData != null && craftingData.unlockedRecipeNames != null)
-            {
-                data.unlockedRecipeNames = new List<string>(craftingData.unlockedRecipeNames);
-            }
-        }
+        // Note: Crafting data is now saved in AccountSaveData (account-wide), not per-character
         
         // Zone - Use TryGet for consistency
         if (Services.TryGet<IZoneService>(out var zoneService))
@@ -370,17 +361,7 @@ public class SaveData
             Debug.Log($"[SaveData] Loaded talents: {unlockedTalents.Count} unlocked, {unspentTalentPoints} unspent points");
         }
         
-        // Cooking
-        if (Services.TryGet<ICraftingService>(out var craftingService))
-        {
-            CraftingData craftingData = new CraftingData();
-            if (unlockedRecipeNames != null && unlockedRecipeNames.Count > 0)
-            {
-                craftingData.unlockedRecipeNames = new List<string>(unlockedRecipeNames);
-            }
-            craftingService.LoadCraftingData(craftingData);
-            Debug.Log($"[SaveData] Loaded {craftingData.unlockedRecipeNames.Count} unlocked recipes");
-        }
+        // Note: Crafting data is loaded from AccountSaveData in CraftingManager.Awake() (account-wide)
         
         // Zone - Use TryGet since ZoneManager might not exist yet during early loading
         if (Services.TryGet<IZoneService>(out var zoneService))

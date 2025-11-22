@@ -13,7 +13,7 @@ public class CraftingManager : MonoBehaviour, ICraftingService
     [Tooltip("All recipes in the game (assign in Inspector or load from Resources)")]
     public RecipeData[] allRecipes;
     
-    private CraftingData craftingData; // Will be renamed to CraftingData in future
+    private AccountSaveData accountData;
     private IProfessionService professionService;
     private ICharacterService characterService;
     
@@ -36,9 +36,6 @@ public class CraftingManager : MonoBehaviour, ICraftingService
         
         DontDestroyOnLoad(gameObject);
         
-        // Initialize cooking data
-        craftingData = new CraftingData();
-        
         // Load all recipes from Resources if not assigned
         if (allRecipes == null || allRecipes.Length == 0)
         {
@@ -48,6 +45,9 @@ public class CraftingManager : MonoBehaviour, ICraftingService
         
         // Register with service locator
         Services.Register<ICraftingService>(this);
+        
+        // Load account data (contains crafting recipes)
+        LoadAccountData();
         
         Debug.Log("[CraftingManager] Service registered and ready");
     }
@@ -69,24 +69,50 @@ public class CraftingManager : MonoBehaviour, ICraftingService
     
     void OnDestroy()
     {
+        SaveAccountData();
         Services.Unregister<ICraftingService>();
+    }
+    
+    void OnApplicationQuit()
+    {
+        SaveAccountData();
+    }
+    
+    private void LoadAccountData()
+    {
+        accountData = SaveSystem.LoadAccount();
+        if (accountData == null)
+        {
+            accountData = AccountSaveData.CreateDefault();
+        }
+        
+        Debug.Log($"[CraftingManager] Loaded account data with {accountData.craftingData.unlockedRecipeNames.Count} unlocked recipes");
+    }
+    
+    private void SaveAccountData()
+    {
+        if (accountData != null)
+        {
+            SaveSystem.SaveAccount(accountData);
+            Debug.Log("[CraftingManager] Saved account data (crafting recipes)");
+        }
     }
     
     // ==================== Recipe Management ====================
     
     public bool IsRecipeUnlocked(RecipeData recipe)
     {
-        if (recipe == null || craftingData == null) return false;
-        return craftingData.IsRecipeUnlocked(recipe.name);
+        if (recipe == null || accountData?.craftingData == null) return false;
+        return accountData.craftingData.IsRecipeUnlocked(recipe.name);
     }
     
     public void UnlockRecipe(RecipeData recipe)
     {
-        if (recipe == null || craftingData == null) return;
+        if (recipe == null || accountData?.craftingData == null) return;
         
         if (!IsRecipeUnlocked(recipe))
         {
-            craftingData.UnlockRecipe(recipe.name);
+            accountData.craftingData.UnlockRecipe(recipe.name);
             
             // Publish event
             EventBus.Publish(new RecipeUnlockedEvent
@@ -94,13 +120,16 @@ public class CraftingManager : MonoBehaviour, ICraftingService
                 recipe = recipe
             });
             
+            // Auto-save when recipe is unlocked
+            SaveAccountData();
+            
             Debug.Log($"[CraftingManager] Recipe unlocked: {recipe.recipeName}");
         }
     }
     
     public RecipeData[] GetUnlockedRecipes()
     {
-        if (craftingData == null || allRecipes == null) return new RecipeData[0];
+        if (accountData?.craftingData == null || allRecipes == null) return new RecipeData[0];
         
         List<RecipeData> unlocked = new List<RecipeData>();
         
@@ -421,24 +450,21 @@ public class CraftingManager : MonoBehaviour, ICraftingService
         craftingDuration = 0f;
     }
     
-    // ==================== Save/Load ====================
+    // ==================== Save/Load (Account-Wide) ====================
     
     public CraftingData GetCraftingData()
     {
-        return craftingData;
+        return accountData?.craftingData;
     }
     
     public void LoadCraftingData(CraftingData data)
     {
-        if (data != null)
+        // This method is kept for interface compatibility but is now handled by LoadAccountData()
+        // Crafting data is loaded automatically from AccountSaveData in Awake()
+        if (accountData != null && data != null)
         {
-            craftingData = data;
-            Debug.Log($"[CraftingManager] Loaded cooking data with {craftingData.unlockedRecipeNames.Count} unlocked recipes");
-        }
-        else
-        {
-            craftingData = new CraftingData();
-            Debug.Log("[CraftingManager] Initialized new cooking data");
+            accountData.craftingData = data;
+            Debug.Log($"[CraftingManager] Loaded crafting data with {data.unlockedRecipeNames.Count} unlocked recipes");
         }
     }
 }

@@ -83,12 +83,12 @@ public interface ICraftingService
     
     // Save/Load
     /// <summary>
-    /// Get cooking data for saving
+    /// Get crafting data for saving
     /// </summary>
     CraftingData GetCraftingData();
     
     /// <summary>
-    /// Load cooking data from save system
+    /// Load crafting data from save system
     /// </summary>
     void LoadCraftingData(CraftingData data);
 }

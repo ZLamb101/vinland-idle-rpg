@@ -2,13 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Holds cooking-specific data for a character.
-/// Tracks unlocked recipes.
+/// Holds crafting-related data (Cooking, Alchemy, Blacksmithing, etc.).
+/// Tracks unlocked recipes across all professions.
+/// ACCOUNT-WIDE: Shared across all characters (stored in AccountSaveData).
 /// </summary>
 [System.Serializable]
 public class CraftingData
 {
-    [Tooltip("List of recipe names that have been unlocked by this character")]
+    [Tooltip("List of recipe names (asset names) that have been unlocked account-wide")]
     public List<string> unlockedRecipeNames = new List<string>();
     
     public CraftingData()

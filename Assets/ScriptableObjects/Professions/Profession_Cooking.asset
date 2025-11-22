@@ -15,5 +15,5 @@ MonoBehaviour:
   professionType: 4
   displayName: Cooking
   description: Cook some good food
-  icon: {fileID: 8857176171335759531, guid: ca8e63b9e2a3c8243bcdf830ee6439ef, type: 3}
+  icon: {fileID: -8059778392931419267, guid: 69440d243f28f134481b42449f222193, type: 3}
   themeColor: {r: 0.6415094, g: 0.62099737, b: 0.20274118, a: 1}

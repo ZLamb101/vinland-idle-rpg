@@ -218,7 +218,6 @@ public class InventoryPanel : MonoBehaviour
         InventorySlot inventorySlot = slot.GetComponent<InventorySlot>();
         inventorySlot.itemIcon = icon;
         inventorySlot.quantityText = qtyText;
-        inventorySlot.slotButton = button;
         
         return slot;
     }

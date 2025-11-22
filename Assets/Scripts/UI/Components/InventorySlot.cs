@@ -24,6 +24,9 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     // Cached reference to InventoryPanel (set by InventoryPanel when creating slots)
     private InventoryPanel inventoryPanel;
     
+    // Cached reference to BankPanel if this is a bank slot
+    private BankPanel bankPanel;
+    
     // Drag and drop
     private GameObject dragIcon;
     private Canvas dragCanvas;
@@ -89,6 +92,19 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     public void SetInventoryPanel(InventoryPanel panel)
     {
         inventoryPanel = panel;
+    }
+    
+    /// <summary>
+    /// Set the BankPanel reference (called by BankPanel when creating slots)
+    /// </summary>
+    public void SetBankPanel(BankPanel panel)
+    {
+        bankPanel = panel;
+    }
+
+    public void SetIndex(int index)
+    {
+        slotIndex = index;
     }
     
     public void SetItem(InventoryItem item)
@@ -173,7 +189,13 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     {
         if (currentItem != null && !currentItem.IsEmpty())
         {
-            if (inventoryPanel != null)
+            // Show tooltip for both inventory and bank panels
+            if (bankPanel != null)
+            {
+                // Bank panels can show tooltips too if they have the method
+                // For now, we'll just skip it or you can add ShowTooltip to BankPanel
+            }
+            else if (inventoryPanel != null)
             {
                 inventoryPanel.ShowTooltip(currentItem);
             }
@@ -182,7 +204,12 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     
     void OnHoverEnd()
     {
-        if (inventoryPanel != null)
+        // Hide tooltip for both inventory and bank panels
+        if (bankPanel != null)
+        {
+            // Bank panels can hide tooltips too
+        }
+        else if (inventoryPanel != null)
         {
             inventoryPanel.HideTooltip();
         }
@@ -204,13 +231,34 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     {
         if (currentItem == null || currentItem.IsEmpty()) return;
         
+        // If this slot is part of a bank panel, notify the bank panel
+        BankPanel bankPanel = GetComponentInParent<BankPanel>();
+        if (bankPanel != null)
+        {
+            // This is a bank slot - fire the event for bank panel to handle
+            OnSlotRightClicked?.Invoke(slotIndex);
+            return;
+        }
+        
+        // If bank is open and this is an inventory slot, deposit the item
+        if (Services.TryGet<IBankService>(out var bankService))
+        {
+            // Check if BankPanel is open by finding it in the scene
+            bankPanel = FindObjectOfType<BankPanel>();
+            if (bankPanel != null && bankPanel.gameObject.activeSelf)
+            {
+                DepositToBank();
+                return;
+            }
+        }
+        
         // Check if shop is open - if so, sell the item
-        var shopService = Services.Get<IShopService>();
-        if (shopService != null && shopService.IsShopOpen())
+        if (Services.TryGet<IShopService>(out var shopService) && shopService.IsShopOpen())
         {
             SellItem();
             return;
         }
+        
         // Check if item is equipment
         if (currentItem.IsEquipment())
         {
@@ -219,6 +267,51 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         else
         {
             // Future: Handle consumables or other item types
+        }
+    }
+    
+    void DepositToBank()
+    {
+        if (currentItem == null || currentItem.IsEmpty()) return;
+        
+        // Use TryGet pattern for services
+        if (!Services.TryGet<IBankService>(out var bankService))
+        {
+            Debug.LogError("[InventorySlot] IBankService not available!");
+            return;
+        }
+        
+        if (!Services.TryGet<ICharacterService>(out var characterService))
+        {
+            Debug.LogError("[InventorySlot] ICharacterService not available!");
+            return;
+        }
+        
+        // Create a copy of the item to deposit
+        InventoryItem toDeposit = new InventoryItem(currentItem.itemName, currentItem.quantity, currentItem.icon);
+        toDeposit.description = currentItem.description;
+        toDeposit.maxStackSize = currentItem.maxStackSize;
+        toDeposit.itemType = currentItem.itemType;
+        toDeposit.baseValue = currentItem.baseValue;
+        toDeposit.itemDataAssetName = currentItem.itemDataAssetName;
+        toDeposit.equipmentAssetName = currentItem.equipmentAssetName;
+        toDeposit.equipmentData = currentItem.equipmentData;
+        
+        // Try to deposit
+        if (bankService.DepositItem(toDeposit, slotIndex))
+        {
+            // Use CharacterService method instead of direct data manipulation
+            characterService.RemoveItemFromInventory(slotIndex, toDeposit.quantity);
+            
+            // Refresh inventory UI (happens automatically via events, but manual refresh doesn't hurt)
+            if (inventoryPanel != null)
+            {
+                inventoryPanel.RefreshDisplay();
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[InventorySlot] Failed to deposit item - bank may be full");
         }
     }
     
@@ -339,7 +432,11 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         }
         
         // Notify UI that drag started
-        if (inventoryPanel != null)
+        if (bankPanel != null)
+        {
+            bankPanel.OnDragStart(slotIndex);
+        }
+        else if (inventoryPanel != null)
         {
             inventoryPanel.OnDragStart(slotIndex);
         }
@@ -434,7 +531,11 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
         }
         
         // Notify UI that drag ended
-        if (inventoryPanel != null)
+        if (bankPanel != null)
+        {
+            bankPanel.OnDragEnd();
+        }
+        else if (inventoryPanel != null)
         {
             inventoryPanel.OnDragEnd();
         }

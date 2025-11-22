@@ -94,7 +94,7 @@ public class CraftingPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// Open the cooking panel
+    /// Open the crafting panel
     /// </summary>
     public void OpenPanel()
     {
@@ -109,7 +109,7 @@ public class CraftingPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// Close the cooking panel
+    /// Close the crafting panel
     /// </summary>
     public void ClosePanel()
     {
@@ -137,7 +137,7 @@ public class CraftingPanel : MonoBehaviour
         }
         recipeSlots.Clear();
         
-        // Get all cooking recipes
+        // Get all recipes for this profession (currently hardcoded to Cooking)
         RecipeData[] allRecipes = craftingService.GetAllCookingRecipes();
         int cookingLevel = professionService != null ? professionService.GetProfessionLevel(ProfessionType.Cooking) : 1;
         

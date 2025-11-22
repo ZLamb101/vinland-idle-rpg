@@ -41,6 +41,7 @@ public class GameBootstrap : MonoBehaviour
         CreateManager<ProfessionManager>();
         CreateManager<CraftingManager>();
         CreateManager<ShopManager>();
+        CreateManager<BankManager>();
         
         // Activities
         CreateManager<AwayActivityManager>();

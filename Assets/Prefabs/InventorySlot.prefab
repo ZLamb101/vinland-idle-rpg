@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 37.5, y: -40.1}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 0, y: -40.1}
+  m_SizeDelta: {x: 125, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8089344439579853362
 CanvasRenderer:
@@ -396,4 +396,3 @@ MonoBehaviour:
   itemIcon: {fileID: 6701036186271474322}
   quantityText: {fileID: 5105135157044861810}
   slotButton: {fileID: 7518706872736246200}
-  selectedSlotColor: {r: 1, g: 1, b: 0.5, a: 1}

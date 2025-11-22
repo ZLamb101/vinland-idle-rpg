@@ -11,6 +11,7 @@ public static class SaveSystem
     private const string SAVE_FOLDER = "Saves";
     private const string SAVE_EXTENSION = ".json";
     private const int CURRENT_VERSION = 1;
+    private const string ACCOUNT_SAVE_FILENAME = "AccountSave.json";
     
     /// <summary>
     /// Get the full path to the save folder
@@ -267,7 +268,90 @@ public static class SaveSystem
             return null;
         }
     }
+
+    /// <summary>
+    /// Get the full path to the account save file
+    /// </summary>
+    public static string GetAccountSaveFilePath()
+    {
+        return Path.Combine(GetSaveFolderPath(), ACCOUNT_SAVE_FILENAME);
+    }
+
+    /// <summary>
+    /// Save account data to file
+    /// </summary>
+    public static bool SaveAccount(AccountSaveData data)
+    {
+        try
+        {
+            string path = GetAccountSaveFilePath();
+            
+            // Ensure version is set
+            data.version = CURRENT_VERSION;
+            data.saveTime = DateTime.Now.Ticks.ToString();
+            
+            // Serialize to JSON
+            string json = JsonUtility.ToJson(data, true);
+            
+            // Write to file
+            File.WriteAllText(path, json);
+            
+            Debug.Log($"[SaveSystem] Saved account data to: {path}");
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[SaveSystem] Failed to save account data: {e.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Load account data from file
+    /// </summary>
+    public static AccountSaveData LoadAccount()
+    {
+        try
+        {
+            string path = GetAccountSaveFilePath();
+            
+            if (!File.Exists(path))
+            {
+                Debug.Log($"[SaveSystem] No account save file found. Creating new one.");
+                return AccountSaveData.CreateDefault();
+            }
+            
+            // Read from file
+            string json = File.ReadAllText(path);
+            
+            // Deserialize from JSON
+            AccountSaveData data = JsonUtility.FromJson<AccountSaveData>(json);
+            
+            // Validate
+            if (data == null)
+            {
+                Debug.LogError($"[SaveSystem] Failed to deserialize account save file");
+                return AccountSaveData.CreateDefault();
+            }
+            
+            // Check version for migration (future proofing)
+            if (data.version < CURRENT_VERSION)
+            {
+                Debug.LogWarning($"[SaveSystem] Account save file version {data.version} is older than current version {CURRENT_VERSION}.");
+                // data = MigrateAccountData(data, data.version, CURRENT_VERSION);
+            }
+            
+            Debug.Log($"[SaveSystem] Loaded account data from: {path}");
+            return data;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[SaveSystem] Failed to load account data: {e.Message}");
+            return AccountSaveData.CreateDefault();
+        }
+    }
 }
+
 
 /// <summary>
 /// Basic info about a save file
