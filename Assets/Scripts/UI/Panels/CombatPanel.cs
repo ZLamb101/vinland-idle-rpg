@@ -13,7 +13,8 @@ public class CombatPanel : MonoBehaviour
 {
     [Header("Panel References")]
     public GameObject combatPanel; // The main panel to show/hide
-    
+    public Image backgroundImage; // Background image to sync with zone
+
     [Header("Player Display")]
     public Image playerSprite; // Optional
     public Slider playerHealthBar;
@@ -62,6 +63,7 @@ public class CombatPanel : MonoBehaviour
         EventBus.Subscribe<PlayerHealthChangedEvent>(UpdatePlayerHealth);
         EventBus.Subscribe<PlayerAttackProgressEvent>(UpdatePlayerAttackProgress);
         EventBus.Subscribe<PlayerDamageTakenEvent>(ShowPlayerDamage);
+        EventBus.Subscribe<ZoneChangedEvent>(OnZoneChanged);
         
         // Setup buttons
         if (retreatButton != null)
@@ -86,6 +88,16 @@ public class CombatPanel : MonoBehaviour
                 damageTextContainer = playerDamageTextPrefab.transform.parent.GetComponent<RectTransform>();
             }
         }
+
+        // Initialize background
+        if (Services.TryGet<IZoneService>(out var zoneService))
+        {
+            var currentZone = zoneService.GetCurrentZone();
+            if (currentZone != null && backgroundImage != null)
+            {
+                backgroundImage.sprite = currentZone.backgroundImage;
+            }
+        }
     }
     
     void OnDestroy()
@@ -95,6 +107,15 @@ public class CombatPanel : MonoBehaviour
         EventBus.Unsubscribe<PlayerHealthChangedEvent>(UpdatePlayerHealth);
         EventBus.Unsubscribe<PlayerAttackProgressEvent>(UpdatePlayerAttackProgress);
         EventBus.Unsubscribe<PlayerDamageTakenEvent>(ShowPlayerDamage);
+        EventBus.Unsubscribe<ZoneChangedEvent>(OnZoneChanged);
+    }
+    
+    void OnZoneChanged(ZoneChangedEvent e)
+    {
+        if (backgroundImage != null && e.newZone != null)
+        {
+            backgroundImage.sprite = e.newZone.backgroundImage;
+        }
     }
     
     void OnCombatStateChanged(CombatStateChangedEvent e)

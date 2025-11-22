@@ -4346,7 +4346,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 150.15997}
+  m_AnchoredPosition: {x: 0.0050049, y: 8.09}
   m_SizeDelta: {x: 1920, y: 929.84}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &495007037
@@ -5306,8 +5306,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.00024414062, y: 0.001953125}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.00024414062, y: 71.036}
+  m_SizeDelta: {x: 0, y: -142.07}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &565838773
 MonoBehaviour:
@@ -9482,8 +9482,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -14, y: 78}
-  m_SizeDelta: {x: -111.1133, y: -191.6981}
+  m_AnchoredPosition: {x: 0.00024414062, y: 71.03601}
+  m_SizeDelta: {x: -0.00024414, y: -142.07}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &964803842
 MonoBehaviour:
@@ -9498,6 +9498,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatPanel
   combatPanel: {fileID: 964803840}
+  backgroundImage: {fileID: 964803843}
   playerSprite: {fileID: 0}
   playerHealthBar: {fileID: 2013298463}
   playerHealthText: {fileID: 113745026}
@@ -9524,7 +9525,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.254717, g: 0.23188858, b: 0.23188858, a: 1}
+  m_Color: {r: 0.990566, g: 0.990566, b: 0.990566, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -10568,7 +10569,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -768.55, y: 390}
+  m_AnchoredPosition: {x: -768.55, y: -277.28}
   m_SizeDelta: {x: -1537.0972, y: -838.7056}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1065904113
