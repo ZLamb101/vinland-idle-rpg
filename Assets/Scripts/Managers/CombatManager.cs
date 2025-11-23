@@ -585,35 +585,31 @@ public class CombatManager : MonoBehaviour, ICombatService
                 return; // No alive monsters
         }
         
-        float damage = playerAttackDamage;
-        
         // Get combined stats from equipment and talents
         CombatStats stats = CombatLogic.GetCombatStats();
         
-        // Apply critical hit
-        if (stats.critChance > 0 && UnityEngine.Random.value <= stats.critChance)
-        {
-            damage *= stats.critDamage; // Critical hit damage
-        }
+        // Calculate damage with critical hit chance applied
+        bool wasCritical;
+        float damage = CombatLogic.CalculatePlayerDamage(playerAttackDamage, stats, out wasCritical);
         
         // Visual combat: spawn projectile targeting current target
         if (combatSceneController != null)
         {
             combatSceneController.HeroAttack(damage, currentTargetIndex, (dealtDamage, targetIndex) => {
-                ApplyPlayerDamage(dealtDamage, stats.lifesteal, targetIndex);
+                ApplyPlayerDamage(dealtDamage, stats.lifesteal, targetIndex, wasCritical);
             });
         }
         else
         {
             // Fallback: apply damage immediately if no visual manager
-            ApplyPlayerDamage(damage, stats.lifesteal, currentTargetIndex);
+            ApplyPlayerDamage(damage, stats.lifesteal, currentTargetIndex, wasCritical);
         }
     }
     
     /// <summary>
     /// Apply damage dealt by player (called after projectile hits)
     /// </summary>
-    void ApplyPlayerDamage(float damage, float totalLifesteal, int targetIndex)
+    void ApplyPlayerDamage(float damage, float totalLifesteal, int targetIndex, bool wasCritical)
     {
         if (targetIndex < 0 || targetIndex >= activeMonsters.Count)
             return;
@@ -632,12 +628,12 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         target.currentHealth -= damage;
         EventBus.Publish(new MonsterHealthChangedEvent { currentHealth = target.currentHealth, maxHealth = target.maxHealth, monsterIndex = targetIndex });
-        EventBus.Publish(new PlayerDamageDealtEvent { damage = damage, wasCritical = (damage > playerAttackDamage) }); // Fire event for damage dealt BY player TO monsters (shows above enemies)
+        EventBus.Publish(new PlayerDamageDealtEvent { damage = damage, wasCritical = wasCritical }); // Fire event for damage dealt BY player TO monsters (shows above enemies)
         
         // Log combat message
         if (target.monsterData != null)
         {
-            string critText = (damage > playerAttackDamage) ? " (Critical!)" : "";
+            string critText = wasCritical ? " (Critical!)" : "";
             LogCombatMessage($"You deal {damage:F0} damage to {target.monsterData.monsterName}{critText}", LogType.Info);
         }
         

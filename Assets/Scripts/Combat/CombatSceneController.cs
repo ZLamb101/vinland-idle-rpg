@@ -39,6 +39,7 @@ public class CombatSceneController : MonoBehaviour
     private List<GameObject> activeDamageTexts = new List<GameObject>(); // Track active damage text GameObjects for cleanup
     
     private ICombatService combatService; // Cached combat service reference
+    private TMP_FontAsset damageTextFont; // Cached font for damage text
     
     /// <summary>
     /// Get enemy visual by index
@@ -90,6 +91,9 @@ public class CombatSceneController : MonoBehaviour
         // Get combat service
         combatService = Services.Get<ICombatService>();
         
+        // Load and cache "Charlie don't surf SDF" font for damage text
+        damageTextFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/Charlie don't surf SDF");
+        
         // Subscribe to combat events for health bar updates
         if (combatService != null)
         {
@@ -129,7 +133,7 @@ public class CombatSceneController : MonoBehaviour
         if (combatService != null)
         {
             int targetIndex = combatService.GetCurrentTargetIndex();
-            ShowDamageHitText(targetIndex, e.damage);
+            ShowDamageHitText(targetIndex, e.damage, e.wasCritical);
         }
     }
     
@@ -555,7 +559,7 @@ public class CombatSceneController : MonoBehaviour
     /// Show damage hit text above specific enemy
     /// Creates independent damage text GameObject that floats above the enemy
     /// </summary>
-    public void ShowDamageHitText(int enemyIndex, float damage)
+    public void ShowDamageHitText(int enemyIndex, float damage, bool wasCritical = false)
     {
         if (enemyIndex < 0 || enemyIndex >= activeEnemies.Count)
             return;
@@ -610,22 +614,30 @@ public class CombatSceneController : MonoBehaviour
         damageText.text = $"{damage:F0}";
         damageText.fontSize = 32;
         damageText.fontStyle = FontStyles.Bold;
-        damageText.color = Color.white;
+        // Use yellow color for critical hits, white for normal hits
+        damageText.color = wasCritical ? new Color(1f, 0.84f, 0f) : Color.white;
         damageText.alignment = TextAlignmentOptions.Center;
+        
+        // Set "Charlie don't surf SDF" font (cached in Start())
+        if (damageTextFont != null)
+        {
+            damageText.font = damageTextFont;
+        }
         
         // Add outline for better visibility
         var outline = damageObj.AddComponent<UnityEngine.UI.Outline>();
         outline.effectColor = Color.black;
         outline.effectDistance = new Vector2(2f, -2f);
         
-        // Animate damage text (rise up and fade out)
-        StartCoroutine(AnimateDamageText(damageText, damageObj));
+        // Animate damage text (rise up and fade out, with pop animation for crits)
+        StartCoroutine(AnimateDamageText(damageText, damageObj, wasCritical));
     }
     
     /// <summary>
     /// Animate damage text rising up and fading out
+    /// For critical hits, adds a heartbeat pop animation (scale up then down)
     /// </summary>
-    System.Collections.IEnumerator AnimateDamageText(TextMeshProUGUI damageText, GameObject damageObj)
+    System.Collections.IEnumerator AnimateDamageText(TextMeshProUGUI damageText, GameObject damageObj, bool wasCritical = false)
     {
         if (damageText == null || damageText.rectTransform == null || damageObj == null) 
             yield break;
@@ -637,13 +649,54 @@ public class CombatSceneController : MonoBehaviour
             canvasGroup = damageText.gameObject.AddComponent<CanvasGroup>();
         }
         
-        // Store starting position
+        // Store starting position and scale
         Vector2 startPosition = rectTransform.anchoredPosition;
         Vector2 endPosition = startPosition + new Vector2(0, 50f); // Rise 50 pixels
+        Vector3 defaultScale = Vector3.one;
         
         // Reset alpha and position
         canvasGroup.alpha = 1f;
         rectTransform.anchoredPosition = startPosition;
+        rectTransform.localScale = defaultScale;
+        
+        // For critical hits, play heartbeat pop animation first
+        if (wasCritical)
+        {
+            float popDuration = 0.2f; // 0.1s for scale up
+            float popElapsed = 0f;
+            
+            // Scale up (ease out)
+            while (popElapsed < popDuration)
+            {
+                if (damageText == null || rectTransform == null || damageObj == null)
+                    yield break;
+                
+                popElapsed += Time.deltaTime;
+                float t = popElapsed / popDuration;
+                float easedT = t * t; // Ease out
+                rectTransform.localScale = Vector3.Lerp(defaultScale, defaultScale * 1.3f, easedT);
+                yield return null;
+            }
+            
+            popElapsed = 0f;
+            popDuration = 0.2f; // 0.1s for scale down
+            
+            // Scale down (ease in)
+            while (popElapsed < popDuration)
+            {
+                if (damageText == null || rectTransform == null || damageObj == null)
+                    yield break;
+                
+                popElapsed += Time.deltaTime;
+                float t = popElapsed / popDuration;
+                float easedT = t * t; // Ease in
+                rectTransform.localScale = Vector3.Lerp(defaultScale * 1.3f, defaultScale, easedT);
+                yield return null;
+            }
+            
+            // Ensure scale is reset
+            rectTransform.localScale = defaultScale;
+        }
         
         float duration = 1f; // 1 second animation
         float elapsed = 0f;
