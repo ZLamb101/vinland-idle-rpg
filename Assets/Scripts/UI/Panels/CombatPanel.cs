@@ -191,8 +191,17 @@ public class CombatPanel : MonoBehaviour
             float xOffset = (damageTextCounter % 3 - 1) * damageTextSpread; // -spread, 0, +spread pattern
             damageTextCounter++;
             
-            // Set damage value
-            damageTextInstance.text = $"-{e.damage:F0}";
+            // Set text and color based on whether it's a miss
+            if (e.wasMiss)
+            {
+                damageTextInstance.text = "Miss";
+                damageTextInstance.color = Color.red; // Red for enemy misses
+            }
+            else
+            {
+                damageTextInstance.text = $"-{e.damage:F0}";
+                damageTextInstance.color = Color.white; // White for normal damage
+            }
             
             // Start animation with offset
             StartCoroutine(AnimateDamageNumber(damageTextInstance, damageRiseDistance, damageAnimationDuration, xOffset));

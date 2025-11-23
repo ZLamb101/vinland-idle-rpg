@@ -23,6 +23,7 @@ public class CombatConfig
     public float playerBaseAttackSpeed = 1.5f;
     public float playerStartingHealth = 100f;
     public float playerBaseCritDamage = 2f; // Base critical hit multiplier (2x = 200%)
+    public float baseMissChance = 0.01f; // Base miss chance for all attacks (1% = 0.01)
     public float monsterRespawnDelay = 0.5f;
 }
 

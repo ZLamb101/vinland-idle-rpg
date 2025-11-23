@@ -4,6 +4,7 @@
     "playerBaseAttackSpeed": 1.5,
     "playerStartingHealth": 50.0,
     "playerBaseCritDamage": 2.0,
+    "baseMissChance": 0.01,
     "monsterRespawnDelay": 0.5
   },
   "progression": {

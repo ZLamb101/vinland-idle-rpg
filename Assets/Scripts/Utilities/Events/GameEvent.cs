@@ -158,11 +158,13 @@ public class PlayerDamageDealtEvent : GameEvent
 {
     public float damage;
     public bool wasCritical;
+    public bool wasMiss;
 }
 
 public class PlayerDamageTakenEvent : GameEvent
 {
     public float damage;
+    public bool wasMiss;
 }
 
 public class DamageDealtEvent : GameEvent

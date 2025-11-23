@@ -133,7 +133,14 @@ public class CombatSceneController : MonoBehaviour
         if (combatService != null)
         {
             int targetIndex = combatService.GetCurrentTargetIndex();
-            ShowDamageHitText(targetIndex, e.damage, e.wasCritical);
+            if (e.wasMiss)
+            {
+                ShowMissText(targetIndex, true); // true = player miss (blue)
+            }
+            else
+            {
+                ShowDamageHitText(targetIndex, e.damage, e.wasCritical);
+            }
         }
     }
     
@@ -556,17 +563,16 @@ public class CombatSceneController : MonoBehaviour
     }
     
     /// <summary>
-    /// Show damage hit text above specific enemy
-    /// Creates independent damage text GameObject that floats above the enemy
+    /// Get local position for text above an enemy
     /// </summary>
-    public void ShowDamageHitText(int enemyIndex, float damage, bool wasCritical = false)
+    Vector2 GetEnemyLocalPosition(int enemyIndex)
     {
-        if (enemyIndex < 0 || enemyIndex >= activeEnemies.Count)
-            return;
+        if (enemyIndex < 0 || enemyIndex >= activeEnemies.Count || combatSceneContainer == null)
+            return Vector2.zero;
         
         EnemyVisual enemy = activeEnemies[enemyIndex];
-        if (enemy == null || combatSceneContainer == null)
-            return;
+        if (enemy == null)
+            return Vector2.zero;
         
         // Get enemy's current world position
         Vector2 enemyWorldPos = enemy.GetPosition();
@@ -592,45 +598,183 @@ public class CombatSceneController : MonoBehaviour
             }
         }
         
-        // Create new damage text GameObject
-        GameObject damageObj = new GameObject($"DamageText_{enemyIndex}");
-        damageObj.transform.SetParent(combatSceneContainer, false);
+        return localPosition;
+    }
+    
+    /// <summary>
+    /// Create a floating text GameObject with common setup
+    /// </summary>
+    GameObject CreateFloatingText(string text, Vector2 position, Color color, float width = 100f, bool isMiss = false)
+    {
+        if (combatSceneContainer == null)
+            return null;
+        
+        // Create new text GameObject
+        GameObject textObj = new GameObject(isMiss ? "MissText" : "DamageText");
+        textObj.transform.SetParent(combatSceneContainer, false);
         
         // Add to tracking list
-        activeDamageTexts.Add(damageObj);
+        activeDamageTexts.Add(textObj);
         
         // Add RectTransform
-        RectTransform damageRect = damageObj.AddComponent<RectTransform>();
-        damageRect.sizeDelta = new Vector2(100f, 50f);
-        // Position above enemy (offset Y by +30 pixels to appear above enemy's head)
-        damageRect.anchoredPosition = localPosition + new Vector2(0f, 30f);
+        RectTransform textRect = textObj.AddComponent<RectTransform>();
+        textRect.sizeDelta = new Vector2(width, 50f);
+        // Position above target (offset Y by +30 pixels)
+        textRect.anchoredPosition = position + new Vector2(0f, 30f);
         
         // Add CanvasGroup for fade effect
-        CanvasGroup canvasGroup = damageObj.AddComponent<CanvasGroup>();
+        CanvasGroup canvasGroup = textObj.AddComponent<CanvasGroup>();
         canvasGroup.alpha = 1f;
         
-        // Add TextMeshProUGUI for damage text
-        TextMeshProUGUI damageText = damageObj.AddComponent<TextMeshProUGUI>();
-        damageText.text = $"{damage:F0}";
-        damageText.fontSize = 32;
-        damageText.fontStyle = FontStyles.Bold;
-        // Use yellow color for critical hits, white for normal hits
-        damageText.color = wasCritical ? new Color(1f, 0.84f, 0f) : Color.white;
-        damageText.alignment = TextAlignmentOptions.Center;
+        // Add TextMeshProUGUI
+        TextMeshProUGUI textComponent = textObj.AddComponent<TextMeshProUGUI>();
+        textComponent.text = text;
+        textComponent.fontSize = 32;
+        textComponent.fontStyle = FontStyles.Bold;
+        textComponent.color = color;
+        textComponent.alignment = TextAlignmentOptions.Center;
+        textComponent.enableWordWrapping = false; // Prevent text wrapping
         
-        // Set "Charlie don't surf SDF" font (cached in Start())
+        // Set font if available
         if (damageTextFont != null)
         {
-            damageText.font = damageTextFont;
+            textComponent.font = damageTextFont;
         }
         
         // Add outline for better visibility
-        var outline = damageObj.AddComponent<UnityEngine.UI.Outline>();
+        var outline = textObj.AddComponent<UnityEngine.UI.Outline>();
         outline.effectColor = Color.black;
         outline.effectDistance = new Vector2(2f, -2f);
         
+        return textObj;
+    }
+    
+    /// <summary>
+    /// Show damage hit text above specific enemy
+    /// Creates independent damage text GameObject that floats above the enemy
+    /// </summary>
+    public void ShowDamageHitText(int enemyIndex, float damage, bool wasCritical = false)
+    {
+        Vector2 localPosition = GetEnemyLocalPosition(enemyIndex);
+        if (localPosition == Vector2.zero && (enemyIndex < 0 || enemyIndex >= activeEnemies.Count))
+            return;
+        
+        // Determine color based on crit
+        Color textColor = wasCritical ? new Color(1f, 0.84f, 0f) : Color.white;
+        
+        // Create text GameObject
+        GameObject damageObj = CreateFloatingText($"{damage:F0}", localPosition, textColor, 100f, false);
+        if (damageObj == null)
+            return;
+        
+        TextMeshProUGUI damageText = damageObj.GetComponent<TextMeshProUGUI>();
+        
         // Animate damage text (rise up and fade out, with pop animation for crits)
         StartCoroutine(AnimateDamageText(damageText, damageObj, wasCritical));
+    }
+    
+    /// <summary>
+    /// Show "Miss" text above specific enemy (for player misses) or above player (for enemy misses)
+    /// </summary>
+    public void ShowMissText(int enemyIndex, bool isPlayerMiss)
+    {
+        if (combatSceneContainer == null)
+            return;
+        
+        Vector2 localPosition;
+        
+        if (isPlayerMiss)
+        {
+            // Player miss - show above enemy
+            if (enemyIndex < 0 || enemyIndex >= activeEnemies.Count)
+                return;
+            
+            EnemyVisual enemy = activeEnemies[enemyIndex];
+            if (enemy == null)
+                return;
+            
+            // Get enemy's current world position
+            Vector2 enemyWorldPos = enemy.GetPosition();
+            
+            // Convert enemy position to local space of combat scene container
+            localPosition = enemyWorldPos;
+            if (enemy.rectTransform != null)
+            {
+                // If enemy and container share the same parent, positions are in same space
+                if (enemy.rectTransform.parent == combatSceneContainer)
+                {
+                    localPosition = enemy.rectTransform.anchoredPosition;
+                }
+                else
+                {
+                    // Convert world position to local position in combat container
+                    RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                        combatSceneContainer,
+                        RectTransformUtility.WorldToScreenPoint(null, enemy.rectTransform.position),
+                        null,
+                        out localPosition
+                    );
+                }
+            }
+        }
+        else
+        {
+            // Enemy miss - show above hero (use hero position)
+            if (heroVisual != null)
+            {
+                Vector2 heroPos = heroVisual.GetPosition();
+                localPosition = heroPos;
+                if (heroVisual.rectTransform != null && heroVisual.rectTransform.parent == combatSceneContainer)
+                {
+                    localPosition = heroVisual.rectTransform.anchoredPosition;
+                }
+            }
+            else
+            {
+                return; // Can't show miss text without hero position
+            }
+        }
+        
+        // Create new miss text GameObject
+        GameObject missObj = new GameObject($"MissText_{enemyIndex}");
+        missObj.transform.SetParent(combatSceneContainer, false);
+        
+        // Add to tracking list
+        activeDamageTexts.Add(missObj);
+        
+        // Add RectTransform
+        RectTransform missRect = missObj.AddComponent<RectTransform>();
+        missRect.sizeDelta = new Vector2(150f, 50f); // Wider to prevent text wrapping
+        // Position above target (offset Y by +30 pixels)
+        missRect.anchoredPosition = localPosition + new Vector2(0f, 30f);
+        
+        // Add CanvasGroup for fade effect
+        CanvasGroup canvasGroup = missObj.AddComponent<CanvasGroup>();
+        canvasGroup.alpha = 1f;
+        
+        // Add TextMeshProUGUI for miss text
+        TextMeshProUGUI missText = missObj.AddComponent<TextMeshProUGUI>();
+        missText.text = "Miss";
+        missText.fontSize = 32;
+        missText.fontStyle = FontStyles.Bold;
+        // Darker blue for player misses, red for enemy misses
+        missText.color = isPlayerMiss ? new Color(0f, 0.4f, 0.8f) : Color.red;
+        missText.alignment = TextAlignmentOptions.Center;
+        missText.enableWordWrapping = false; // Prevent text wrapping
+        
+        // Set font if available
+        if (damageTextFont != null)
+        {
+            missText.font = damageTextFont;
+        }
+        
+        // Add outline for better visibility
+        var outline = missObj.AddComponent<UnityEngine.UI.Outline>();
+        outline.effectColor = Color.black;
+        outline.effectDistance = new Vector2(2f, -2f);
+        
+        // Animate miss text (rise up and fade out)
+        StartCoroutine(AnimateDamageText(missText, missObj, false));
     }
     
     /// <summary>

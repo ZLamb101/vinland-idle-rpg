@@ -588,6 +588,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Get combined stats from equipment and talents
         CombatStats stats = CombatLogic.GetCombatStats();
         
+        // Check for miss chance (but still launch projectile)
+        bool willMiss = UnityEngine.Random.value <= GameBalance.Combat.baseMissChance;
+        
         // Calculate damage with critical hit chance applied
         bool wasCritical;
         float damage = CombatLogic.CalculatePlayerDamage(playerAttackDamage, stats, out wasCritical);
@@ -596,13 +599,35 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (combatSceneController != null)
         {
             combatSceneController.HeroAttack(damage, currentTargetIndex, (dealtDamage, targetIndex) => {
-                ApplyPlayerDamage(dealtDamage, stats.lifesteal, targetIndex, wasCritical);
+                HandlePlayerAttackResult(targetIndex, dealtDamage, stats.lifesteal, wasCritical, willMiss);
             });
         }
         else
         {
             // Fallback: apply damage immediately if no visual manager
-            ApplyPlayerDamage(damage, stats.lifesteal, currentTargetIndex, wasCritical);
+            HandlePlayerAttackResult(currentTargetIndex, damage, stats.lifesteal, wasCritical, willMiss);
+        }
+    }
+    
+    /// <summary>
+    /// Handle player attack result (miss or hit)
+    /// </summary>
+    void HandlePlayerAttackResult(int targetIndex, float damage, float totalLifesteal, bool wasCritical, bool wasMiss)
+    {
+        if (wasMiss)
+        {
+            // Attack missed - show miss text and log
+            EventBus.Publish(new PlayerDamageDealtEvent { damage = 0f, wasCritical = false, wasMiss = true });
+            var target = GetCurrentTarget();
+            if (target != null && target.monsterData != null)
+            {
+                LogCombatMessage($"You attack {target.monsterData.monsterName}, but miss!", LogType.Info);
+            }
+        }
+        else
+        {
+            // Normal hit - apply damage
+            ApplyPlayerDamage(damage, totalLifesteal, targetIndex, wasCritical);
         }
     }
     
@@ -628,7 +653,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         target.currentHealth -= damage;
         EventBus.Publish(new MonsterHealthChangedEvent { currentHealth = target.currentHealth, maxHealth = target.maxHealth, monsterIndex = targetIndex });
-        EventBus.Publish(new PlayerDamageDealtEvent { damage = damage, wasCritical = wasCritical }); // Fire event for damage dealt BY player TO monsters (shows above enemies)
+        EventBus.Publish(new PlayerDamageDealtEvent { damage = damage, wasCritical = wasCritical, wasMiss = false }); // Fire event for damage dealt BY player TO monsters (shows above enemies)
         
         // Log combat message
         if (target.monsterData != null)
@@ -658,19 +683,47 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (!monster.IsAlive() || monster.isAttackInProgress)
             return;
         
+        // Check for miss chance (but still play attack animation)
+        bool willMiss = UnityEngine.Random.value <= GameBalance.Combat.baseMissChance;
+        
         // Visual combat: play attack animation first, then apply damage
         if (combatSceneController != null)
         {
             monster.isAttackInProgress = true;
             combatSceneController.EnemyAttack(monsterIndex, () => {
-                // Attack animation complete, apply damage
-                ApplyMonsterDamage(monsterIndex);
+                HandleMonsterAttackResult(monsterIndex, willMiss);
                 monster.isAttackInProgress = false;
             });
         }
         else
         {
             // Fallback: apply damage immediately if no visual manager
+            HandleMonsterAttackResult(monsterIndex, willMiss);
+        }
+    }
+    
+    /// <summary>
+    /// Handle monster attack result (miss or hit)
+    /// </summary>
+    void HandleMonsterAttackResult(int monsterIndex, bool wasMiss)
+    {
+        if (monsterIndex < 0 || monsterIndex >= activeMonsters.Count)
+            return;
+        
+        var monster = activeMonsters[monsterIndex];
+        
+        if (wasMiss)
+        {
+            // Attack missed - show miss text and log
+            EventBus.Publish(new PlayerDamageTakenEvent { damage = 0f, wasMiss = true });
+            if (monster.monsterData != null)
+            {
+                LogCombatMessage($"{monster.monsterData.monsterName} attacks, but misses!", LogType.Info);
+            }
+        }
+        else
+        {
+            // Normal hit - apply damage
             ApplyMonsterDamage(monsterIndex);
         }
     }
@@ -712,7 +765,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         playerCurrentHealth -= damage;
         EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
-        EventBus.Publish(new PlayerDamageTakenEvent { damage = damage }); // Fire event for damage dealt TO player BY monsters (shows player damage)
+        EventBus.Publish(new PlayerDamageTakenEvent { damage = damage, wasMiss = false }); // Fire event for damage dealt TO player BY monsters (shows player damage)
         
         // Log combat message
         if (monster.monsterData != null)
