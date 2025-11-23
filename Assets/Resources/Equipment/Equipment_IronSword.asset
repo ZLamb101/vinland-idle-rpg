@@ -15,7 +15,7 @@ MonoBehaviour:
   equipmentName: Iron Sword
   description: A basic iron sword
   icon: {fileID: 130387172301959114, guid: 5415a3f0094f35748a310fe07e534937, type: 3}
-  slot: 11
+  slot: 9
   tier: 0
   levelRequired: 1
   attackDamage: 15

@@ -19,6 +19,13 @@ public class SavedCharacterData
     public string race = "Human";
     public string characterClass = "Warrior";
     
+    // Character attributes
+    public int strength = 10;
+    public int agility = 10;
+    public int intellect = 10;
+    public int stamina = 10;
+    public int spirit = 10;
+    
     // Metadata
     public DateTime createdDate;
     public DateTime lastPlayedDate;
@@ -40,6 +47,12 @@ public class SavedCharacterData
         // Use race/class from CharacterData if available, otherwise use parameters
         this.race = !string.IsNullOrEmpty(data.race) ? data.race : race;
         this.characterClass = !string.IsNullOrEmpty(data.characterClass) ? data.characterClass : charClass;
+        // Save character attributes
+        this.strength = data.strength;
+        this.agility = data.agility;
+        this.intellect = data.intellect;
+        this.stamina = data.stamina;
+        this.spirit = data.spirit;
         lastPlayedDate = DateTime.Now;
         isEmpty = false;
     }
@@ -55,6 +68,12 @@ public class SavedCharacterData
         data.inventory = inventory;
         data.race = race; // Load race
         data.characterClass = characterClass; // Load class
+        // Load character attributes
+        data.strength = strength;
+        data.agility = agility;
+        data.intellect = intellect;
+        data.stamina = stamina;
+        data.spirit = spirit;
     }
     
     // Get display string for slot (e.g., "Level 5 Troll Hunter")

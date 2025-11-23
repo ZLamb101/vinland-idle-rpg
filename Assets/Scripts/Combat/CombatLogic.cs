@@ -8,24 +8,30 @@ public static class CombatLogic
 {
     /// <summary>
     /// Calculate player stats including equipment and talent bonuses
+    /// Now uses attribute-based stats (Strength, Agility, Stamina, Spirit)
     /// </summary>
     public static void CalculatePlayerStats(out float maxHealth, out float currentHealth, out float attackDamage, out float attackSpeed)
     {
-        // Base stats from character
+        // Base stats from character attributes
         var characterService = Services.Get<ICharacterService>();
-        if (characterService != null)
+        CharacterData charData = characterService?.GetCharacterData();
+        
+        if (charData != null)
         {
-            maxHealth = characterService.GetMaxHealthWithTalents();
+            // Get base stats from attributes
+            attackDamage = charData.GetAttackPower();
+            maxHealth = charData.GetMaxHealth();
             currentHealth = characterService.GetCurrentHealth();
         }
         else
         {
+            // Fallback if no character service
             maxHealth = GameBalance.Combat.playerStartingHealth;
             currentHealth = GameBalance.Combat.playerStartingHealth;
+            attackDamage = GameBalance.Combat.playerBaseAttackDamage;
         }
         
-        // Base attack values
-        attackDamage = GameBalance.Combat.playerBaseAttackDamage;
+        // Base attack speed (not affected by attributes currently)
         attackSpeed = GameBalance.Combat.playerBaseAttackSpeed;
         
         // Add equipment bonuses
@@ -45,6 +51,10 @@ public static class CombatLogic
         {
             TalentBonuses talents = talentService.GetTotalBonuses();
             
+            // Add max health bonus from talents
+            maxHealth += talents.maxHealth;
+            maxHealth *= (1f + talents.healthMultiplier);
+            
             // Additive bonuses
             attackDamage += talents.attackDamage;
             attackSpeed += talents.attackSpeed;
@@ -62,6 +72,7 @@ public static class CombatLogic
     
     /// <summary>
     /// Get combined combat stats from equipment and talents
+    /// Now includes attribute-based stats (Agility for crit/dodge, Strength for armor)
     /// </summary>
     public static CombatStats GetCombatStats()
     {
@@ -73,8 +84,21 @@ public static class CombatLogic
             dodge = 0f,
             armor = 0f,
             xpBonus = 0f,
-            goldBonus = 0f
+            goldBonus = 0f,
+            healthRegen = 0f
         };
+        
+        // Add base stats from character attributes
+        var characterService = Services.Get<ICharacterService>();
+        CharacterData charData = characterService?.GetCharacterData();
+        
+        if (charData != null)
+        {
+            stats.critChance += charData.GetCritChance();
+            stats.dodge += charData.GetDodgeChance();
+            stats.armor += charData.GetArmor(); // Armor is flat value, needs conversion to % for damage reduction
+            stats.healthRegen += charData.GetHealthRegen();
+        }
         
         // Add equipment bonuses
         var equipmentService = Services.Get<IEquipmentService>();
@@ -84,9 +108,10 @@ public static class CombatLogic
             stats.critChance += equipStats.criticalChance;
             stats.lifesteal += equipStats.lifesteal;
             stats.dodge += equipStats.dodge;
-            stats.armor += equipStats.armor;
+            stats.armor += equipStats.armor; // Equipment armor is already in percentage format
             stats.xpBonus += equipStats.xpBonus;
             stats.goldBonus += equipStats.goldBonus;
+            stats.healthRegen += equipStats.healthRegen;
         }
         
         // Add talent bonuses
@@ -167,7 +192,8 @@ public static class CombatLogic
 }
 
 /// <summary>
-/// Helper struct for combat stats from equipment and talents
+/// Helper struct for combat stats from equipment, talents, and attributes
+/// Includes health regeneration from Spirit attribute
 /// </summary>
 public struct CombatStats
 {
@@ -178,5 +204,6 @@ public struct CombatStats
     public float armor;
     public float xpBonus;
     public float goldBonus;
+    public float healthRegen; // Health regeneration per second (from Spirit attribute)
 }
 

@@ -23,12 +23,18 @@ public class CharacterData
     public string race = "Human";
     public string characterClass = "Warrior";
     
-    // Health: 50 at level 1, +10% per level
+    // --- Core Character Attributes ---
+    // These are the primary stats that derive all other combat stats
+    public int strength = 10;      // +2 Attack Power, +1 Armor per point
+    public int agility = 10;       // +0.5% Crit, +0.5% Dodge, +1 Attack Power per point
+    public int intellect = 10;     // Currently unused
+    public int stamina = 10;       // +10 Health per point
+    public int spirit = 1;        // +1 Health/sec regen per point
+    
+    // Health is now derived from Stamina (10 health per point)
     public float GetMaxHealth()
     {
-        // Starting health + (health per level * (level - 1))
-        // Uses additive scaling from config
-        return GameBalance.Combat.playerStartingHealth + (GameBalance.Progression.healthPerLevel * (level - 1));
+        return stamina * 10f;
     }
     
     /// <summary>
@@ -36,28 +42,82 @@ public class CharacterData
     /// </summary>
     public float GetMaxHealthAtLevel(int targetLevel)
     {
-        return GameBalance.Combat.playerStartingHealth + (GameBalance.Progression.healthPerLevel * (targetLevel - 1));
+        // Calculate stamina at target level: base 10 + 1 per level after 1
+        int staminaAtLevel = 10 + (targetLevel - 1);
+        return staminaAtLevel * 10f;
     }
     
     /// <summary>
-    /// Get base attack damage at a specific level
-    /// Uses additive scaling from config
+    /// Get attack power from attributes
+    /// Strength: +2 Attack Power per point
+    /// Agility: +1 Attack Power per point
+    /// </summary>
+    public float GetAttackPower()
+    {
+        return (strength * 2f) + (agility * 1f);
+    }
+    
+    /// <summary>
+    /// Get armor from attributes as damage reduction percentage
+    /// Strength: +1 Armor per point
+    /// Each point of armor = 1% damage reduction (0.01)
+    /// </summary>
+    public float GetArmor()
+    {
+        return strength * 0.01f; // Convert to percentage: 1 STR = 1% = 0.01
+    }
+    
+    /// <summary>
+    /// Get crit chance from attributes
+    /// Agility: +0.5% Crit Chance per point (0.005 as decimal)
+    /// </summary>
+    public float GetCritChance()
+    {
+        return agility * 0.005f;
+    }
+    
+    /// <summary>
+    /// Get dodge chance from attributes
+    /// Agility: +0.5% Dodge Chance per point (0.005 as decimal)
+    /// </summary>
+    public float GetDodgeChance()
+    {
+        return agility * 0.005f;
+    }
+    
+    /// <summary>
+    /// Get health regen per second from attributes
+    /// Spirit: +1 Health/sec per point
+    /// </summary>
+    public float GetHealthRegen()
+    {
+        return spirit * 1f;
+    }
+    
+    /// <summary>
+    /// Get base attack damage at a specific level (now based on attributes)
+    /// Uses Strength and Agility
     /// </summary>
     public float GetBaseAttackAtLevel(int targetLevel)
     {
-        // Starting damage + (damage per level * (level - 1))
-        return GameBalance.Combat.playerBaseAttackDamage + (GameBalance.Progression.attackDamagePerLevel * (targetLevel - 1));
+        // Calculate attributes at target level
+        int strAtLevel = 10 + (targetLevel - 1); // +1 STR per level
+        int agiAtLevel = 10; // No agility gain per level currently
+        
+        // Attack Power = (STR * 2) + (AGI * 1)
+        return (strAtLevel * 2f) + (agiAtLevel * 1f);
     }
     
     /// <summary>
-    /// Get base crit chance at a specific level
-    /// Crit Chance: 0% at level 1, +0.5% per level (starts at level 2)
+    /// Get base crit chance at a specific level (now based on Agility)
     /// </summary>
     public float GetBaseCritChanceAtLevel(int targetLevel)
     {
-        if (targetLevel <= 1) return 0f;
-        // Uses additive scaling from config (e.g., 1% per level)
-        return (targetLevel - 1) * GameBalance.Progression.critChancePerLevel;
+        // Calculate agility at target level
+        int agiAtLevel = 10; // No agility gain per level currently
+        
+        // Crit Chance = AGI * 0.5%
+        return agiAtLevel * 0.005f;
     }
     
     // XP required for next level (can be calculated dynamically)
@@ -73,13 +133,18 @@ public class CharacterData
         return currentXP >= GetXPRequiredForNextLevel();
     }
     
-    // Perform level up and return remaining XP
+    // Perform level up and grant attribute increases
     public void LevelUp()
     {
         if (CanLevelUp())
         {
             currentXP -= GetXPRequiredForNextLevel();
             level++;
+            
+            // Grant stat increases on level up
+            // +1 Strength, +1 Stamina per level
+            strength += 1;
+            stamina += 1;
         }
     }
 }

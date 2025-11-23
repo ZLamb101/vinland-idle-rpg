@@ -26,6 +26,10 @@ public class CombatManager : MonoBehaviour, ICombatService
     [Header("Attack Timers")]
     private float playerAttackTimer = 0f;
     
+    [Header("Health Regeneration")]
+    private float healthRegenTimer = 0f;
+    private const float healthRegenTickRate = 1f; // Apply health regen every 1 second
+    
     [Header("Visual Combat")]
     public CombatSceneController combatSceneController;
     
@@ -74,6 +78,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Subscribe to events
         EventBus.Subscribe<TalentBonusesRecalculatedEvent>(OnTalentBonusesChanged);
         EventBus.Subscribe<StatsRecalculatedEvent>(OnStatsRecalculated);
+        EventBus.Subscribe<CharacterLevelUpEvent>(OnCharacterLevelUp);
     }
     
     /// <summary>
@@ -97,6 +102,7 @@ public class CombatManager : MonoBehaviour, ICombatService
     {
         EventBus.Unsubscribe<TalentBonusesRecalculatedEvent>(OnTalentBonusesChanged);
         EventBus.Unsubscribe<StatsRecalculatedEvent>(OnStatsRecalculated);
+        EventBus.Unsubscribe<CharacterLevelUpEvent>(OnCharacterLevelUp);
         Services.Unregister<ICombatService>();
     }
     
@@ -132,8 +138,11 @@ public class CombatManager : MonoBehaviour, ICombatService
     /// </summary>
     public void StartCombat(MonsterData[] monsters, int mobCount = 1)
     {
+        Debug.Log($"[CombatManager] StartCombat called with {mobCount} monsters");
+        
         if (monsters == null || monsters.Length == 0)
         {
+            Debug.LogWarning("[CombatManager] StartCombat failed: No monsters provided");
             return;
         }
         
@@ -165,8 +174,15 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         zoneMonsters = monsters;
         
+        Debug.Log("[CombatManager] About to call CalculatePlayerStats()...");
+        
         // Initialize player stats with equipment bonuses
         CalculatePlayerStats();
+        
+        Debug.Log($"[CombatManager] After CalculatePlayerStats - Attack: {playerAttackDamage}, Health: {playerMaxHealth}");
+        
+        // Publish health change to update UI with new max health
+        EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
         
         // Spawn monster group (all at once)
         SpawnMonsterGroup(mobCount);
@@ -179,6 +195,9 @@ public class CombatManager : MonoBehaviour, ICombatService
     {
         // Recalculate stats to apply new bonuses immediately
         CalculatePlayerStats();
+        
+        // Update health UI
+        EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
         
         // Log update if in combat
         if (currentState == CombatState.Fighting)
@@ -195,6 +214,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Recalculate stats to apply new bonuses immediately
         CalculatePlayerStats();
         
+        // Update health UI
+        EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
+        
         // Log update if in combat
         if (currentState == CombatState.Fighting)
         {
@@ -203,24 +225,61 @@ public class CombatManager : MonoBehaviour, ICombatService
     }
     
     /// <summary>
+    /// Handle character level up - recalculate stats and heal to full
+    /// </summary>
+    private void OnCharacterLevelUp(CharacterLevelUpEvent e)
+    {
+        // Recalculate stats to apply new attribute increases immediately
+        CalculatePlayerStats();
+        
+        // Heal player to full health on level up
+        playerCurrentHealth = playerMaxHealth;
+        EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
+        
+        // Log level up if in combat
+        if (currentState == CombatState.Fighting)
+        {
+            LogCombatMessage($"Level up! You are now level {e.newLevel}! Stats increased!", LogType.Success);
+        }
+    }
+    
+    /// <summary>
     /// Calculate player stats including equipment and talent bonuses
+    /// Now uses attribute-based attack power from Strength + Agility
     /// </summary>
     public void CalculatePlayerStats()
     {
-        // Base stats from character
-        if (characterService != null)
+        Debug.Log($"[CombatManager] CalculatePlayerStats called. CharacterService exists: {characterService != null}");
+        
+        // Get character data to access attributes
+        CharacterData charData = characterService?.GetCharacterData();
+        
+        Debug.Log($"[CombatManager] CharacterData exists: {charData != null}");
+        
+        // Base stats from character attributes
+        if (charData != null)
         {
-            playerMaxHealth = characterService.GetMaxHealthWithTalents();
+            // Get attack power from attributes (STR * 2 + AGI * 1)
+            playerAttackDamage = charData.GetAttackPower();
+            
+            // Get max health from attributes (STA * 10)
+            playerMaxHealth = charData.GetMaxHealth();
             playerCurrentHealth = characterService.GetCurrentHealth();
+            
+            // Debug logging to verify attribute values
+            Debug.Log($"[CombatManager] Character attributes - STR: {charData.strength}, AGI: {charData.agility}, STA: {charData.stamina}, SPR: {charData.spirit}");
+            Debug.Log($"[CombatManager] Calculated attack power: {playerAttackDamage} (STR:{charData.strength}*2 + AGI:{charData.agility}*1)");
         }
         else
         {
+            // Fallback to old system if no character data
+            Debug.LogWarning("[CombatManager] CharacterData is NULL! Using fallback stats.");
             playerMaxHealth = GameBalance.Combat.playerStartingHealth;
             playerCurrentHealth = GameBalance.Combat.playerStartingHealth;
+            playerAttackDamage = playerBaseAttackDamage;
         }
         
-        // Start with base values
-        playerAttackDamage = playerBaseAttackDamage;
+        // Start with base attack speed (not affected by attributes currently)
         playerAttackSpeed = playerBaseAttackSpeed;
         
         // Add equipment bonuses
@@ -240,6 +299,10 @@ public class CombatManager : MonoBehaviour, ICombatService
         {
             TalentBonuses talents = talentService.GetTotalBonuses();
             
+            // Add max health bonus from talents
+            playerMaxHealth += talents.maxHealth;
+            playerMaxHealth *= (1f + talents.healthMultiplier);
+            
             // Additive bonuses
             playerAttackDamage += talents.attackDamage;
             playerAttackSpeed += talents.attackSpeed;
@@ -253,6 +316,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         {
             playerCurrentHealth = playerMaxHealth;
         }
+        
+        // Log the calculated stats for debugging
+        Debug.Log($"[CombatManager] Stats recalculated - Attack: {playerAttackDamage:F1}, Max Health: {playerMaxHealth:F0}, Current Health: {playerCurrentHealth:F0}");
     }
     
     /// <summary>
@@ -318,6 +384,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         // Reset timers
         playerAttackTimer = 0f;
+        healthRegenTimer = 0f;
         foreach (var monster in activeMonsters)
         {
             monster.attackTimer = 0f;
@@ -434,6 +501,14 @@ public class CombatManager : MonoBehaviour, ICombatService
             playerAttackTimer = 0f;
         }
         
+        // Update health regeneration timer
+        healthRegenTimer += Time.deltaTime;
+        if (healthRegenTimer >= healthRegenTickRate)
+        {
+            ApplyHealthRegeneration();
+            healthRegenTimer = 0f;
+        }
+        
         // Update each monster's attack timer independently
         for (int i = 0; i < activeMonsters.Count; i++)
         {
@@ -457,6 +532,32 @@ public class CombatManager : MonoBehaviour, ICombatService
                 {
                     MonsterAttack(i);
                     monster.attackTimer = 0f;
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Apply health regeneration from Spirit attribute
+    /// </summary>
+    void ApplyHealthRegeneration()
+    {
+        // Get combat stats which includes Spirit-based health regen
+        CombatStats stats = CombatLogic.GetCombatStats();
+        
+        if (stats.healthRegen > 0)
+        {
+            // Apply health regen if player is not at full health
+            if (playerCurrentHealth < playerMaxHealth)
+            {
+                float healAmount = stats.healthRegen * healthRegenTickRate;
+                playerCurrentHealth = Mathf.Min(playerCurrentHealth + healAmount, playerMaxHealth);
+                EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
+                
+                // Sync with CharacterManager
+                if (characterService != null)
+                {
+                    characterService.Heal(healAmount);
                 }
             }
         }

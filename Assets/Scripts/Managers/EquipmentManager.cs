@@ -53,9 +53,6 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     /// <summary>
     /// Equip an item to its designated slot
     /// </summary>
-    /// <summary>
-    /// Equip an item to its designated slot
-    /// </summary>
     public bool EquipItem(EquipmentData equipment, out EquipmentData unequippedItem)
     {
         unequippedItem = null;
@@ -73,13 +70,21 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         
         // Check if slot already has equipment
         EquipmentSlot slot = equipment.slot;
+        
+        // Validate that the slot exists in our dictionary (handles old equipment with removed slots)
+        if (!equippedItems.ContainsKey(slot))
+        {
+            Debug.LogWarning($"[EquipmentManager] Invalid equipment slot: {slot}. This item may be using an old slot type (Back/Waist). Please recreate the equipment item.");
+            return false;
+        }
+        
         EquipmentData previousEquipment = equippedItems[slot];
         
         // Unequip previous item if exists (without saving, we'll save once after equipping)
         if (previousEquipment != null)
         {
             UnequipItemInternal(slot);
-            unequippedItem = previousEquipment;
+            unequippedItem = previousEquipment; // Return the unequipped item
         }
         
         // Equip new item
@@ -213,44 +218,11 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         {
             if (kvp.Value != null)
             {
-                // Get the resource path for the equipment
-                string resourcePath = GetResourcePath(kvp.Value);
-                saveData[kvp.Key] = resourcePath;
+                // Save with "Equipment/" prefix for Resources.Load path
+                saveData[kvp.Key] = "Equipment/" + kvp.Value.name;
             }
         }
         return saveData;
-    }
-    
-    /// <summary>
-    /// Get the Resources folder path for an asset
-    /// Converts "Assets/Resources/Equipment/Equipment_IronSword.asset" to "Equipment/Equipment_IronSword"
-    /// </summary>
-    private string GetResourcePath(EquipmentData equipment)
-    {
-#if UNITY_EDITOR
-        // In editor, use AssetDatabase to get the correct path
-        string assetPath = UnityEditor.AssetDatabase.GetAssetPath(equipment);
-        
-        // Find "Resources/" in the path
-        int resourcesIndex = assetPath.IndexOf("Resources/");
-        if (resourcesIndex >= 0)
-        {
-            // Get everything after "Resources/"
-            string relativePath = assetPath.Substring(resourcesIndex + "Resources/".Length);
-            
-            // Remove the file extension
-            int extensionIndex = relativePath.LastIndexOf('.');
-            if (extensionIndex >= 0)
-            {
-                relativePath = relativePath.Substring(0, extensionIndex);
-            }
-            
-            return relativePath;
-        }
-#endif
-        // Fallback: just use the asset name
-        // This works if the equipment is directly in the Resources folder (not in a subfolder)
-        return equipment.name;
     }
     
     /// <summary>
@@ -284,39 +256,57 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     /// </summary>
     public void LoadEquipmentData(Dictionary<EquipmentSlot, string> saveData)
     {
+        Debug.Log($"[EquipmentManager] LoadEquipmentData called. Save data is null: {saveData == null}");
+        
         // Clear all existing equipment first to ensure clean state per character
         ClearAllEquipment();
         
         if (saveData == null)
         {
+            Debug.Log("[EquipmentManager] No save data provided, equipment cleared");
             return;
         }
+        
+        Debug.Log($"[EquipmentManager] Loading {saveData.Count} equipment items");
         
         // Load the character's equipment
         foreach (var kvp in saveData)
         {
+            Debug.Log($"[EquipmentManager] Attempting to load equipment for slot {kvp.Key} with asset name: {kvp.Value}");
+            
             // Load equipment from Resources folder
             EquipmentData equipment = Resources.Load<EquipmentData>(kvp.Value);
             
-            // If not found, try with "Equipment/" prefix (for backwards compatibility with old saves)
-            if (equipment == null && !kvp.Value.Contains("/"))
+            // Fallback: If not found and doesn't already have "Equipment/" prefix, try adding it
+            if (equipment == null && !kvp.Value.StartsWith("Equipment/"))
             {
+                Debug.Log($"[EquipmentManager] First attempt failed, trying with Equipment/ prefix...");
                 equipment = Resources.Load<EquipmentData>("Equipment/" + kvp.Value);
+            }
+            
+            // Fallback: Try without any prefix (in case it's in root Resources)
+            if (equipment == null && kvp.Value.Contains("/"))
+            {
+                string nameOnly = kvp.Value.Substring(kvp.Value.LastIndexOf('/') + 1);
+                Debug.Log($"[EquipmentManager] Second attempt failed, trying root Resources with name: {nameOnly}");
+                equipment = Resources.Load<EquipmentData>(nameOnly);
             }
             
             if (equipment != null)
             {
+                Debug.Log($"[EquipmentManager] Successfully loaded equipment: {equipment.equipmentName} for slot {kvp.Key}");
                 equippedItems[kvp.Key] = equipment;
                 // Notify listeners that equipment was loaded
                 EventBus.Publish(new EquipmentChangedEvent { slot = kvp.Key, newEquipment = equipment, oldEquipment = null });
             }
             else
             {
-                Debug.LogWarning($"[EquipmentManager] Failed to load equipment asset: {kvp.Value} (make sure it's in a Resources folder)");
+                Debug.LogWarning($"[EquipmentManager] Failed to load equipment asset: {kvp.Value} (make sure it's in Resources/Equipment folder)");
             }
         }
         
         RecalculateStats();
+        Debug.Log("[EquipmentManager] Equipment loading complete");
     }
     
     /// <summary>
@@ -335,7 +325,11 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         
         bool success = SaveSystem.SaveCurrentCharacter(characterSlot);
         
-        if (!success)
+        if (success)
+        {
+            Debug.Log($"[EquipmentManager] Auto-saved character ({reason})");
+        }
+        else
         {
             Debug.LogError($"[EquipmentManager] Failed to auto-save character ({reason})");
         }

@@ -37,6 +37,13 @@ public class SaveData
     public int gold = 0;
     public float currentHealth = 50f;
     
+    // Character attributes
+    public int strength = 10;
+    public int agility = 10;
+    public int intellect = 10;
+    public int stamina = 10;
+    public int spirit = 1;
+    
     // Inventory
     public InventoryItem[] inventoryItems;
     
@@ -94,6 +101,13 @@ public class SaveData
             data.currentXP = charData.currentXP;
             data.gold = charData.gold;
             data.currentHealth = charData.currentHealth;
+            
+            // Save attributes
+            data.strength = charData.strength;
+            data.agility = charData.agility;
+            data.intellect = charData.intellect;
+            data.stamina = charData.stamina;
+            data.spirit = charData.spirit;
             
             // Inventory
             if (charData.inventory != null && charData.inventory.items != null)
@@ -234,6 +248,13 @@ public class SaveData
             charData.currentXP = currentXP;
             charData.gold = gold;
             charData.currentHealth = currentHealth;
+            
+            // Load attributes
+            charData.strength = strength;
+            charData.agility = agility;
+            charData.intellect = intellect;
+            charData.stamina = stamina;
+            charData.spirit = spirit;
             
             // Professions
             if (professionNames != null && professionNames.Count > 0)

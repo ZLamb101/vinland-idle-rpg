@@ -8,10 +8,8 @@ public enum EquipmentSlot
     Head,
     Neck,
     Shoulders,
-    Back,           // Cloak
     Chest,
     Hands,          // Gloves
-    Waist,          // Belt
     Legs,
     Feet,           // Boots
     Ring1,

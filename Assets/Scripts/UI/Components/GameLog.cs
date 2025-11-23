@@ -695,20 +695,33 @@ public class GameLog : MonoBehaviour, IGameLogService
         
         if (characterService == null) return changes;
         
-        float oldHealth = characterService.GetMaxHealthAtLevel(oldLevel);
-        float newHealth = characterService.GetMaxHealthAtLevel(newLevel);
-        if (oldHealth != newHealth)
-            changes.Add(new StatChange("Health", oldHealth, newHealth, "{0:F0}"));
-        
-        float oldAttack = characterService.GetBaseAttackAtLevel(oldLevel);
-        float newAttack = characterService.GetBaseAttackAtLevel(newLevel);
-        if (oldAttack != newAttack)
-            changes.Add(new StatChange("Attack", oldAttack, newAttack, "{0:F0}"));
-        
-        float oldCritChance = characterService.GetBaseCritChanceAtLevel(oldLevel);
-        float newCritChance = characterService.GetBaseCritChanceAtLevel(newLevel);
-        if (oldCritChance != newCritChance)
-            changes.Add(new StatChange("Crit Chance", oldCritChance * 100f, newCritChance * 100f, "{0:F1}%"));
+        // Show attribute gains (on level up: +1 STR, +1 STA)
+        int levelDiff = newLevel - oldLevel;
+        if (levelDiff > 0)
+        {
+            // Strength gains (+1 per level)
+            int oldStr = 10 + (oldLevel - 1);
+            int newStr = 10 + (newLevel - 1);
+            if (oldStr != newStr)
+                changes.Add(new StatChange("Strength", oldStr, newStr, "{0:F0}"));
+            
+            // Stamina gains (+1 per level)
+            int oldSta = 10 + (oldLevel - 1);
+            int newSta = 10 + (newLevel - 1);
+            if (oldSta != newSta)
+                changes.Add(new StatChange("Stamina", oldSta, newSta, "{0:F0}"));
+            
+            // Show derived stat changes for clarity
+            float oldHealth = characterService.GetMaxHealthAtLevel(oldLevel);
+            float newHealth = characterService.GetMaxHealthAtLevel(newLevel);
+            if (oldHealth != newHealth)
+                changes.Add(new StatChange("Max Health", oldHealth, newHealth, "{0:F0}"));
+            
+            float oldAttack = characterService.GetBaseAttackAtLevel(oldLevel);
+            float newAttack = characterService.GetBaseAttackAtLevel(newLevel);
+            if (oldAttack != newAttack)
+                changes.Add(new StatChange("Attack Power", oldAttack, newAttack, "{0:F0}"));
+        }
         
         return changes;
     }
