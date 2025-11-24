@@ -276,11 +276,15 @@ public class SaveData
                 }
             }
             
-            // Inventory
-            if (inventoryItems != null)
+            // Inventory - Always initialize inventory, even if empty
+            charData.inventory = new InventoryData();
+            
+            if (inventoryItems != null && inventoryItems.Length > 0)
             {
-                charData.inventory = new InventoryData();
+                // Set maxSlots to match the saved inventory size
+                charData.inventory.maxSlots = inventoryItems.Length;
                 charData.inventory.items = new InventoryItem[inventoryItems.Length];
+                
                 for (int i = 0; i < inventoryItems.Length; i++)
                 {
                     charData.inventory.items[i] = new InventoryItem(
@@ -298,6 +302,18 @@ public class SaveData
                 
                 // Load equipment references
                 charData.inventory.LoadAllEquipmentReferences();
+            }
+            else
+            {
+                // Empty inventory - ensure items array is initialized
+                if (charData.inventory.items == null || charData.inventory.items.Length != charData.inventory.maxSlots)
+                {
+                    charData.inventory.items = new InventoryItem[charData.inventory.maxSlots];
+                    for (int i = 0; i < charData.inventory.maxSlots; i++)
+                    {
+                        charData.inventory.items[i] = new InventoryItem();
+                    }
+                }
             }
             
             // Quests

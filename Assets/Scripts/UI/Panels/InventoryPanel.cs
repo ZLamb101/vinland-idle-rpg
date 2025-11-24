@@ -8,7 +8,7 @@ using TMPro;
 public class InventoryPanel : MonoBehaviour
 {
     [Header("Inventory Settings")]
-    public int gridWidth = 5;
+    public int gridWidth = 4;
     public int gridHeight = 4;
     
     [Header("UI References")]
@@ -27,32 +27,76 @@ public class InventoryPanel : MonoBehaviour
     
     void Start()
     {
-        InitializeInventory();
-        LoadEquipmentReferences();
-        RefreshDisplay();
+        // Try to initialize immediately
+        if (!TryInitializeInventory())
+        {
+            // If it fails, subscribe to character load events and retry
+            EventBus.Subscribe<CharacterLoadedEvent>(OnCharacterLoaded);
+        }
         
         // Subscribe to inventory events for auto-refresh
         EventBus.Subscribe<ItemAddedEvent>(OnItemAdded);
         EventBus.Subscribe<ItemRemovedEvent>(OnItemRemoved);
-        
-        // Tooltip is now handled by Tooltip component
     }
     
     void OnDestroy()
     {
         // Unsubscribe from events
+        EventBus.Unsubscribe<CharacterLoadedEvent>(OnCharacterLoaded);
         EventBus.Unsubscribe<ItemAddedEvent>(OnItemAdded);
         EventBus.Unsubscribe<ItemRemovedEvent>(OnItemRemoved);
+    }
+
+    void OnCharacterLoaded(CharacterLoadedEvent e)
+    {
+        // Character is now loaded, try to initialize inventory panel
+        if (inventoryData == null)
+        {
+            if (TryInitializeInventory())
+            {
+                // Successfully initialized, unsubscribe from this event
+                EventBus.Unsubscribe<CharacterLoadedEvent>(OnCharacterLoaded);
+            }
+        }
     }
     
     void OnItemAdded(ItemAddedEvent e)
     {
+        // If panel isn't initialized yet, try to initialize it
+        if (inventoryData == null || inventorySlots == null)
+        {
+            if (TryInitializeInventory())
+            {
+                LoadEquipmentReferences();
+            }
+        }
+        
+        // Ensure we have a fresh reference to inventory data
+        RefreshInventoryDataReference();
         RefreshDisplay();
     }
     
     void OnItemRemoved(ItemRemovedEvent e)
     {
+        // Ensure we have a fresh reference to inventory data
+        RefreshInventoryDataReference();
         RefreshDisplay();
+    }
+    
+    /// <summary>
+    /// Refresh the inventory data reference to ensure it's current
+    /// </summary>
+    void RefreshInventoryDataReference()
+    {
+        var characterService = Services.Get<ICharacterService>();
+        if (characterService != null)
+        {
+            var freshInventoryData = characterService.GetInventoryData();
+            if (freshInventoryData != null)
+            {
+                inventoryData = freshInventoryData;
+            }
+        }
     }
     
     
@@ -65,7 +109,7 @@ public class InventoryPanel : MonoBehaviour
         inventoryData.LoadAllItemReferences();
     }
     
-    void InitializeInventory()
+    bool TryInitializeInventory()
     {
         // Get inventory data from CharacterService
         var characterService = Services.Get<ICharacterService>();
@@ -74,13 +118,44 @@ public class InventoryPanel : MonoBehaviour
             inventoryData = characterService.GetInventoryData();
         }
         
-        // If no inventory data exists, create new one
+        // If no inventory data exists, return false (will retry later)
         if (inventoryData == null)
         {
-            inventoryData = new InventoryData();
-            inventoryData.maxSlots = gridWidth * gridHeight;
+            return false;
         }
         
+        // Ensure maxSlots matches our grid
+        int targetSlots = gridWidth * gridHeight;
+        if (inventoryData.maxSlots != targetSlots)
+        {
+            // Resize items array if needed
+            if (inventoryData.items == null || inventoryData.items.Length != targetSlots)
+            {
+                InventoryItem[] oldItems = inventoryData.items;
+                inventoryData.items = new InventoryItem[targetSlots];
+                
+                // Initialize empty slots
+                for (int i = 0; i < targetSlots; i++)
+                {
+                    inventoryData.items[i] = new InventoryItem();
+                }
+                
+                // Copy old items if they existed
+                if (oldItems != null)
+                {
+                    int copyCount = Mathf.Min(oldItems.Length, targetSlots);
+                    for (int i = 0; i < copyCount; i++)
+                    {
+                        if (oldItems[i] != null && !oldItems[i].IsEmpty())
+                        {
+                            inventoryData.items[i] = oldItems[i];
+                        }
+                    }
+                }
+            }
+            inventoryData.maxSlots = targetSlots;
+        }
+
         // Create inventory slots if they don't exist
         CreateInventorySlots();
         
@@ -94,10 +169,30 @@ public class InventoryPanel : MonoBehaviour
                 inventorySlots[i].OnSlotDragEnd += (fromSlot, toSlot) => OnSlotDragEnd(fromSlot, toSlot);
             }
         }
+
+        // Load equipment references and refresh display
+        LoadEquipmentReferences();
+        RefreshDisplay();
+        gameObject.SetActive(false);
+        
+        return true;
     }
     
     void CreateInventorySlots()
     {
+        // Validate prefab exists
+        if (inventorySlotPrefab == null)
+        {
+            Debug.LogError("[InventoryPanel] inventorySlotPrefab is null! Cannot create inventory slots.");
+            return;
+        }
+        
+        if (inventoryGridParent == null)
+        {
+            Debug.LogError("[InventoryPanel] inventoryGridParent is null! Cannot create inventory slots.");
+            return;
+        }
+        
         // Clear existing slots
         if (inventorySlots != null)
         {
@@ -115,16 +210,12 @@ public class InventoryPanel : MonoBehaviour
         
         for (int i = 0; i < inventorySlots.Length; i++)
         {
-            GameObject slotObj;
+            GameObject slotObj = Instantiate(inventorySlotPrefab, inventoryGridParent);
             
-            if (inventorySlotPrefab != null)
+            if (slotObj == null)
             {
-                slotObj = Instantiate(inventorySlotPrefab, inventoryGridParent);
-            }
-            else
-            {
-                // Create a simple slot if no prefab is provided
-                slotObj = CreateSimpleSlot();
+                Debug.LogError($"[InventoryPanel] Failed to instantiate slot {i}!");
+                continue;
             }
             
             inventorySlots[i] = slotObj.GetComponent<InventorySlot>();
@@ -157,84 +248,23 @@ public class InventoryPanel : MonoBehaviour
         {
             glg = inventoryGridParent.gameObject.AddComponent<GridLayoutGroup>();
         }
-        
-        // Configure grid layout
-        glg.cellSize = new Vector2(100, 100);
-        glg.spacing = new Vector2(5, 5);
-        glg.startCorner = GridLayoutGroup.Corner.UpperLeft;
-        glg.startAxis = GridLayoutGroup.Axis.Horizontal;
-        glg.childAlignment = TextAnchor.UpperCenter;
-        glg.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        glg.constraintCount = gridWidth;
-    }
-    
-    GameObject CreateSimpleSlot()
-    {
-        // Create a simple slot GameObject with basic UI components
-        GameObject slot = new GameObject($"InventorySlot_{inventorySlots.Length}");
-        slot.transform.SetParent(inventoryGridParent);
-        
-        // Add RectTransform
-        RectTransform rect = slot.AddComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(80, 80);
-        
-        // Add Image for background
-        Image bg = slot.AddComponent<Image>();
-        bg.color = new Color(0.8f, 0.8f, 0.8f, 1f);
-        
-        // Add Button
-        Button button = slot.AddComponent<Button>();
-        
-        // Create icon child
-        GameObject iconObj = new GameObject("Icon");
-        iconObj.transform.SetParent(slot.transform);
-        RectTransform iconRect = iconObj.AddComponent<RectTransform>();
-        iconRect.anchorMin = Vector2.zero;
-        iconRect.anchorMax = Vector2.one;
-        iconRect.sizeDelta = Vector2.zero;
-        iconRect.anchoredPosition = Vector2.zero;
-        
-        Image icon = iconObj.AddComponent<Image>();
-        icon.color = Color.white;
-        icon.gameObject.SetActive(false);
-        
-        // Create quantity text child
-        GameObject qtyObj = new GameObject("Quantity");
-        qtyObj.transform.SetParent(slot.transform);
-        RectTransform qtyRect = qtyObj.AddComponent<RectTransform>();
-        qtyRect.anchorMin = new Vector2(0.6f, 0.6f);
-        qtyRect.anchorMax = new Vector2(1f, 1f);
-        qtyRect.sizeDelta = Vector2.zero;
-        qtyRect.anchoredPosition = Vector2.zero;
-        
-        TMPro.TextMeshProUGUI qtyText = qtyObj.AddComponent<TMPro.TextMeshProUGUI>();
-        qtyText.text = "";
-        qtyText.fontSize = 12;
-        qtyText.color = Color.white;
-        qtyText.alignment = TMPro.TextAlignmentOptions.BottomRight;
-        qtyText.gameObject.SetActive(false);
-        
-        // Get InventorySlot component and set references
-        InventorySlot inventorySlot = slot.GetComponent<InventorySlot>();
-        inventorySlot.itemIcon = icon;
-        inventorySlot.quantityText = qtyText;
-        
-        return slot;
+
     }
     
     public void RefreshDisplay()
     {
+        // Ensure we have a fresh reference to inventory data
+        RefreshInventoryDataReference();
+        
         if (inventoryData == null || inventorySlots == null) return;
         
         // Update each slot
-        for (int i = 0; i < inventorySlots.Length; i++)
+        int slotsToUpdate = Mathf.Min(inventorySlots.Length, inventoryData.maxSlots);
+        for (int i = 0; i < slotsToUpdate; i++)
         {
-            if (i < inventoryData.maxSlots)
-            {
-                InventoryItem item = inventoryData.GetItem(i);
-                inventorySlots[i].SetItem(item);
-                inventorySlots[i].SetSelected(i == selectedSlot);
-            }
+            InventoryItem item = inventoryData.GetItem(i);
+            inventorySlots[i].SetItem(item);
+            inventorySlots[i].SetSelected(i == selectedSlot);
         }
     }
     
@@ -344,5 +374,20 @@ public class InventoryPanel : MonoBehaviour
             RefreshDisplay();
         }
     }
-    
+
+    public void TogglePanel()
+    {
+        if (gameObject != null)
+        {
+            bool newState = !gameObject.activeSelf;
+            gameObject.SetActive(newState);
+            
+            // Update displays when opening
+            if (newState)
+            {
+                RefreshDisplay();
+            }
+
+        }
+    } 
 }

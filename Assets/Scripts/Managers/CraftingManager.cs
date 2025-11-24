@@ -192,8 +192,6 @@ public class CraftingManager : MonoBehaviour, ICraftingService
         InventoryData inventory = characterService.GetInventoryData();
         if (inventory == null) return false;
         
-        // Simple check: do we have at least one empty slot?
-        // For more complex stacking logic, this could be enhanced
         return inventory.HasSpace();
     }
     

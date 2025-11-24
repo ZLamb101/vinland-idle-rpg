@@ -270,10 +270,24 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     {
         if (item == null)
         {
+            Debug.LogWarning("[CharacterManager] Attempted to add null item to inventory");
             return false;
         }
         
+        if (characterData == null)
+        {
+            Debug.LogError("[CharacterManager] characterData is null! Cannot add item to inventory.");
+            return false;
+        }
+        
+        if (characterData.inventory == null)
+        {
+            Debug.LogWarning("[CharacterManager] characterData.inventory is null! Initializing new inventory.");
+            characterData.inventory = new InventoryData();
+        }
+        
         InventoryData.AddItemResult result = characterData.inventory.AddItem(item);
+        
         if (result.itemsAdded > 0)
         {
             // Notify inventory UI to refresh via EventBus

@@ -18,7 +18,7 @@ MonoBehaviour:
   minLevel: 8
   maxLevel: 10
   attackRangeType: 1
-  healthModifier: 1
+  healthModifier: 1.03
   damageModifier: 1
   speedModifier: 1
   armorModifier: 1
