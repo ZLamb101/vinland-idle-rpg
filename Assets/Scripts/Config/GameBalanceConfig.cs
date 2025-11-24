@@ -31,6 +31,8 @@ public class CombatConfig
     public float monsterBaseAttackDamage = 10f;
     public float monsterBaseAttackSpeed = 2.0f;
     public float monsterBaseArmor = 0.2f; // 20% damage reduction (doesn't scale with level)
+    public int monsterBaseXPReward = 10;
+    public int monsterBaseGoldReward = 10;
     public float monsterMeleeRange = 120f;
     public float monsterRangedRange = 600f;
     public float monsterLevelScalingMultiplier = 0.15f; // 15% per level above minimum

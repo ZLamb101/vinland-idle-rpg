@@ -316,17 +316,19 @@ public class CombatSceneController : MonoBehaviour
             {
                 enemyVisual.monsterDetailsContainer = detailsRect;
                 
-                // Initialize monster name in monster details container
+                // Initialize monster name and level in monster details container
                 var monsterInstance = combatService?.GetActiveMonsters();
                 if (monsterInstance != null && i < monsterInstance.Count && monsterInstance[i].monsterData != null)
                 {
                     TextMeshProUGUI[] allTexts = detailsRect.GetComponentsInChildren<TextMeshProUGUI>();
+                    string monsterName = monsterInstance[i].monsterData.monsterName;
+                    int monsterLevel = monsterInstance[i].level;
                     foreach (TextMeshProUGUI text in allTexts)
                     {
                         // Find name text (doesn't contain numbers or "/")
                         if (!text.text.Contains("/") && !System.Text.RegularExpressions.Regex.IsMatch(text.text, @"^\d+"))
                         {
-                            text.text = monsterInstance[i].monsterData.monsterName;
+                            text.text = $"{monsterName} Level {monsterLevel}";
                             break;
                         }
                     }
@@ -516,24 +518,25 @@ public class CombatSceneController : MonoBehaviour
             {
                 if (text.text.Contains("/") || System.Text.RegularExpressions.Regex.IsMatch(text.text, @"^\d+"))
                 {
-                    text.text = $"{Mathf.Max(0f, e.currentHealth):F0} / {e.maxHealth:F0}";
+                    text.text = $"{Mathf.Max(0f, e.currentHealth):F0}";
                     break; // Update first matching text (health text)
                 }
             }
             
-            // Update monster name (if we have access to monster data)
+            // Update monster name and level (if we have access to monster data)
             if (combatService != null)
             {
                 var monsterInstance = combatService.GetActiveMonsters();
                 if (e.monsterIndex < monsterInstance.Count && monsterInstance[e.monsterIndex].monsterData != null)
                 {
                     string monsterName = monsterInstance[e.monsterIndex].monsterData.monsterName;
+                    int monsterLevel = monsterInstance[e.monsterIndex].level;
                     // Find name text (usually doesn't contain numbers or "/")
                     foreach (TextMeshProUGUI text in texts)
                     {
                         if (!text.text.Contains("/") && !System.Text.RegularExpressions.Regex.IsMatch(text.text, @"^\d+"))
                         {
-                            text.text = monsterName;
+                            text.text = $"{monsterName} Lvl{monsterLevel}";
                             break; // Update first non-numeric text (name text)
                         }
                     }

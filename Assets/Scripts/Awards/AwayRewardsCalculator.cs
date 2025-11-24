@@ -228,11 +228,10 @@ public static class AwayRewardsCalculator
             // Calculate XP and gold with bonuses (stats already retrieved above, reuse it)
             // Calculate rewards at average level for this monster type
             int avgLevel = Mathf.RoundToInt((monster.minLevel + monster.maxLevel) / 2f);
-            int baseXP, baseGold;
-            MonsterStatCalculator.CalculateRewards(monster, avgLevel, out baseXP, out baseGold);
+            CalculatedMonsterRewards monsterRewards = MonsterStatCalculator.CalculateRewards(monster, avgLevel);
             
-            int xpPerKill = Mathf.RoundToInt(baseXP * (1f + stats.xpBonus));
-            int goldPerKill = Mathf.RoundToInt(baseGold * (1f + stats.goldBonus));
+            int xpPerKill = Mathf.RoundToInt(monsterRewards.xpReward * (1f + stats.xpBonus));
+            int goldPerKill = Mathf.RoundToInt(monsterRewards.goldReward * (1f + stats.goldBonus));
             
             totalXP += xpPerKill * killsForThisType;
             totalGold += goldPerKill * killsForThisType;

@@ -69,11 +69,11 @@ public class MonsterData : ScriptableObject
     public float armorModifier = 1.0f;
     
     [Header("Rewards")]
-    [Tooltip("XP reward at minimum level (scales with actual level)")]
-    public int baseXPReward = 10;
+    [Tooltip("XP reward modifier (scales with actual level)")]
+    public float xpRewardModifier = 1.0f;
     
-    [Tooltip("Gold reward at minimum level (scales with actual level)")]
-    public int baseGoldReward = 5;
+    [Tooltip("Gold reward modifier (scales with actual level)")]
+    public float goldRewardModifier = 1.0f;
     
     [Header("Drop Table")]
     [Tooltip("List of items that can drop from this monster. Each entry has its own drop chance.")]

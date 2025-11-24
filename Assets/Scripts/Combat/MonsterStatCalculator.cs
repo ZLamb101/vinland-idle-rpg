@@ -13,6 +13,12 @@ public struct CalculatedMonsterStats
     public int level;
 }
 
+public struct CalculatedMonsterRewards
+{
+    public int xpReward;
+    public int goldReward;
+}
+
 /// <summary>
 /// Utility class for calculating monster stats based on level and modifiers
 /// </summary>
@@ -53,15 +59,16 @@ public static class MonsterStatCalculator
             return stats;
         }
         
-        // Clamp level to valid range
+        // Ensure level is within valid range
         int minLevel = Mathf.Max(1, monsterData.minLevel);
         int maxLevel = Mathf.Max(minLevel, monsterData.maxLevel);
-        int clampedLevel = Mathf.Clamp(level, minLevel, maxLevel);
-        stats.level = clampedLevel;
+        int finalLevel = Mathf.Clamp(level, minLevel, maxLevel);
+        stats.level = finalLevel;
         
-        // Calculate level scaling multiplier (15% per level above minimum)
-        int levelDifference = clampedLevel - minLevel;
-        float scalingMultiplier = 1f + (levelDifference * GameBalance.Combat.monsterLevelScalingMultiplier);
+        // Calculate exponential scaling multiplier based on absolute level
+        // Formula: (1 + scalingMultiplier) ^ level
+        // Example: Level 8 with 15% scaling = (1.15)^8 ≈ 3.06x
+        float scalingMultiplier = Mathf.Pow(1.0f + GameBalance.Combat.monsterLevelScalingMultiplier, finalLevel);
         
         // Get base stats from GameBalance
         float baseHealth = GameBalance.Combat.monsterBaseHealth;
@@ -86,27 +93,32 @@ public static class MonsterStatCalculator
     /// <summary>
     /// Calculate scaled rewards for a monster at a specific level
     /// </summary>
-    public static void CalculateRewards(MonsterData monsterData, int level, out int xpReward, out int goldReward)
+    public static CalculatedMonsterRewards CalculateRewards(MonsterData monsterData, int level)
     {
+        CalculatedMonsterRewards rewards = new CalculatedMonsterRewards();
+
         if (monsterData == null)
         {
-            xpReward = 10;
-            goldReward = 5;
-            return;
+            rewards.xpReward = GameBalance.Combat.monsterBaseXPReward;
+            rewards.goldReward = GameBalance.Combat.monsterBaseGoldReward;
+            return rewards;
         }
         
-        // Clamp level to valid range
+        // Ensure level is within valid range
         int minLevel = Mathf.Max(1, monsterData.minLevel);
         int maxLevel = Mathf.Max(minLevel, monsterData.maxLevel);
-        int clampedLevel = Mathf.Clamp(level, minLevel, maxLevel);
+        int finalLevel = Mathf.Clamp(level, minLevel, maxLevel);
         
-        // Calculate level scaling multiplier
-        int levelDifference = clampedLevel - minLevel;
-        float scalingMultiplier = 1f + (levelDifference * GameBalance.Combat.monsterLevelScalingMultiplier);
+        // Calculate exponential scaling multiplier based on absolute level
+        // Formula: (1 + scalingMultiplier) ^ level
+        // Example: Level 8 with 15% scaling = (1.15)^8 ≈ 3.06x
+        float scalingMultiplier = Mathf.Pow(1.0f + GameBalance.Combat.monsterLevelScalingMultiplier, finalLevel);
         
         // Scale rewards
-        xpReward = Mathf.RoundToInt(monsterData.baseXPReward * scalingMultiplier);
-        goldReward = Mathf.RoundToInt(monsterData.baseGoldReward * scalingMultiplier);
+        rewards.xpReward = Mathf.RoundToInt(GameBalance.Combat.monsterBaseXPReward * scalingMultiplier * monsterData.xpRewardModifier);
+        rewards.goldReward = Mathf.RoundToInt(GameBalance.Combat.monsterBaseGoldReward * scalingMultiplier * monsterData.goldRewardModifier);
+
+        return rewards;
     }
 }
 

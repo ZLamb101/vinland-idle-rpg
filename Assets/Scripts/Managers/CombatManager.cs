@@ -337,8 +337,6 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Create list of monster data to spawn
         List<MonsterData> monstersToSpawn = new List<MonsterData>();
 
-        
-        
         for (int i = 0; i < count; i++)
         {
             // Randomly select a monster from the zone's available monsters
@@ -348,13 +346,13 @@ public class CombatManager : MonoBehaviour, ICombatService
             // Get random level for this monster instance
             int monsterLevel = MonsterStatCalculator.GetRandomLevel(selectedMonster);
             
-            // Create combat instance with calculated stats for the random level
+            // Create combat instance
             CombatMonsterInstance instance = new CombatMonsterInstance(selectedMonster, monsterLevel, i);
             activeMonsters.Add(instance);
             monstersToSpawn.Add(selectedMonster);
             
-            // Log monster spawn with level
-            LogCombatMessage($"Monster {i + 1}: Level {monsterLevel} {selectedMonster.monsterName} spawned!", LogType.Info);
+            // Log monster spawn
+            LogCombatMessage($"Monster {i + 1}: {selectedMonster.monsterName} spawned!", LogType.Info);
             
             EventBus.Publish(new MonsterSpawnedEvent { monsterData = selectedMonster, monsterIndex = i });
         }
@@ -588,56 +586,35 @@ public class CombatManager : MonoBehaviour, ICombatService
                 return; // No alive monsters
         }
         
+        float damage = playerAttackDamage;
+        
         // Get combined stats from equipment and talents
         CombatStats stats = CombatLogic.GetCombatStats();
         
-        // Check for miss chance (but still launch projectile)
-        bool willMiss = UnityEngine.Random.value <= GameBalance.Combat.baseMissChance;
-        
-        // Calculate damage with critical hit chance applied
-        bool wasCritical;
-        float damage = CombatLogic.CalculatePlayerDamage(playerAttackDamage, stats, out wasCritical);
+        // Apply critical hit
+        if (stats.critChance > 0 && UnityEngine.Random.value <= stats.critChance)
+        {
+            damage *= stats.critDamage; // Critical hit damage
+        }
         
         // Visual combat: spawn projectile targeting current target
         if (combatSceneController != null)
         {
             combatSceneController.HeroAttack(damage, currentTargetIndex, (dealtDamage, targetIndex) => {
-                HandlePlayerAttackResult(targetIndex, dealtDamage, stats.lifesteal, wasCritical, willMiss);
+                ApplyPlayerDamage(dealtDamage, stats.lifesteal, targetIndex);
             });
         }
         else
         {
             // Fallback: apply damage immediately if no visual manager
-            HandlePlayerAttackResult(currentTargetIndex, damage, stats.lifesteal, wasCritical, willMiss);
-        }
-    }
-    
-    /// <summary>
-    /// Handle player attack result (miss or hit)
-    /// </summary>
-    void HandlePlayerAttackResult(int targetIndex, float damage, float totalLifesteal, bool wasCritical, bool wasMiss)
-    {
-        if (wasMiss)
-        {
-            // Attack missed - show miss text and log
-            EventBus.Publish(new PlayerDamageDealtEvent { damage = 0f, wasCritical = false, wasMiss = true });
-            var target = GetCurrentTarget();
-            if (target != null && target.monsterData != null)
-            {
-                LogCombatMessage($"You attack {target.monsterData.monsterName}, but miss!", LogType.Info);
-            }
-        }
-        else
-        {
-            // Normal hit - apply damage
-            ApplyPlayerDamage(damage, totalLifesteal, targetIndex, wasCritical);
+            ApplyPlayerDamage(damage, stats.lifesteal, currentTargetIndex);
         }
     }
     
     /// <summary>
     /// Apply damage dealt by player (called after projectile hits)
     /// </summary>
-    void ApplyPlayerDamage(float damage, float totalLifesteal, int targetIndex, bool wasCritical)
+    void ApplyPlayerDamage(float damage, float totalLifesteal, int targetIndex)
     {
         if (targetIndex < 0 || targetIndex >= activeMonsters.Count)
             return;
@@ -645,6 +622,32 @@ public class CombatManager : MonoBehaviour, ICombatService
         var target = activeMonsters[targetIndex];
         if (!target.IsAlive())
             return;
+        
+        // Check for miss chance after projectile hits (WoW-style level-based miss chance)
+        int playerLevel = characterService != null ? characterService.GetLevel() : 1;
+        int enemyLevel = target.level;
+        
+        // Calculate total miss chance: base 1% + level-based miss chance
+        // Level-based miss chance can be negative (when player is higher level), but base 1% always applies
+        float levelBasedMissChance = CombatLogic.CalculateMissChance(playerLevel, enemyLevel);
+        float totalMissChance = GameBalance.Combat.baseMissChance + levelBasedMissChance;
+        
+        // Clamp miss chance: minimum is base miss chance (1%), maximum is 100%
+        totalMissChance = Mathf.Clamp(totalMissChance, GameBalance.Combat.baseMissChance, 1.0f);
+        
+        // Check if attack misses
+        bool willMiss = UnityEngine.Random.value <= totalMissChance;
+        
+        if (willMiss)
+        {
+            // Attack missed - show miss text and log
+            EventBus.Publish(new PlayerDamageDealtEvent { damage = 0f, wasCritical = false, wasMiss = true });
+            if (target.monsterData != null)
+            {
+                LogCombatMessage($"You attack {target.monsterData.monsterName}, but miss!", LogType.Info);
+            }
+            return; // Exit early, no damage dealt
+        }
         
         // Apply lifesteal
         if (totalLifesteal > 0)
@@ -656,12 +659,12 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         target.currentHealth -= damage;
         EventBus.Publish(new MonsterHealthChangedEvent { currentHealth = target.currentHealth, maxHealth = target.maxHealth, monsterIndex = targetIndex });
-        EventBus.Publish(new PlayerDamageDealtEvent { damage = damage, wasCritical = wasCritical, wasMiss = false }); // Fire event for damage dealt BY player TO monsters (shows above enemies)
+        EventBus.Publish(new PlayerDamageDealtEvent { damage = damage, wasCritical = (damage > playerAttackDamage) }); // Fire event for damage dealt BY player TO monsters (shows above enemies)
         
         // Log combat message
         if (target.monsterData != null)
         {
-            string critText = wasCritical ? " (Critical!)" : "";
+            string critText = (damage > playerAttackDamage) ? " (Critical!)" : "";
             LogCombatMessage($"You deal {damage:F0} damage to {target.monsterData.monsterName}{critText}", LogType.Info);
         }
         
@@ -686,47 +689,19 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (!monster.IsAlive() || monster.isAttackInProgress)
             return;
         
-        // Check for miss chance (but still play attack animation)
-        bool willMiss = UnityEngine.Random.value <= GameBalance.Combat.baseMissChance;
-        
         // Visual combat: play attack animation first, then apply damage
         if (combatSceneController != null)
         {
             monster.isAttackInProgress = true;
             combatSceneController.EnemyAttack(monsterIndex, () => {
-                HandleMonsterAttackResult(monsterIndex, willMiss);
+                // Attack animation complete, apply damage
+                ApplyMonsterDamage(monsterIndex);
                 monster.isAttackInProgress = false;
             });
         }
         else
         {
             // Fallback: apply damage immediately if no visual manager
-            HandleMonsterAttackResult(monsterIndex, willMiss);
-        }
-    }
-    
-    /// <summary>
-    /// Handle monster attack result (miss or hit)
-    /// </summary>
-    void HandleMonsterAttackResult(int monsterIndex, bool wasMiss)
-    {
-        if (monsterIndex < 0 || monsterIndex >= activeMonsters.Count)
-            return;
-        
-        var monster = activeMonsters[monsterIndex];
-        
-        if (wasMiss)
-        {
-            // Attack missed - show miss text and log
-            EventBus.Publish(new PlayerDamageTakenEvent { damage = 0f, wasMiss = true });
-            if (monster.monsterData != null)
-            {
-                LogCombatMessage($"{monster.monsterData.monsterName} attacks, but misses!", LogType.Info);
-            }
-        }
-        else
-        {
-            // Normal hit - apply damage
             ApplyMonsterDamage(monsterIndex);
         }
     }
@@ -760,21 +735,15 @@ public class CombatManager : MonoBehaviour, ICombatService
             return; // Attack dodged, no damage taken
         }
         
-        // Apply monster armor damage reduction (if monster has armor)
-        if (monster.armor > 0)
-        {
-            damage *= (1f - monster.armor); // Reduce damage by monster's armor %
-        }
-        
-        // Apply player armor damage reduction
+        // Apply armor damage reduction
         if (stats.armor > 0)
         {
-            damage *= (1f - stats.armor); // Reduce damage by player's armor %
+            damage *= (1f - stats.armor); // Reduce damage by armor %
         }
         
         playerCurrentHealth -= damage;
         EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
-        EventBus.Publish(new PlayerDamageTakenEvent { damage = damage, wasMiss = false }); // Fire event for damage dealt TO player BY monsters (shows player damage)
+        EventBus.Publish(new PlayerDamageTakenEvent { damage = damage }); // Fire event for damage dealt TO player BY monsters (shows player damage)
         
         // Log combat message
         if (monster.monsterData != null)
@@ -814,18 +783,16 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (characterService != null)
         {
             // Calculate scaled rewards based on monster level
-            int xpReward, goldReward;
-            MonsterStatCalculator.CalculateRewards(defeatedMonster.monsterData, defeatedMonster.level, out xpReward, out goldReward);
+            CalculatedMonsterRewards rewards = MonsterStatCalculator.CalculateRewards(defeatedMonster.monsterData, defeatedMonster.level);
             
             // Get bonus stats
             CombatStats stats = CombatLogic.GetCombatStats();
             
-            // Apply equipment/talent bonuses
-            xpReward = Mathf.RoundToInt(xpReward * (1f + stats.xpBonus));
-            goldReward = Mathf.RoundToInt(goldReward * (1f + stats.goldBonus));
+            rewards.xpReward = Mathf.RoundToInt(rewards.xpReward * (1f + stats.xpBonus));
+            rewards.goldReward = Mathf.RoundToInt(rewards.goldReward * (1f + stats.goldBonus));
             
-            characterService.AddXP(xpReward);
-            characterService.AddGold(goldReward);
+            characterService.AddXP(rewards.xpReward);
+            characterService.AddGold(rewards.goldReward);
             
             // Process drop table - roll for each item independently
             List<MonsterDropEntry> droppedItems = new List<MonsterDropEntry>();

@@ -173,14 +173,6 @@ public static class CombatLogic
         return damage;
     }
     
-    /// <summary>
-    /// Calculate XP and gold rewards with bonuses
-    /// </summary>
-    public static void CalculateRewards(int baseXP, int baseGold, CombatStats stats, out int finalXP, out int finalGold)
-    {
-        finalXP = Mathf.RoundToInt(baseXP * (1f + stats.xpBonus));
-        finalGold = Mathf.RoundToInt(baseGold * (1f + stats.goldBonus));
-    }
     
     /// <summary>
     /// Calculate lifesteal healing
@@ -188,6 +180,28 @@ public static class CombatLogic
     public static float CalculateLifesteal(float damage, float lifestealPercent)
     {
         return damage * lifestealPercent;
+    }
+    
+    /// <summary>
+    /// Calculate miss chance based on level difference
+    /// Returns the additional miss chance from level difference (not including base 1%)
+    /// </summary>
+    public static float CalculateMissChance(int playerLevel, int enemyLevel)
+    {
+        int levelDiff = enemyLevel - playerLevel;
+        
+        // If player is higher level than enemy, miss chance is reduced (can be negative)
+        // If enemy is higher level, miss chance increases
+        if (levelDiff <= 3)
+        {
+            // Formula: 5% + (levelDiff * 1%)
+            return 0.05f + (levelDiff * 0.01f);
+        }
+        else
+        {
+            // Formula: 6% + ((levelDiff - 3) * 4%)
+            return 0.06f + ((levelDiff - 3) * 0.04f);
+        }
     }
 }
 
