@@ -255,7 +255,25 @@ public class CombatSceneController : MonoBehaviour
                 localHeroPos = heroPos - enemyParentRect.anchoredPosition;
             }
             
-            enemyVisual.Setup(monsterData.monsterSprite, spawnPos, localHeroPos, monsterData.attackRange, monsterData.flipSprite);
+            // Get attack range from monster instance
+            float attackRange = GameBalance.Combat.monsterMeleeRange; // Default fallback
+            if (combatService != null)
+            {
+                var monsterInstances = combatService.GetActiveMonsters();
+                if (i < monsterInstances.Count)
+                {
+                    attackRange = monsterInstances[i].attackRange;
+                }
+            }
+            else
+            {
+                // Fallback: use attackRangeType if instance not available yet
+                attackRange = monsterData.attackRangeType == MonsterAttackRangeType.Melee
+                    ? GameBalance.Combat.monsterMeleeRange
+                    : GameBalance.Combat.monsterRangedRange;
+            }
+            
+            enemyVisual.Setup(monsterData.monsterSprite, spawnPos, localHeroPos, attackRange, monsterData.flipSprite);
             
             // Set monster index for identification
             enemyVisual.SetMonsterIndex(i);
@@ -1218,8 +1236,26 @@ public class CombatSceneController : MonoBehaviour
             }
         }
         
+        // Get attack range from monster instance
+        float attackRange = GameBalance.Combat.monsterMeleeRange; // Default fallback
+        if (combatService != null)
+        {
+            var monsterInstances = combatService.GetActiveMonsters();
+            if (enemyIndex < monsterInstances.Count)
+            {
+                attackRange = monsterInstances[enemyIndex].attackRange;
+            }
+        }
+        else
+        {
+            // Fallback: use attackRangeType if instance not available yet
+            attackRange = newMonsterData.attackRangeType == MonsterAttackRangeType.Melee
+                ? GameBalance.Combat.monsterMeleeRange
+                : GameBalance.Combat.monsterRangedRange;
+        }
+        
         // Setup enemy visual with new monster data
-        enemy.Setup(newMonsterData.monsterSprite, spawnPos, localHeroPos, newMonsterData.attackRange, newMonsterData.flipSprite);
+        enemy.Setup(newMonsterData.monsterSprite, spawnPos, localHeroPos, attackRange, newMonsterData.flipSprite);
         
         // Reactivate the GameObject (it was hidden when previous monster died)
         enemy.gameObject.SetActive(true);

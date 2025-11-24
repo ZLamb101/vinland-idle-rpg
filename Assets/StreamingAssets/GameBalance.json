@@ -5,7 +5,14 @@
     "playerStartingHealth": 50.0,
     "playerBaseCritDamage": 2.0,
     "baseMissChance": 0.01,
-    "monsterRespawnDelay": 0.5
+    "monsterRespawnDelay": 0.5,
+    "monsterBaseHealth": 54.0,
+    "monsterBaseAttackDamage": 10.0,
+    "monsterBaseAttackSpeed": 2.0,
+    "monsterBaseArmor": 0.2,
+    "monsterMeleeRange": 120.0,
+    "monsterRangedRange": 600.0,
+    "monsterLevelScalingMultiplier": 0.15
   },
   "progression": {
     "baseXPPerLevel": 100,

@@ -158,10 +158,14 @@ public static class AwayRewardsCalculator
         // 1. Monster health / player damage = hits needed to kill
         // 2. Hits needed * attack speed = time per kill
         // Use average monster health across all monster types
+        // Calculate health at average level (midpoint between min and max) for each monster
         float averageMonsterHealth = 0f;
         foreach (MonsterData monster in monsters)
         {
-            averageMonsterHealth += monster.health;
+            // Calculate average level for this monster type
+            int avgLevel = Mathf.RoundToInt((monster.minLevel + monster.maxLevel) / 2f);
+            CalculatedMonsterStats monsterStats = MonsterStatCalculator.CalculateMonsterStats(monster, avgLevel);
+            averageMonsterHealth += monsterStats.health;
         }
         averageMonsterHealth /= monsters.Length;
         
@@ -222,8 +226,13 @@ public static class AwayRewardsCalculator
             int killsForThisType = killsPerMonsterType + (i < remainderKills ? 1 : 0);
             
             // Calculate XP and gold with bonuses (stats already retrieved above, reuse it)
-            int xpPerKill = Mathf.RoundToInt(monster.xpReward * (1f + stats.xpBonus));
-            int goldPerKill = Mathf.RoundToInt(monster.goldReward * (1f + stats.goldBonus));
+            // Calculate rewards at average level for this monster type
+            int avgLevel = Mathf.RoundToInt((monster.minLevel + monster.maxLevel) / 2f);
+            int baseXP, baseGold;
+            MonsterStatCalculator.CalculateRewards(monster, avgLevel, out baseXP, out baseGold);
+            
+            int xpPerKill = Mathf.RoundToInt(baseXP * (1f + stats.xpBonus));
+            int goldPerKill = Mathf.RoundToInt(baseGold * (1f + stats.goldBonus));
             
             totalXP += xpPerKill * killsForThisType;
             totalGold += goldPerKill * killsForThisType;

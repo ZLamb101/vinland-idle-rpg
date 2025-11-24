@@ -2,6 +2,15 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
+/// Attack range type for monsters
+/// </summary>
+public enum MonsterAttackRangeType
+{
+    Melee,   // 120 range
+    Ranged   // 600 range
+}
+
+/// <summary>
 /// Represents a single item drop entry in a monster's drop table
 /// </summary>
 [System.Serializable]
@@ -31,25 +40,40 @@ public class MonsterData : ScriptableObject
     [Tooltip("Flip sprite horizontally (for monsters facing the wrong direction)")]
     public bool flipSprite = false;
     
-    [Header("Combat Stats")]
-    [Tooltip("Monster level (fixed, does not scale with player)")]
-    public int level = 1;
+    [Header("Level Range")]
+    [Tooltip("Minimum level this monster can spawn at")]
+    public int minLevel = 1;
     
-    [Tooltip("Health for this monster (fixed, does not scale)")]
-    public float health = 50f;
+    [Tooltip("Maximum level this monster can spawn at")]
+    public int maxLevel = 1;
     
-    [Tooltip("Damage dealt per attack (fixed, does not scale)")]
-    public float attackDamage = 5f;
+    [Header("Attack Range Type")]
+    [Tooltip("Melee = 120 range, Ranged = 600 range")]
+    public MonsterAttackRangeType attackRangeType = MonsterAttackRangeType.Melee;
     
-    [Tooltip("Time in seconds between attacks")]
-    public float attackSpeed = 2f;
+    [Header("Stat Modifiers")]
+    [Tooltip("Health modifier (1.0 = normal, 1.1 = +10% health, 0.9 = -10% health)")]
+    [Range(0.1f, 2f)]
+    public float healthModifier = 1.0f;
     
-    [Tooltip("Attack range in pixels. Melee monsters should use a small value (e.g., 100). Ranged/magic monsters can use larger values (e.g., 500+)")]
-    public float attackRange = 100f;
+    [Tooltip("Damage modifier (1.0 = normal, 1.1 = +10% damage, 0.9 = -10% damage)")]
+    [Range(0.1f, 2f)]
+    public float damageModifier = 1.0f;
+    
+    [Tooltip("Speed modifier (1.0 = normal, 0.9 = 10% faster, 1.1 = 10% slower)")]
+    [Range(0.1f, 2f)]
+    public float speedModifier = 1.0f;
+    
+    [Tooltip("Armor modifier (1.0 = normal, 1.1 = +10% armor, 0.9 = -10% armor). Armor doesn't scale with level.")]
+    [Range(0.1f, 2f)]
+    public float armorModifier = 1.0f;
     
     [Header("Rewards")]
-    public int xpReward = 10;
-    public int goldReward = 5;
+    [Tooltip("XP reward at minimum level (scales with actual level)")]
+    public int baseXPReward = 10;
+    
+    [Tooltip("Gold reward at minimum level (scales with actual level)")]
+    public int baseGoldReward = 5;
     
     [Header("Drop Table")]
     [Tooltip("List of items that can drop from this monster. Each entry has its own drop chance.")]

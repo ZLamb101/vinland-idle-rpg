@@ -26,17 +26,32 @@ public class MonsterCreatorWindow : ContentCreatorBase
     private MonsterTemplate lastAppliedTemplate = MonsterTemplate.Custom;
     
     private string monsterName = "New Monster";
-    private int level = 1;
+    private int level = 1; // Legacy field, kept for templates
     private Sprite monsterSprite;
     private bool flipSprite = false;
     
+    // New level range system
+    private int minLevel = 1;
+    private int maxLevel = 1;
+    
+    // Legacy stats (kept for backward compatibility and templates)
     private float health = 50f;
     private float attackDamage = 5f;
     private float attackSpeed = 2f;
     private float attackRange = 100f;
     
-    private int xpReward = 10;
-    private int goldReward = 5;
+    // New stat system
+    private MonsterAttackRangeType attackRangeType = MonsterAttackRangeType.Melee;
+    private float healthModifier = 1.0f;
+    private float damageModifier = 1.0f;
+    private float speedModifier = 1.0f;
+    private float armorModifier = 1.0f;
+    
+    // Rewards
+    private int xpReward = 10; // Legacy
+    private int goldReward = 5; // Legacy
+    private int baseXPReward = 10;
+    private int baseGoldReward = 5;
     
     private List<MonsterDropEntry> dropTable = new List<MonsterDropEntry>();
     
@@ -111,17 +126,81 @@ public class MonsterCreatorWindow : ContentCreatorBase
         DrawHeader("Basic Info");
         
         monsterName = DrawTextField("Monster Name", monsterName, "Display name for the monster");
-        level = DrawIntField("Level", Mathf.Max(1, level), "Monster level (affects template calculations)");
         monsterSprite = DrawSpriteField("Sprite", monsterSprite, 80);
         flipSprite = DrawToggle("Flip Sprite", flipSprite, "Mirror sprite horizontally");
+        
+        EditorGUILayout.Space(5);
+        EditorGUILayout.LabelField("Level Range", EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal();
+        minLevel = DrawIntField("Min Level", Mathf.Max(1, minLevel), "Minimum level this monster can spawn at");
+        maxLevel = DrawIntField("Max Level", Mathf.Max(minLevel, maxLevel), "Maximum level this monster can spawn at");
+        EditorGUILayout.EndHorizontal();
+        
+        if (minLevel > maxLevel)
+        {
+            EditorGUILayout.HelpBox("Min Level must be <= Max Level", MessageType.Warning);
+        }
+        
+        // Show preview of stats at min/max level
+        if (minLevel <= maxLevel)
+        {
+            CalculatedMonsterStats minStats = MonsterStatCalculator.CalculateMonsterStats(
+                CreatePreviewMonsterData(), minLevel);
+            CalculatedMonsterStats maxStats = MonsterStatCalculator.CalculateMonsterStats(
+                CreatePreviewMonsterData(), maxLevel);
+            
+            EditorGUILayout.HelpBox(
+                $"Level {minLevel}: HP={minStats.health:F0}, DMG={minStats.attackDamage:F1}, SPD={minStats.attackSpeed:F1}s\n" +
+                $"Level {maxLevel}: HP={maxStats.health:F0}, DMG={maxStats.attackDamage:F1}, SPD={maxStats.attackSpeed:F1}s",
+                MessageType.Info);
+        }
+    }
+    
+    private MonsterData CreatePreviewMonsterData()
+    {
+        MonsterData preview = CreateInstance<MonsterData>();
+        preview.minLevel = minLevel;
+        preview.maxLevel = maxLevel;
+        preview.attackRangeType = attackRangeType;
+        preview.healthModifier = healthModifier;
+        preview.damageModifier = damageModifier;
+        preview.speedModifier = speedModifier;
+        preview.armorModifier = armorModifier;
+        return preview;
     }
     
     private void DrawCombatStatsSection()
     {
         DrawHeader("Combat Stats");
         
+        EditorGUILayout.HelpBox("Base stats come from GameBalance. Monsters use modifiers to adjust from base.", MessageType.Info);
+        
+        // Attack Range Type
+        attackRangeType = (MonsterAttackRangeType)DrawEnumPopup("Attack Range Type", attackRangeType, 
+            attackRangeType == MonsterAttackRangeType.Melee ? "Melee (120 range)" : "Ranged (600 range)");
+        
+        EditorGUILayout.Space(5);
+        EditorGUILayout.LabelField("Stat Modifiers", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox("1.0 = normal, 1.1 = +10%, 0.9 = -10%", MessageType.None);
+        
+        healthModifier = DrawSlider("Health Modifier", healthModifier, 0.1f, 2f, 
+            $"Health modifier: {healthModifier:F2} ({((healthModifier - 1f) * 100):+F0}%)");
+        
+        damageModifier = DrawSlider("Damage Modifier", damageModifier, 0.1f, 2f, 
+            $"Damage modifier: {damageModifier:F2} ({((damageModifier - 1f) * 100):+F0}%)");
+        
+        speedModifier = DrawSlider("Speed Modifier", speedModifier, 0.1f, 2f, 
+            $"Speed modifier: {speedModifier:F2} ({((speedModifier - 1f) * 100):+F0}%) - Lower = Faster");
+        
+        armorModifier = DrawSlider("Armor Modifier", armorModifier, 0.1f, 2f, 
+            $"Armor modifier: {armorModifier:F2} ({((armorModifier - 1f) * 100):+F0}%) - Armor doesn't scale with level");
+        
+        EditorGUILayout.Space(5);
+        EditorGUILayout.LabelField("Legacy Stats (for templates)", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox("These fields are kept for template compatibility. New monsters use modifiers above.", MessageType.None);
+        
         EditorGUILayout.BeginHorizontal();
-        health = DrawFloatField("Health", Mathf.Max(1f, health), "Monster's maximum health points");
+        health = DrawFloatField("Health (Legacy)", Mathf.Max(1f, health), "Legacy field - not used in new system");
         if (GUILayout.Button("Auto", GUILayout.Width(50)))
         {
             health = CalculateSuggestedHealth();
@@ -129,45 +208,61 @@ public class MonsterCreatorWindow : ContentCreatorBase
         EditorGUILayout.EndHorizontal();
         
         EditorGUILayout.BeginHorizontal();
-        attackDamage = DrawFloatField("Attack Damage", Mathf.Max(0f, attackDamage), "Damage dealt per attack");
+        attackDamage = DrawFloatField("Attack Damage (Legacy)", Mathf.Max(0f, attackDamage), "Legacy field - not used in new system");
         if (GUILayout.Button("Auto", GUILayout.Width(50)))
         {
             attackDamage = CalculateSuggestedDamage();
         }
         EditorGUILayout.EndHorizontal();
         
-        attackSpeed = DrawFloatField("Attack Speed", Mathf.Max(0.1f, attackSpeed), "Time in seconds between attacks (higher = slower)");
-        attackRange = DrawFloatField("Attack Range", Mathf.Max(10f, attackRange), "Attack range in pixels (melee: ~100, ranged: ~500)");
-        
-        // Show DPS calculation
-        float dps = attackDamage / attackSpeed;
-        EditorGUILayout.HelpBox($"DPS: {dps:F1} | Time to Kill (player 100 HP): {100f / dps:F1}s", MessageType.None);
+        attackSpeed = DrawFloatField("Attack Speed (Legacy)", Mathf.Max(0.1f, attackSpeed), "Legacy field - not used in new system");
+        attackRange = DrawFloatField("Attack Range (Legacy)", Mathf.Max(10f, attackRange), "Legacy field - not used in new system");
     }
     
     private void DrawRewardsSection()
     {
         DrawHeader("Rewards");
         
+        EditorGUILayout.HelpBox("Base rewards at minimum level. Rewards scale with actual monster level.", MessageType.Info);
+        
         EditorGUILayout.BeginHorizontal();
-        xpReward = DrawIntField("XP Reward", Mathf.Max(0, xpReward), "Experience points awarded on death");
+        baseXPReward = DrawIntField("Base XP Reward", Mathf.Max(0, baseXPReward), "XP reward at minimum level (scales with level)");
         if (GUILayout.Button("Auto", GUILayout.Width(50)))
         {
-            xpReward = CalculateSuggestedXP();
+            baseXPReward = CalculateSuggestedXP();
         }
         EditorGUILayout.EndHorizontal();
         
         EditorGUILayout.BeginHorizontal();
-        goldReward = DrawIntField("Gold Reward", Mathf.Max(0, goldReward), "Gold awarded on death");
+        baseGoldReward = DrawIntField("Base Gold Reward", Mathf.Max(0, baseGoldReward), "Gold reward at minimum level (scales with level)");
         if (GUILayout.Button("Auto", GUILayout.Width(50)))
         {
-            goldReward = CalculateSuggestedGold();
+            baseGoldReward = CalculateSuggestedGold();
         }
         EditorGUILayout.EndHorizontal();
         
-        // Show reward ratios
-        float xpPerHp = health > 0 ? xpReward / health : 0;
-        float goldPerHp = health > 0 ? goldReward / health : 0;
-        EditorGUILayout.HelpBox($"XP/HP Ratio: {xpPerHp:F2} | Gold/HP Ratio: {goldPerHp:F2}", MessageType.None);
+        // Show scaled rewards at min/max level
+        if (minLevel <= maxLevel)
+        {
+            int minXP, minGold, maxXP, maxGold;
+            MonsterData preview = CreatePreviewMonsterData();
+            MonsterStatCalculator.CalculateRewards(preview, minLevel, out minXP, out minGold);
+            MonsterStatCalculator.CalculateRewards(preview, maxLevel, out maxXP, out maxGold);
+            
+            EditorGUILayout.HelpBox(
+                $"Level {minLevel}: {minXP} XP, {minGold} Gold\n" +
+                $"Level {maxLevel}: {maxXP} XP, {maxGold} Gold",
+                MessageType.None);
+        }
+        
+        EditorGUILayout.Space(5);
+        EditorGUILayout.LabelField("Legacy Rewards (for templates)", EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal();
+        xpReward = DrawIntField("XP Reward (Legacy)", Mathf.Max(0, xpReward), "Legacy field - not used in new system");
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.BeginHorizontal();
+        goldReward = DrawIntField("Gold Reward (Legacy)", Mathf.Max(0, goldReward), "Legacy field - not used in new system");
+        EditorGUILayout.EndHorizontal();
     }
     
     private void DrawDropTableSection()
@@ -498,17 +593,25 @@ public class MonsterCreatorWindow : ContentCreatorBase
         
         // Assign values
         monster.monsterName = monsterName;
-        monster.level = level;
         monster.monsterSprite = monsterSprite;
         monster.flipSprite = flipSprite;
         
-        monster.health = health;
-        monster.attackDamage = attackDamage;
-        monster.attackSpeed = attackSpeed;
-        monster.attackRange = attackRange;
+        // New level range system
+        monster.minLevel = minLevel;
+        monster.maxLevel = maxLevel;
         
-        monster.xpReward = xpReward;
-        monster.goldReward = goldReward;
+        // New stat modifiers
+        monster.attackRangeType = attackRangeType;
+        monster.healthModifier = healthModifier;
+        monster.damageModifier = damageModifier;
+        monster.speedModifier = speedModifier;
+        monster.armorModifier = armorModifier;
+        
+        // New reward system
+        monster.baseXPReward = baseXPReward;
+        monster.baseGoldReward = baseGoldReward;
+        
+        // Legacy fields removed - all monsters now use the new system
         
         monster.dropTable = new List<MonsterDropEntry>(dropTable);
         
@@ -532,6 +635,18 @@ public class MonsterCreatorWindow : ContentCreatorBase
         level = 1;
         monsterSprite = null;
         flipSprite = false;
+        
+        minLevel = 1;
+        maxLevel = 1;
+        
+        attackRangeType = MonsterAttackRangeType.Melee;
+        healthModifier = 1.0f;
+        damageModifier = 1.0f;
+        speedModifier = 1.0f;
+        armorModifier = 1.0f;
+        
+        baseXPReward = 10;
+        baseGoldReward = 5;
         
         health = 50f;
         attackDamage = 5f;

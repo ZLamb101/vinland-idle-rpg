@@ -63,13 +63,20 @@ public static class QuickDuplicateTool
         // Create new instance
         MonsterData duplicate = Object.Instantiate(original);
         
-        // Apply smart increments
+        // Apply smart increments using new system
         duplicate.monsterName = newName;
-        duplicate.level = original.level + 1;
-        duplicate.health = Mathf.Round(original.health * 1.1f);
-        duplicate.attackDamage = Mathf.Round(original.attackDamage * 1.05f);
-        duplicate.xpReward = Mathf.RoundToInt(original.xpReward * 1.1f);
-        duplicate.goldReward = Mathf.RoundToInt(original.goldReward * 1.1f);
+        
+        // Increase level range by 1
+        duplicate.minLevel = original.minLevel + 1;
+        duplicate.maxLevel = original.maxLevel + 1;
+        
+        // Increase modifiers slightly (makes monster stronger)
+        duplicate.healthModifier = Mathf.Round(original.healthModifier * 1.05f * 100f) / 100f; // +5% health modifier
+        duplicate.damageModifier = Mathf.Round(original.damageModifier * 1.05f * 100f) / 100f; // +5% damage modifier
+        
+        // Increase base rewards
+        duplicate.baseXPReward = Mathf.RoundToInt(original.baseXPReward * 1.1f);
+        duplicate.baseGoldReward = Mathf.RoundToInt(original.baseGoldReward * 1.1f);
         
         // Save asset
         string path = AssetDatabase.GetAssetPath(original);
@@ -97,7 +104,7 @@ public static class QuickDuplicateTool
         Selection.activeObject = duplicate;
         EditorGUIUtility.PingObject(duplicate);
         
-        Debug.Log($"[QuickDuplicate] Created monster '{newName}' with +10% HP, +5% damage, +1 level");
+        Debug.Log($"[QuickDuplicate] Created monster '{newName}' with +1 level range, +5% modifiers, +10% rewards");
     }
     
     #endregion

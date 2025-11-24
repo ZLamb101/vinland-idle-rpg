@@ -345,13 +345,16 @@ public class CombatManager : MonoBehaviour, ICombatService
             int randomIndex = UnityEngine.Random.Range(0, zoneMonsters.Length);
             MonsterData selectedMonster = zoneMonsters[randomIndex];
             
-            // Create combat instance
-            CombatMonsterInstance instance = new CombatMonsterInstance(selectedMonster, i);
+            // Get random level for this monster instance
+            int monsterLevel = MonsterStatCalculator.GetRandomLevel(selectedMonster);
+            
+            // Create combat instance with calculated stats for the random level
+            CombatMonsterInstance instance = new CombatMonsterInstance(selectedMonster, monsterLevel, i);
             activeMonsters.Add(instance);
             monstersToSpawn.Add(selectedMonster);
             
-            // Log monster spawn
-            LogCombatMessage($"Monster {i + 1}: {selectedMonster.monsterName} spawned!", LogType.Info);
+            // Log monster spawn with level
+            LogCombatMessage($"Monster {i + 1}: Level {monsterLevel} {selectedMonster.monsterName} spawned!", LogType.Info);
             
             EventBus.Publish(new MonsterSpawnedEvent { monsterData = selectedMonster, monsterIndex = i });
         }
@@ -757,10 +760,16 @@ public class CombatManager : MonoBehaviour, ICombatService
             return; // Attack dodged, no damage taken
         }
         
-        // Apply armor damage reduction
+        // Apply monster armor damage reduction (if monster has armor)
+        if (monster.armor > 0)
+        {
+            damage *= (1f - monster.armor); // Reduce damage by monster's armor %
+        }
+        
+        // Apply player armor damage reduction
         if (stats.armor > 0)
         {
-            damage *= (1f - stats.armor); // Reduce damage by armor %
+            damage *= (1f - stats.armor); // Reduce damage by player's armor %
         }
         
         playerCurrentHealth -= damage;
@@ -804,12 +813,14 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Give rewards with equipment bonuses
         if (characterService != null)
         {
-            int xpReward = defeatedMonster.monsterData.xpReward;
-            int goldReward = defeatedMonster.monsterData.goldReward;
+            // Calculate scaled rewards based on monster level
+            int xpReward, goldReward;
+            MonsterStatCalculator.CalculateRewards(defeatedMonster.monsterData, defeatedMonster.level, out xpReward, out goldReward);
             
             // Get bonus stats
             CombatStats stats = CombatLogic.GetCombatStats();
             
+            // Apply equipment/talent bonuses
             xpReward = Mathf.RoundToInt(xpReward * (1f + stats.xpBonus));
             goldReward = Mathf.RoundToInt(goldReward * (1f + stats.goldBonus));
             

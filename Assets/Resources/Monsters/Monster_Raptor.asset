@@ -15,13 +15,15 @@ MonoBehaviour:
   monsterName: Raptor
   monsterSprite: {fileID: -7970112860141335647, guid: 0ec0351421f858a49baaee38138ea721, type: 3}
   flipSprite: 1
-  level: 3
-  health: 110
-  attackDamage: 12
-  attackSpeed: 2
-  attackRange: 100
-  xpReward: 30
-  goldReward: 5
+  minLevel: 4
+  maxLevel: 6
+  attackRangeType: 0
+  healthModifier: 1
+  damageModifier: 1
+  speedModifier: 1
+  armorModifier: 1
+  baseXPReward: 10
+  baseGoldReward: 5
   dropTable:
   - item: {fileID: 11400000, guid: 2246114e30743094388657cadb794eb2, type: 2}
     quantity: 1

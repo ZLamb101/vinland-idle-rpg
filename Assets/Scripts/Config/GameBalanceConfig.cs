@@ -25,6 +25,15 @@ public class CombatConfig
     public float playerBaseCritDamage = 2f; // Base critical hit multiplier (2x = 200%)
     public float baseMissChance = 0.01f; // Base miss chance for all attacks (1% = 0.01)
     public float monsterRespawnDelay = 0.5f;
+    
+    // Monster base stats (shared by all monsters)
+    public float monsterBaseHealth = 54f;
+    public float monsterBaseAttackDamage = 10f;
+    public float monsterBaseAttackSpeed = 2.0f;
+    public float monsterBaseArmor = 0.2f; // 20% damage reduction (doesn't scale with level)
+    public float monsterMeleeRange = 120f;
+    public float monsterRangedRange = 600f;
+    public float monsterLevelScalingMultiplier = 0.15f; // 15% per level above minimum
 }
 
 /// <summary>
