@@ -32,7 +32,6 @@ public static class MonsterStatCalculator
         if (monsterData == null)
             return 1;
         
-        // Clamp min/max level to valid range
         int minLevel = Mathf.Max(1, monsterData.minLevel);
         int maxLevel = Mathf.Max(minLevel, monsterData.maxLevel);
         
@@ -49,7 +48,6 @@ public static class MonsterStatCalculator
         
         if (monsterData == null)
         {
-            // Fallback to default values
             stats.level = 1;
             stats.health = GameBalance.Combat.monsterBaseHealth;
             stats.attackDamage = GameBalance.Combat.monsterBaseAttackDamage;
@@ -59,18 +57,15 @@ public static class MonsterStatCalculator
             return stats;
         }
         
-        // Ensure level is within valid range
         int minLevel = Mathf.Max(1, monsterData.minLevel);
         int maxLevel = Mathf.Max(minLevel, monsterData.maxLevel);
         int finalLevel = Mathf.Clamp(level, minLevel, maxLevel);
         stats.level = finalLevel;
         
-        // Calculate exponential scaling multiplier based on absolute level
         // Formula: (1 + scalingMultiplier) ^ level
         // Example: Level 8 with 15% scaling = (1.15)^8 ≈ 3.06x
         float scalingMultiplier = Mathf.Pow(1.0f + GameBalance.Combat.monsterLevelScalingMultiplier, finalLevel);
         
-        // Get base stats from GameBalance
         float baseHealth = GameBalance.Combat.monsterBaseHealth;
         float baseDamage = GameBalance.Combat.monsterBaseAttackDamage;
         float baseSpeed = GameBalance.Combat.monsterBaseAttackSpeed;
@@ -79,10 +74,9 @@ public static class MonsterStatCalculator
         // Calculate final stats: base * scaling * modifier
         stats.health = baseHealth * scalingMultiplier * monsterData.healthModifier;
         stats.attackDamage = baseDamage * scalingMultiplier * monsterData.damageModifier;
-        stats.attackSpeed = baseSpeed * monsterData.speedModifier; // Speed modifier directly multiplies (lower = faster)
-        stats.armor = baseArmor * monsterData.armorModifier; // Armor doesn't scale with level
+        stats.attackSpeed = baseSpeed * monsterData.speedModifier; 
+        stats.armor = baseArmor * monsterData.armorModifier; 
         
-        // Set attack range based on type
         stats.attackRange = monsterData.attackRangeType == MonsterAttackRangeType.Melee
             ? GameBalance.Combat.monsterMeleeRange
             : GameBalance.Combat.monsterRangedRange;
@@ -93,7 +87,7 @@ public static class MonsterStatCalculator
     /// <summary>
     /// Calculate scaled rewards for a monster at a specific level
     /// </summary>
-    public static CalculatedMonsterRewards CalculateRewards(MonsterData monsterData, int level)
+    public static CalculatedMonsterRewards CalculateRewards(MonsterData monsterData, int monsterLevel, int playerLevel)
     {
         CalculatedMonsterRewards rewards = new CalculatedMonsterRewards();
 
@@ -103,22 +97,60 @@ public static class MonsterStatCalculator
             rewards.goldReward = GameBalance.Combat.monsterBaseGoldReward;
             return rewards;
         }
-        
-        // Ensure level is within valid range
-        int minLevel = Mathf.Max(1, monsterData.minLevel);
-        int maxLevel = Mathf.Max(minLevel, monsterData.maxLevel);
-        int finalLevel = Mathf.Clamp(level, minLevel, maxLevel);
-        
-        // Calculate exponential scaling multiplier based on absolute level
+
         // Formula: (1 + scalingMultiplier) ^ level
         // Example: Level 8 with 15% scaling = (1.15)^8 ≈ 3.06x
-        float scalingMultiplier = Mathf.Pow(1.0f + GameBalance.Combat.monsterLevelScalingMultiplier, finalLevel);
+        float scalingMultiplier = Mathf.Pow(1.0f + GameBalance.Combat.monsterLevelScalingMultiplier, monsterLevel);
         
-        // Scale rewards
-        rewards.xpReward = Mathf.RoundToInt(GameBalance.Combat.monsterBaseXPReward * scalingMultiplier * monsterData.xpRewardModifier);
+        if(playerLevel == monsterLevel){
+            rewards.xpReward = ((monsterLevel * 5) + GameBalance.Combat.monsterBaseXPReward);
+        }
+        if(monsterLevel > playerLevel){
+            rewards.xpReward = Mathf.RoundToInt(((monsterLevel * 5) + GameBalance.Combat.monsterBaseXPReward) * (1 + (monsterLevel - playerLevel) * 0.05f));
+        }
+        if(monsterLevel < playerLevel){
+            int grayThresholdLevel = GetGrayLevelThreshold(monsterLevel);
+            
+            if(playerLevel >= grayThresholdLevel){
+                rewards.xpReward = 0;
+            } else {
+                int difference = 0;
+                if(playerLevel < 8) difference = 5;
+                else if(playerLevel < 10) difference = 6;
+                else if(playerLevel < 12) difference = 7;
+                else if(playerLevel < 16) difference = 8;
+                else if(playerLevel < 20) difference = 9;
+                else if(playerLevel < 40) difference = 9 + Mathf.FloorToInt(playerLevel / 10);
+                else difference = 5 + Mathf.FloorToInt(playerLevel / 5);
+                rewards.xpReward = Mathf.RoundToInt((playerLevel * 5 + GameBalance.Combat.monsterBaseXPReward) * (1f - (float)(playerLevel - monsterLevel) / difference));
+            }
+        }
+        
         rewards.goldReward = Mathf.RoundToInt(GameBalance.Combat.monsterBaseGoldReward * scalingMultiplier * monsterData.goldRewardModifier);
 
         return rewards;
+    }
+    
+    /// <summary>
+    /// Calculate the minimum player level at which a monster becomes gray (gives 0 XP)
+    /// Returns the player level where the monster would start giving 0 XP
+    /// </summary>
+    public static int GetGrayLevelThreshold(int monsterLevel)
+    {
+        for (int playerLevel = monsterLevel; playerLevel <= 100; playerLevel++)
+        {
+            int grayLevel;
+            if (playerLevel < 6) grayLevel = 0;
+            else if (playerLevel < 40) grayLevel = playerLevel - 5 - Mathf.FloorToInt(playerLevel / 10);
+            else grayLevel = playerLevel - 1 - Mathf.FloorToInt(playerLevel % 5);
+            
+            if (monsterLevel <= grayLevel)
+            {
+                return playerLevel;
+            }
+        }
+        
+        return 100;
     }
 }
 

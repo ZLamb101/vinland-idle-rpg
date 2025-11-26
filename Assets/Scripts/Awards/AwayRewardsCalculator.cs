@@ -10,18 +10,15 @@ public class AwayRewards
 {
     public AwayActivityType activityType;
     public TimeSpan timeAway;
-    public string activityName; // e.g., "Mining Iron Ore" or "Fighting Goblins"
+    public string activityName;
     
-    // Mining rewards
-    public Dictionary<string, int> itemsGathered = new Dictionary<string, int>(); // Item name -> quantity
+    public Dictionary<string, int> itemsGathered = new Dictionary<string, int>();
     
-    // Fighting rewards
     public int xpEarned = 0;
     public int goldEarned = 0;
-    public Dictionary<string, int> itemsDropped = new Dictionary<string, int>(); // Item name -> quantity
+    public Dictionary<string, int> itemsDropped = new Dictionary<string, int>();
     public int monstersKilled = 0;
     
-    // Profession rewards
     public Dictionary<ProfessionType, int> professionXPEarned = new Dictionary<ProfessionType, int>();
 }
 
@@ -42,7 +39,6 @@ public static class AwayRewardsCalculator
             timeAway = DateTime.Now - activityStartTime
         };
         
-        // Don't calculate rewards if time away is negative or zero
         if (rewards.timeAway.TotalSeconds <= 0)
         {
             return rewards;
@@ -65,7 +61,7 @@ public static class AwayRewardsCalculator
     }
     
     /// <summary>
-    /// Calculate rewards for "doing Nothing" (currently empty, but extensible)
+    /// Calculate rewards for "doing Nothing"
     /// </summary>
     private static void CalculateNoneRewards(AwayRewards rewards, TimeSpan timeAway)
     {
@@ -84,12 +80,10 @@ public static class AwayRewardsCalculator
             return;
         }
         
-        // Calculate how many gather cycles completed
-        float timePerGather = 1f / resource.gatherRate; // Time in seconds per gather cycle
+        float timePerGather = 1f / resource.gatherRate;
         float totalSeconds = (float)timeAway.TotalSeconds;
         int gatherCycles = Mathf.FloorToInt(totalSeconds / timePerGather);
         
-        // Calculate items gathered
         int totalItems = gatherCycles * resource.itemsPerGather;
         
         Debug.Log($"[AwayRewards] Mining calculation - Time away: {totalSeconds}s, Time per gather: {timePerGather}s, Gather cycles: {gatherCycles}, Items per gather: {resource.itemsPerGather}, Total items: {totalItems}");
@@ -105,7 +99,6 @@ public static class AwayRewardsCalculator
             Debug.LogWarning($"[AwayRewards] No items gathered - gatherCycles: {gatherCycles}, itemsPerGather: {resource.itemsPerGather}");
         }
         
-        // Calculate profession XP
         if (resource.professionXPReward > 0 && gatherCycles > 0)
         {
             int totalProfessionXP = gatherCycles * resource.professionXPReward;
@@ -123,8 +116,7 @@ public static class AwayRewardsCalculator
         {
             return;
         }
-        
-        // Use the first monster for naming (or combine names if multiple types)
+
         if (monsters.Length == 1)
         {
             rewards.activityName = $"Fighting {monsters[0].monsterName}";
@@ -134,19 +126,45 @@ public static class AwayRewardsCalculator
             rewards.activityName = $"Fighting {monsters.Length} Monster Types";
         }
         
-        // Get player combat stats from CombatService
+        int monstersKilled = CalculateMonstersKilled(monsters, mobCount, timeAway);
+        rewards.monstersKilled = monstersKilled;
+        
+        if (monstersKilled <= 0)
+        {
+            return;
+        }
+        
+        int playerLevel = GetPlayerLevel();
+        CombatStats stats = CombatLogic.GetCombatStats();
+        
+        int maxSafeLevel = CalculateMaxSafeLevel(monsters);
+        
+        int totalXP = CalculateProgressiveXP(monsters, monstersKilled, playerLevel, maxSafeLevel, stats);
+        
+        int totalGold;
+        Dictionary<string, int> totalItems;
+        CalculateGoldAndItems(monsters, monstersKilled, playerLevel, stats, out totalGold, out totalItems);
+        
+        rewards.xpEarned = totalXP;
+        rewards.goldEarned = totalGold;
+        rewards.itemsDropped = totalItems;
+        
+        Debug.Log($"[AwayRewards] Total rewards - XP: {totalXP}, Gold: {totalGold}, Items: {totalItems.Count} types, Max safe level: {maxSafeLevel}");
+    }
+    
+    /// <summary>
+    /// Calculate how many monsters were killed during away time
+    /// </summary>
+    private static int CalculateMonstersKilled(MonsterData[] monsters, int mobCount, TimeSpan timeAway)
+    {
         float playerAttackDamage = GameBalance.Combat.playerBaseAttackDamage;
         float playerAttackSpeed = GameBalance.Combat.playerBaseAttackSpeed;
         
         if (Services.TryGet<ICombatService>(out var combatService))
         {
-            // Ensure player stats are up to date
             combatService.CalculatePlayerStats();
-            
-            // Get actual player stats
             playerAttackDamage = combatService.GetPlayerAttackDamage();
             playerAttackSpeed = combatService.GetPlayerAttackSpeed();
-            
             Debug.Log($"[AwayRewards] Player stats from CombatService - Damage: {playerAttackDamage}, Speed: {playerAttackSpeed}");
         }
         else
@@ -154,129 +172,390 @@ public static class AwayRewardsCalculator
             Debug.LogWarning("[AwayRewards] CombatService is null, using base config stats");
         }
         
-        // Calculate time per kill based on:
-        // 1. Monster health / player damage = hits needed to kill
-        // 2. Hits needed * attack speed = time per kill
-        // Use average monster health across all monster types
-        // Calculate health at average level (midpoint between min and max) for each monster
         float averageMonsterHealth = 0f;
         foreach (MonsterData monster in monsters)
         {
-            // Calculate average level for this monster type
             int avgLevel = Mathf.RoundToInt((monster.minLevel + monster.maxLevel) / 2f);
             CalculatedMonsterStats monsterStats = MonsterStatCalculator.CalculateMonsterStats(monster, avgLevel);
             averageMonsterHealth += monsterStats.health;
         }
         averageMonsterHealth /= monsters.Length;
         
-        // Get actual player combat stats for crit calculation
         CombatStats stats = CombatLogic.GetCombatStats();
-        
-        // Calculate expected damage accounting for critical hits
-        // Formula: baseDamage * (1 + critChance * (critMultiplier - 1))
-        // Example: 10 damage, 20% crit, 2.5x crit = 10 * (1 + 0.2 * 1.5) = 10 * 1.3 = 13 avg damage
         float critMultiplier = 1f + stats.critChance * (stats.critDamage - 1f);
         float averageDamage = playerAttackDamage * critMultiplier;
         
         float hitsNeeded = Mathf.Max(1f, Mathf.Ceil(averageMonsterHealth / averageDamage));
-        
-        // Time per kill = hits needed * attack speed
         float timePerKill = hitsNeeded * playerAttackSpeed;
         float totalSeconds = (float)timeAway.TotalSeconds;
-        
-        // Calculate monsters killed
-        // Since monsters don't fight back, player can kill continuously
-        // With mob count, player can kill multiple monsters simultaneously
-        // Ensure we always get at least 1 kill if time away is significant
-        float killsPerSecond = mobCount / Mathf.Max(0.1f, timePerKill); // Prevent division by zero
+        float killsPerSecond = mobCount / Mathf.Max(0.1f, timePerKill);
         int monstersKilled = Mathf.Max(1, Mathf.FloorToInt(totalSeconds * killsPerSecond));
-        
-        // If time away is significant (more than 1 minute), ensure at least some kills
-        if (totalSeconds >= 60f && monstersKilled == 0)
-        {
-            // Force at least 1 kill if we've been away for a while
-            monstersKilled = 1;
-        }
-        
-        rewards.monstersKilled = monstersKilled;
         
         Debug.Log($"[AwayRewards] Fighting calculation - Time away: {totalSeconds}s ({timeAway.TotalMinutes:F2} min), Average monster health: {averageMonsterHealth}, Player damage: {playerAttackDamage}, Crit chance: {stats.critChance:P0}, Crit damage: {stats.critDamage}x, Crit multiplier: {critMultiplier:F2}x, Average damage: {averageDamage:F1}, Hits needed: {hitsNeeded}, Time per kill: {timePerKill:F2}s, Kills per second: {killsPerSecond:F3}, Monsters killed: {monstersKilled}, Mob count: {mobCount}");
         
-        // Always calculate rewards if we have kills (should always be at least 1)
-        if (monstersKilled <= 0)
+        return monstersKilled;
+    }
+    
+    /// <summary>
+    /// Get player level from character service
+    /// </summary>
+    private static int GetPlayerLevel()
+    {
+        if (Services.TryGet<ICharacterService>(out var characterService))
         {
-            Debug.LogWarning($"[AwayRewards] No monsters killed despite {totalSeconds}s away - calculation issue! Time per kill: {timePerKill}s");
-            // Force at least 1 kill to ensure rewards are calculated
-            monstersKilled = 1;
-            rewards.monstersKilled = monstersKilled;
+            return characterService.GetLevel();
+        }
+        else
+        {
+            Debug.LogWarning("[AwayRewards] CharacterService not found, using default player level 1");
+            return 1;
+        }
+    }
+    
+    /// <summary>
+    /// Calculate maximum safe level where monsters become gray
+    /// Iterates through all levels in each monster's range and uses the maximum gray threshold
+    /// (when the highest level in range becomes gray, meaning all levels are gray)
+    /// </summary>
+    private static int CalculateMaxSafeLevel(MonsterData[] monsters)
+    {
+        if (monsters == null || monsters.Length == 0)
+        {
+            return 100;
         }
         
-        // Calculate rewards per monster type
-        int totalXP = 0;
-        int totalGold = 0;
-        Dictionary<string, int> totalItems = new Dictionary<string, int>();
+        int maxSafeLevel = 100;
+        for (int i = 0; i < monsters.Length; i++)
+        {
+            MonsterData monster = monsters[i];
+            if (monster == null) continue;
+            
+            var (minLevel, maxLevel) = GetMonsterLevelRange(monster);
+            
+            // Find the maximum gray threshold across all levels in this monster's range
+            // This ensures we stop when ALL levels in the range become gray
+            int monsterMaxGrayThreshold = 0;
+            for (int level = minLevel; level <= maxLevel; level++)
+            {
+                int grayThresholdLevel = MonsterStatCalculator.GetGrayLevelThreshold(level);
+                if (grayThresholdLevel > monsterMaxGrayThreshold)
+                {
+                    monsterMaxGrayThreshold = grayThresholdLevel;
+                }
+            }
+            
+            // Use the most restrictive (lowest) maxSafeLevel across all monsters
+            if (i == 0 || monsterMaxGrayThreshold < maxSafeLevel)
+            {
+                maxSafeLevel = monsterMaxGrayThreshold;
+            }
+        }
+        return maxSafeLevel;
+    }
+    
+    /// <summary>
+    /// Get validated level range for a monster
+    /// </summary>
+    private static (int minLevel, int maxLevel) GetMonsterLevelRange(MonsterData monster)
+    {
+        if (monster == null)
+        {
+            return (1, 1);
+        }
         
-        // Distribute kills across monster types (if multiple types)
-        int killsPerMonsterType = monstersKilled / monsters.Length;
-        int remainderKills = monstersKilled % monsters.Length;
+        int minLevel = Mathf.Max(1, monster.minLevel);
+        int maxLevel = Mathf.Max(minLevel, monster.maxLevel);
+        return (minLevel, maxLevel);
+    }
+    
+    /// <summary>
+    /// Distribute kills across all monsters and their level ranges
+    /// Returns a dictionary mapping (monster, level) combinations to kill counts
+    /// </summary>
+    private static Dictionary<MonsterLevelKey, int> DistributeKillsAcrossLevelRanges(MonsterData[] monsters, int totalKills)
+    {
+        Dictionary<MonsterLevelKey, int> killsPerMonsterLevel = new Dictionary<MonsterLevelKey, int>();
+        
+        if (monsters == null || monsters.Length == 0 || totalKills <= 0)
+        {
+            return killsPerMonsterLevel;
+        }
+        
+        int killsPerMonsterType = totalKills / monsters.Length;
+        int remainderKills = totalKills % monsters.Length;
         
         for (int i = 0; i < monsters.Length; i++)
         {
             MonsterData monster = monsters[i];
-            int killsForThisType = killsPerMonsterType + (i < remainderKills ? 1 : 0);
+            if (monster == null) continue;
             
-            // Calculate XP and gold with bonuses (stats already retrieved above, reuse it)
-            // Calculate rewards at average level for this monster type
-            int avgLevel = Mathf.RoundToInt((monster.minLevel + monster.maxLevel) / 2f);
-            CalculatedMonsterRewards monsterRewards = MonsterStatCalculator.CalculateRewards(monster, avgLevel);
+            int totalKillsForMonster = killsPerMonsterType + (i < remainderKills ? 1 : 0);
+            if (totalKillsForMonster <= 0) continue;
             
-            int xpPerKill = Mathf.RoundToInt(monsterRewards.xpReward * (1f + stats.xpBonus));
-            int goldPerKill = Mathf.RoundToInt(monsterRewards.goldReward * (1f + stats.goldBonus));
+            var (minLevel, maxLevel) = GetMonsterLevelRange(monster);
+            int levelRange = maxLevel - minLevel + 1;
             
-            totalXP += xpPerKill * killsForThisType;
-            totalGold += goldPerKill * killsForThisType;
+            int killsPerLevel = totalKillsForMonster / levelRange;
+            int remainderKillsForMonster = totalKillsForMonster % levelRange;
             
-            // Process drop table
-            if (monster.dropTable != null && monster.dropTable.Count > 0)
+            for (int level = minLevel; level <= maxLevel; level++)
             {
-                foreach (MonsterDropEntry dropEntry in monster.dropTable)
+                int killsForThisLevel = killsPerLevel + (level - minLevel < remainderKillsForMonster ? 1 : 0);
+                if (killsForThisLevel > 0)
                 {
-                    if (dropEntry.item != null)
-                    {
-                        // Calculate expected drops based on drop chance
-                        float expectedDrops = dropEntry.dropChance * killsForThisType;
-                        int actualDrops = Mathf.FloorToInt(expectedDrops);
-                        
-                        // Add random chance for fractional part
-                        if (UnityEngine.Random.value < (expectedDrops - actualDrops))
-                        {
-                            actualDrops++;
-                        }
-                        
-                        if (actualDrops > 0)
-                        {
-                            int quantity = actualDrops * dropEntry.quantity;
-                            string itemName = dropEntry.item.itemName;
-                            
-                            if (totalItems.ContainsKey(itemName))
-                            {
-                                totalItems[itemName] += quantity;
-                            }
-                            else
-                            {
-                                totalItems[itemName] = quantity;
-                            }
-                        }
-                    }
+                    MonsterLevelKey key = new MonsterLevelKey(monster, level);
+                    killsPerMonsterLevel[key] = killsForThisLevel;
                 }
             }
         }
         
-        rewards.xpEarned = totalXP;
-        rewards.goldEarned = totalGold;
-        rewards.itemsDropped = totalItems;
+        return killsPerMonsterLevel;
+    }
+    
+    /// <summary>
+    /// Helper struct to track kills per monster level combination
+    /// </summary>
+    private struct MonsterLevelKey
+    {
+        public MonsterData monster;
+        public int level;
         
-        Debug.Log($"[AwayRewards] Total rewards - XP: {totalXP}, Gold: {totalGold}, Items: {totalItems.Count} types");
+        public MonsterLevelKey(MonsterData monster, int level)
+        {
+            this.monster = monster;
+            this.level = level;
+        }
+        
+        public override bool Equals(object obj)
+        {
+            if (obj is MonsterLevelKey other)
+            {
+                return monster == other.monster && level == other.level;
+            }
+            return false;
+        }
+        
+        public override int GetHashCode()
+        {
+            return monster.GetHashCode() ^ level.GetHashCode();
+        }
+    }
+    
+    /// <summary>
+    /// Process level-ups if player has enough XP
+    /// </summary>
+    private static void ProcessLevelUps(ref int currentLevel, ref int currentXP, int maxSafeLevel)
+    {
+        while (currentLevel < maxSafeLevel - 1)
+        {
+            int xpNeededForNextLevel = CombatLogic.GetXPRequiredForLevel(currentLevel);
+            if (currentXP < xpNeededForNextLevel)
+            {
+                break;
+            }
+            
+            currentXP -= xpNeededForNextLevel;
+            currentLevel++;
+        }
+    }
+    
+    /// <summary>
+    /// Calculate XP per kill for each monster/level combination at the current player level
+    /// Returns dictionary of XP per kill and total weighted XP stats
+    /// </summary>
+    private static (Dictionary<MonsterLevelKey, float> xpPerKill, float totalWeightedXp, int totalNonGrayKills) 
+        CalculateXPPerKillForMonsters(Dictionary<MonsterLevelKey, int> remainingKillsPerMonsterLevel, int currentLevel, CombatStats stats)
+    {
+        Dictionary<MonsterLevelKey, float> xpPerKillAtLevel = new Dictionary<MonsterLevelKey, float>();
+        float totalWeightedXp = 0f;
+        int totalRemainingNonGrayKills = 0;
+        
+        foreach (var kvp in remainingKillsPerMonsterLevel)
+        {
+            MonsterLevelKey key = kvp.Key;
+            int remainingKills = kvp.Value;
+            if (remainingKills <= 0) continue;
+            
+            CalculatedMonsterRewards monsterRewards = MonsterStatCalculator.CalculateRewards(key.monster, key.level, currentLevel);
+            float xpPerKill = monsterRewards.xpReward * (1f + stats.xpBonus);
+            xpPerKillAtLevel[key] = xpPerKill;
+            
+            if (xpPerKill <= 0) continue;
+            
+            totalWeightedXp += xpPerKill * remainingKills;
+            totalRemainingNonGrayKills += remainingKills;
+        }
+        
+        return (xpPerKillAtLevel, totalWeightedXp, totalRemainingNonGrayKills);
+    }
+    
+    /// <summary>
+    /// Process kills and calculate XP gained for the current level
+    /// </summary>
+    private static int ProcessKillsAndCalculateXP(
+        Dictionary<MonsterLevelKey, int> remainingKillsPerMonsterLevel,
+        Dictionary<MonsterLevelKey, float> xpPerKillAtLevel,
+        int totalRemainingNonGrayKills,
+        int killsAtThisLevel)
+    {
+        int xpGainedThisLevel = 0;
+        int killsProcessed = 0;
+        
+        List<MonsterLevelKey> keysToProcess = new List<MonsterLevelKey>(remainingKillsPerMonsterLevel.Keys);
+        
+        foreach (MonsterLevelKey key in keysToProcess)
+        {
+            int remainingKills = remainingKillsPerMonsterLevel[key];
+            if (remainingKills <= 0) continue;
+            
+            float xpPerKill = xpPerKillAtLevel[key];
+            if (xpPerKill <= 0) continue;
+            
+            int killsThisIteration = Mathf.RoundToInt((float)remainingKills / totalRemainingNonGrayKills * killsAtThisLevel);
+            killsThisIteration = Mathf.Min(killsThisIteration, remainingKills);
+            killsThisIteration = Mathf.Min(killsThisIteration, killsAtThisLevel - killsProcessed);
+            
+            if (killsThisIteration > 0)
+            {
+                xpGainedThisLevel += Mathf.RoundToInt(xpPerKill * killsThisIteration);
+                remainingKillsPerMonsterLevel[key] -= killsThisIteration;
+                killsProcessed += killsThisIteration;
+            }
+        }
+        
+        return xpGainedThisLevel;
+    }
+    
+    /// <summary>
+    /// Calculate progressive XP that reduces as player levels up
+    /// Distributes kills equally across all levels in each monster's range
+    /// </summary>
+    private static int CalculateProgressiveXP(MonsterData[] monsters, int monstersKilled, int playerLevel, int maxSafeLevel, CombatStats stats)
+    {
+        if (monsters == null || monsters.Length == 0 || monstersKilled <= 0)
+        {
+            return 0;
+        }
+        
+        int totalXP = 0;
+        int currentLevel = playerLevel;
+        int currentXP = Services.TryGet<ICharacterService>(out var characterService) 
+            ? characterService.GetCurrentXP() 
+            : 0;
+        
+        Dictionary<MonsterLevelKey, int> remainingKillsPerMonsterLevel = DistributeKillsAcrossLevelRanges(monsters, monstersKilled);
+        
+        while (currentLevel < maxSafeLevel)
+        {
+            int totalRemainingKills = 0;
+            foreach (int kills in remainingKillsPerMonsterLevel.Values)
+            {
+                totalRemainingKills += kills;
+            }
+            if (totalRemainingKills <= 0) break;
+            
+            ProcessLevelUps(ref currentLevel, ref currentXP, maxSafeLevel);
+            
+            if (currentLevel >= maxSafeLevel) break;
+            
+            int xpNeededForNextLevel = CombatLogic.GetXPRequiredForLevel(currentLevel);
+            int xpToFillCurrentLevel = xpNeededForNextLevel - currentXP;
+            
+            if (xpToFillCurrentLevel <= 0) break;
+            
+            var (xpPerKillAtLevel, totalWeightedXp, totalRemainingNonGrayKills) = 
+                CalculateXPPerKillForMonsters(remainingKillsPerMonsterLevel, currentLevel, stats);
+            
+            if (totalRemainingNonGrayKills == 0 || totalWeightedXp <= 0) break;
+            
+            float avgXpPerKill = totalWeightedXp / totalRemainingNonGrayKills;
+            if (avgXpPerKill <= 0) break;
+            
+            int killsAtThisLevel = Mathf.Min(totalRemainingKills, Mathf.Max(1, Mathf.CeilToInt(xpToFillCurrentLevel / avgXpPerKill)));
+            
+            int xpGainedThisLevel = ProcessKillsAndCalculateXP(
+                remainingKillsPerMonsterLevel,
+                xpPerKillAtLevel,
+                totalRemainingNonGrayKills,
+                killsAtThisLevel);
+            
+            if (xpGainedThisLevel == 0) break;
+            
+            totalXP += xpGainedThisLevel;
+            currentXP += xpGainedThisLevel;
+        }
+
+        return totalXP;
+    }
+    
+    /// <summary>
+    /// Calculate item drops for a given number of kills
+    /// </summary>
+    private static void CalculateItemDrops(MonsterData monster, int kills, Dictionary<string, int> totalItems)
+    {
+        if (monster.dropTable == null || monster.dropTable.Count == 0)
+        {
+            return;
+        }
+        
+        foreach (MonsterDropEntry dropEntry in monster.dropTable)
+        {
+            if (dropEntry.item == null) continue;
+            
+            float expectedDrops = dropEntry.dropChance * kills;
+            int actualDrops = Mathf.FloorToInt(expectedDrops);
+            
+            if (UnityEngine.Random.value < (expectedDrops - actualDrops))
+            {
+                actualDrops++;
+            }
+            
+            if (actualDrops > 0)
+            {
+                int quantity = actualDrops * dropEntry.quantity;
+                string itemName = dropEntry.item.itemName;
+                
+                if (totalItems.ContainsKey(itemName))
+                {
+                    totalItems[itemName] += quantity;
+                }
+                else
+                {
+                    totalItems[itemName] = quantity;
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Calculate gold and items from monster kills
+    /// Distributes kills equally across all levels in each monster's range
+    /// </summary>
+    private static void CalculateGoldAndItems(MonsterData[] monsters, int monstersKilled, int playerLevel, CombatStats stats, 
+        out int totalGold, out Dictionary<string, int> totalItems)
+    {
+        totalGold = 0;
+        totalItems = new Dictionary<string, int>();
+        
+        if (monsters == null || monsters.Length == 0 || monstersKilled <= 0)
+        {
+            return;
+        }
+        
+        Dictionary<MonsterLevelKey, int> killsPerMonsterLevel = DistributeKillsAcrossLevelRanges(monsters, monstersKilled);
+        
+        foreach (var kvp in killsPerMonsterLevel)
+        {
+            MonsterLevelKey key = kvp.Key;
+            int killsForThisLevel = kvp.Value;
+            if (killsForThisLevel <= 0) continue;
+            
+            CalculatedMonsterRewards monsterRewards = MonsterStatCalculator.CalculateRewards(key.monster, key.level, playerLevel);
+            
+            totalGold += Mathf.RoundToInt(monsterRewards.goldReward * (1f + stats.goldBonus)) * killsForThisLevel;
+            
+            CalculateItemDrops(key.monster, killsForThisLevel, totalItems);
+        }
     }
 
 }

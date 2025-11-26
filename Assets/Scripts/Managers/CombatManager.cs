@@ -782,9 +782,11 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Give rewards with equipment bonuses
         if (characterService != null)
         {
-            // Calculate scaled rewards based on monster level
-            CalculatedMonsterRewards rewards = MonsterStatCalculator.CalculateRewards(defeatedMonster.monsterData, defeatedMonster.level);
-            
+
+            // Calculate scaled rewards based on monster level and player level
+            int playerLevel = characterService.GetLevel();
+            CalculatedMonsterRewards rewards = MonsterStatCalculator.CalculateRewards(defeatedMonster.monsterData, defeatedMonster.level, playerLevel);
+
             // Get bonus stats
             CombatStats stats = CombatLogic.GetCombatStats();
             

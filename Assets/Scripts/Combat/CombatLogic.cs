@@ -12,29 +12,24 @@ public static class CombatLogic
     /// </summary>
     public static void CalculatePlayerStats(out float maxHealth, out float currentHealth, out float attackDamage, out float attackSpeed)
     {
-        // Base stats from character attributes
         var characterService = Services.Get<ICharacterService>();
         CharacterData charData = characterService?.GetCharacterData();
         
         if (charData != null)
         {
-            // Get base stats from attributes
             attackDamage = charData.GetAttackPower();
             maxHealth = charData.GetMaxHealth();
             currentHealth = characterService.GetCurrentHealth();
         }
         else
         {
-            // Fallback if no character service
             maxHealth = GameBalance.Combat.playerStartingHealth;
             currentHealth = GameBalance.Combat.playerStartingHealth;
             attackDamage = GameBalance.Combat.playerBaseAttackDamage;
         }
         
-        // Base attack speed (not affected by attributes currently)
         attackSpeed = GameBalance.Combat.playerBaseAttackSpeed;
         
-        // Add equipment bonuses
         var equipmentService = Services.Get<IEquipmentService>();
         if (equipmentService != null)
         {
@@ -45,25 +40,20 @@ public static class CombatLogic
             attackSpeed += equipStats.attackSpeed;
         }
         
-        // Add talent bonuses
         var talentService = Services.Get<ITalentService>();
         if (talentService != null)
         {
             TalentBonuses talents = talentService.GetTotalBonuses();
             
-            // Add max health bonus from talents
             maxHealth += talents.maxHealth;
             maxHealth *= (1f + talents.healthMultiplier);
             
-            // Additive bonuses
             attackDamage += talents.attackDamage;
             attackSpeed += talents.attackSpeed;
             
-            // Percentage multipliers
             attackDamage *= (1f + talents.damageMultiplier);
         }
         
-        // Ensure health doesn't exceed max
         if (currentHealth > maxHealth)
         {
             currentHealth = maxHealth;
@@ -88,7 +78,6 @@ public static class CombatLogic
             healthRegen = 0f
         };
         
-        // Add base stats from character attributes
         var characterService = Services.Get<ICharacterService>();
         CharacterData charData = characterService?.GetCharacterData();
         
@@ -100,7 +89,6 @@ public static class CombatLogic
             stats.healthRegen += charData.GetHealthRegen();
         }
         
-        // Add equipment bonuses
         var equipmentService = Services.Get<IEquipmentService>();
         if (equipmentService != null)
         {
@@ -114,7 +102,6 @@ public static class CombatLogic
             stats.healthRegen += equipStats.healthRegen;
         }
         
-        // Add talent bonuses
         var talentService = Services.Get<ITalentService>();
         if (talentService != null)
         {
@@ -139,7 +126,6 @@ public static class CombatLogic
         wasCritical = false;
         float damage = baseDamage;
         
-        // Apply critical hit
         if (stats.critChance > 0 && Random.value <= stats.critChance)
         {
             damage *= stats.critDamage;
@@ -156,14 +142,12 @@ public static class CombatLogic
     {
         wasDodged = false;
         
-        // Apply dodge
         if (stats.dodge > 0 && Random.value <= stats.dodge)
         {
             wasDodged = true;
             return 0f;
         }
         
-        // Apply armor damage reduction
         float damage = baseDamage;
         if (stats.armor > 0)
         {
@@ -172,7 +156,6 @@ public static class CombatLogic
         
         return damage;
     }
-    
     
     /// <summary>
     /// Calculate lifesteal healing
@@ -202,6 +185,15 @@ public static class CombatLogic
             // Formula: 6% + ((levelDiff - 3) * 4%)
             return 0.06f + ((levelDiff - 3) * 0.04f);
         }
+    }
+    
+    /// <summary>
+    /// Calculate XP required to reach the next level from a given level
+    /// Shared utility to avoid duplication of the XP formula
+    /// </summary>
+    public static int GetXPRequiredForLevel(int level)
+    {
+        return Mathf.FloorToInt(GameBalance.Progression.baseXPPerLevel * Mathf.Pow(level, GameBalance.Progression.xpScalingPerLevel));
     }
 }
 
