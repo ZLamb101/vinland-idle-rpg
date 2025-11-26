@@ -11,10 +11,11 @@
     "monsterBaseAttackSpeed": 2.0,
     "monsterBaseArmor": 0.2,
     "monsterBaseXPReward": 10,
-    "monsterBaseGoldReward": 10,
+    "monsterBaseGoldReward": 2,
     "monsterMeleeRange": 120.0,
     "monsterRangedRange": 600.0,
-    "monsterLevelScalingMultiplier": 0.15
+    "monsterLevelScalingMultiplier": 0.15,
+    "baseAfkGainsPercent": 0.25
   },
   "progression": {
     "baseXPPerLevel": 100,

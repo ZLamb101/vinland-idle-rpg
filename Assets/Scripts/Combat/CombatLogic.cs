@@ -75,7 +75,8 @@ public static class CombatLogic
             armor = 0f,
             xpBonus = 0f,
             goldBonus = 0f,
-            healthRegen = 0f
+            healthRegen = 0f,
+            afkGainsPercent = GameBalance.Combat.baseAfkGainsPercent // Base 25% AFK gains
         };
         
         var characterService = Services.Get<ICharacterService>();
@@ -100,6 +101,7 @@ public static class CombatLogic
             stats.xpBonus += equipStats.xpBonus;
             stats.goldBonus += equipStats.goldBonus;
             stats.healthRegen += equipStats.healthRegen;
+            stats.afkGainsPercent += equipStats.afkGainsPercent; // Add equipment AFK gains
         }
         
         var talentService = Services.Get<ITalentService>();
@@ -113,6 +115,7 @@ public static class CombatLogic
             stats.armor += talents.armor;
             stats.xpBonus += talents.xpBonus;
             stats.goldBonus += talents.goldBonus;
+            stats.afkGainsPercent += talents.afkGainsPercent; // Add talent AFK gains
         }
         
         return stats;
@@ -211,5 +214,6 @@ public struct CombatStats
     public float xpBonus;
     public float goldBonus;
     public float healthRegen; // Health regeneration per second (from Spirit attribute)
+    public float afkGainsPercent; // AFK gains multiplier (0.25 = 25% of normal gains) 
 }
 

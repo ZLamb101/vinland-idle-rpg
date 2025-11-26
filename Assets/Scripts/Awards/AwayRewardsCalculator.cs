@@ -84,9 +84,13 @@ public static class AwayRewardsCalculator
         float totalSeconds = (float)timeAway.TotalSeconds;
         int gatherCycles = Mathf.FloorToInt(totalSeconds / timePerGather);
         
-        int totalItems = gatherCycles * resource.itemsPerGather;
+        int baseTotalItems = gatherCycles * resource.itemsPerGather;
         
-        Debug.Log($"[AwayRewards] Mining calculation - Time away: {totalSeconds}s, Time per gather: {timePerGather}s, Gather cycles: {gatherCycles}, Items per gather: {resource.itemsPerGather}, Total items: {totalItems}");
+        // Apply AFK gains multiplier
+        CombatStats stats = CombatLogic.GetCombatStats();
+        int totalItems = Mathf.FloorToInt(baseTotalItems * stats.afkGainsPercent);
+        
+        Debug.Log($"[AwayRewards] Mining calculation - Time away: {totalSeconds}s, Time per gather: {timePerGather}s, Gather cycles: {gatherCycles}, Items per gather: {resource.itemsPerGather}, Base items: {baseTotalItems}, AFK multiplier: {stats.afkGainsPercent:P0}, Final items: {totalItems}");
         
         if (totalItems > 0)
         {
@@ -101,9 +105,11 @@ public static class AwayRewardsCalculator
         
         if (resource.professionXPReward > 0 && gatherCycles > 0)
         {
-            int totalProfessionXP = gatherCycles * resource.professionXPReward;
+            int baseProfessionXP = gatherCycles * resource.professionXPReward;
+            // Apply AFK gains multiplier to profession XP
+            int totalProfessionXP = Mathf.FloorToInt(baseProfessionXP * stats.afkGainsPercent);
             rewards.professionXPEarned[resource.professionType] = totalProfessionXP;
-            Debug.Log($"[AwayRewards] Earned {totalProfessionXP} {resource.professionType.GetDisplayName()} XP ({gatherCycles} cycles × {resource.professionXPReward} XP)");
+            Debug.Log($"[AwayRewards] Earned {totalProfessionXP} {resource.professionType.GetDisplayName()} XP (base: {baseProfessionXP}, AFK: {stats.afkGainsPercent:P0})");
         }
     }
     
@@ -126,7 +132,11 @@ public static class AwayRewardsCalculator
             rewards.activityName = $"Fighting {monsters.Length} Monster Types";
         }
         
-        int monstersKilled = CalculateMonstersKilled(monsters, mobCount, timeAway);
+        int baseMonstersKilled = CalculateMonstersKilled(monsters, mobCount, timeAway);
+        
+        // Apply AFK gains multiplier to kill count first
+        CombatStats stats = CombatLogic.GetCombatStats();
+        int monstersKilled = Mathf.FloorToInt(baseMonstersKilled * stats.afkGainsPercent);
         rewards.monstersKilled = monstersKilled;
         
         if (monstersKilled <= 0)
@@ -135,10 +145,9 @@ public static class AwayRewardsCalculator
         }
         
         int playerLevel = GetPlayerLevel();
-        CombatStats stats = CombatLogic.GetCombatStats();
-        
         int maxSafeLevel = CalculateMaxSafeLevel(monsters);
         
+        // Calculate rewards from the reduced kill count (already has AFK multiplier applied)
         int totalXP = CalculateProgressiveXP(monsters, monstersKilled, playerLevel, maxSafeLevel, stats);
         
         int totalGold;
@@ -149,7 +158,7 @@ public static class AwayRewardsCalculator
         rewards.goldEarned = totalGold;
         rewards.itemsDropped = totalItems;
         
-        Debug.Log($"[AwayRewards] Total rewards - XP: {totalXP}, Gold: {totalGold}, Items: {totalItems.Count} types, Max safe level: {maxSafeLevel}");
+        Debug.Log($"[AwayRewards] Total rewards - Base kills: {baseMonstersKilled}, AFK kills: {monstersKilled} ({stats.afkGainsPercent:P0}), XP: {totalXP}, Gold: {totalGold}, Items: {totalItems.Count} types, Max safe level: {maxSafeLevel}");
     }
     
     /// <summary>

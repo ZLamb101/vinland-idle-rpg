@@ -36,6 +36,7 @@ public class CombatConfig
     public float monsterMeleeRange = 120f;
     public float monsterRangedRange = 600f;
     public float monsterLevelScalingMultiplier = 0.15f; // 15% per level above minimum
+    public float baseAfkGainsPercent = 0.25f; // Base AFK gains percentage (0.25 = 25% of normal gains)
 }
 
 /// <summary>

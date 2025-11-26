@@ -40,6 +40,7 @@ public class CharacterPanel : MonoBehaviour
     public TextMeshProUGUI dodgeText;
     public TextMeshProUGUI healthRegenText;
     public TextMeshProUGUI attackSpeedText;
+    public TextMeshProUGUI afkGainsText;
     
     // Services
     private ICharacterService characterService;
@@ -177,6 +178,15 @@ public class CharacterPanel : MonoBehaviour
             float baseSpeed = GameBalance.Combat.playerBaseAttackSpeed;
             float finalSpeed = baseSpeed + totalAttackSpeed;
             attackSpeedText.text = $"<b>Attack Speed:</b> {finalSpeed:F2}s";
+        }
+        
+        // Get AFK gains from CombatStats (includes base + equipment + talents)
+        // Display as kill efficiency: kills * AFK gains %
+        CombatStats combatStats = CombatLogic.GetCombatStats();
+        if (afkGainsText != null)
+        {
+            float afkKillEfficiency = combatStats.afkGainsPercent * 100f;
+            afkGainsText.text = $"<b>AFK Kills:</b> {afkKillEfficiency:F1}% of normal";
         }
     }
     

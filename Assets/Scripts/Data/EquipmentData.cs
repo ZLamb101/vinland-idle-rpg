@@ -71,6 +71,9 @@ public class EquipmentData : ScriptableObject
     [Tooltip("Extra gold gain percentage (0.1 = +10% gold)")]
     public float goldBonus = 0f;
     
+    [Tooltip("AFK gains percentage bonus (0.1 = +10% AFK gains, additive with base 25%)")]
+    public float afkGainsPercent = 0f;
+    
     [Header("Visual")]
     public Color rarityColor = Color.white;
     
@@ -113,6 +116,7 @@ public class EquipmentData : ScriptableObject
         if (lifesteal > 0) desc += $"+{lifesteal * 100:F0}% Lifesteal\n";
         if (xpBonus > 0) desc += $"+{xpBonus * 100:F0}% XP Gain\n";
         if (goldBonus > 0) desc += $"+{goldBonus * 100:F0}% Gold Gain\n";
+        if (afkGainsPercent > 0) desc += $"+{afkGainsPercent * 100:F0}% AFK Gains\n";
         
         return desc;
     }

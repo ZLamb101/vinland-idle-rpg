@@ -346,6 +346,7 @@ public class TalentBonuses
     public float armor = 0f;
     public float xpBonus = 0f;
     public float goldBonus = 0f;
+    public float afkGainsPercent = 0f; // AFK gains bonus from talents
 }
 
 

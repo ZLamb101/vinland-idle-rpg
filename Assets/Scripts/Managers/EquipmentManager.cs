@@ -56,6 +56,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     public bool EquipItem(EquipmentData equipment, out EquipmentData unequippedItem)
     {
         unequippedItem = null;
+        
         if (equipment == null) return false;
         
         // Check level requirement
@@ -166,6 +167,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
             totalStats.lifesteal += equipment.lifesteal;
             totalStats.xpBonus += equipment.xpBonus;
             totalStats.goldBonus += equipment.goldBonus;
+            totalStats.afkGainsPercent += equipment.afkGainsPercent; // Add AFK gains from equipment
         }
         
         EventBus.Publish(new StatsRecalculatedEvent { equipmentStats = totalStats });
@@ -218,8 +220,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         {
             if (kvp.Value != null)
             {
-                // Save with "Equipment/" prefix for Resources.Load path
-                saveData[kvp.Key] = "Equipment/" + kvp.Value.name;
+                saveData[kvp.Key] = kvp.Value.name; // ScriptableObject name
             }
         }
         return saveData;
@@ -274,23 +275,9 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         {
             Debug.Log($"[EquipmentManager] Attempting to load equipment for slot {kvp.Key} with asset name: {kvp.Value}");
             
-            // Load equipment from Resources folder
+            // Load equipment from Resources or AssetDatabase
+            // This requires equipment to be in Resources folder
             EquipmentData equipment = Resources.Load<EquipmentData>(kvp.Value);
-            
-            // Fallback: If not found and doesn't already have "Equipment/" prefix, try adding it
-            if (equipment == null && !kvp.Value.StartsWith("Equipment/"))
-            {
-                Debug.Log($"[EquipmentManager] First attempt failed, trying with Equipment/ prefix...");
-                equipment = Resources.Load<EquipmentData>("Equipment/" + kvp.Value);
-            }
-            
-            // Fallback: Try without any prefix (in case it's in root Resources)
-            if (equipment == null && kvp.Value.Contains("/"))
-            {
-                string nameOnly = kvp.Value.Substring(kvp.Value.LastIndexOf('/') + 1);
-                Debug.Log($"[EquipmentManager] Second attempt failed, trying root Resources with name: {nameOnly}");
-                equipment = Resources.Load<EquipmentData>(nameOnly);
-            }
             
             if (equipment != null)
             {
@@ -301,7 +288,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
             }
             else
             {
-                Debug.LogWarning($"[EquipmentManager] Failed to load equipment asset: {kvp.Value} (make sure it's in Resources/Equipment folder)");
+                Debug.LogWarning($"[EquipmentManager] Failed to load equipment asset: {kvp.Value} (make sure it's in a Resources folder)");
             }
         }
         
@@ -352,6 +339,7 @@ public class EquipmentStats
     public float lifesteal = 0f;
     public float xpBonus = 0f;
     public float goldBonus = 0f;
+    public float afkGainsPercent = 0f; // AFK gains bonus from equipment
 }
 
 
