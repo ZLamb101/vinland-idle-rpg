@@ -79,6 +79,9 @@ public class SaveData
     public string lastPlayedTime = "";
     public string lastSessionStart = "";
     
+    // Action Bar (4 skill slots)
+    public List<string> actionBarSkills = new List<string>(); // Skill asset names
+    
     // Metadata
     public string saveTime = ""; // When this save was created
     
@@ -227,6 +230,18 @@ public class SaveData
             }
             
             data.awayMobCount = awayActivityService.GetMobCount();
+        }
+        
+        // Action Bar Skills
+        if (Services.TryGet<ISkillService>(out var skillService))
+        {
+            string[] actionBarData = skillService.GetActionBarSaveData();
+            data.actionBarSkills.Clear();
+            if (actionBarData != null)
+            {
+                data.actionBarSkills.AddRange(actionBarData);
+                Debug.Log($"[SaveData] Saved {actionBarData.Length} action bar skills");
+            }
         }
         
         return data;
@@ -404,6 +419,16 @@ public class SaveData
         if (Services.TryGet<IZoneService>(out var zoneService))
         {
             zoneService.LoadCurrentZone();
+        }
+        
+        // Action Bar Skills
+        if (Services.TryGet<ISkillService>(out var skillService))
+        {
+            if (actionBarSkills != null && actionBarSkills.Count > 0)
+            {
+                skillService.LoadActionBarData(actionBarSkills.ToArray());
+                Debug.Log($"[SaveData] Loaded {actionBarSkills.Count} action bar skills");
+            }
         }
     }
 }

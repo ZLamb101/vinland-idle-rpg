@@ -189,30 +189,52 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     {
         if (currentItem != null && !currentItem.IsEmpty())
         {
-            // Show tooltip for both inventory and bank panels
-            if (bankPanel != null)
+            // Build tooltip description
+            string description = currentItem.description;
+            
+            // Add equipment stats if it's equipment
+            if (currentItem.IsEquipment() && currentItem.equipmentData != null)
             {
-                // Bank panels can show tooltips too if they have the method
-                // For now, we'll just skip it or you can add ShowTooltip to BankPanel
+                description += "\n\n" + GetEquipmentStatsText(currentItem.equipmentData);
             }
-            else if (inventoryPanel != null)
+            
+            // Add quantity info
+            if (currentItem.quantity > 1)
             {
-                inventoryPanel.ShowTooltip(currentItem);
+                description += $"\n\n<color=yellow>Quantity: {currentItem.quantity}</color>";
             }
+            
+            EventBus.Publish(new TooltipShowEvent { title = currentItem.itemName, description = description });
         }
     }
     
     void OnHoverEnd()
     {
-        // Hide tooltip for both inventory and bank panels
-        if (bankPanel != null)
-        {
-            // Bank panels can hide tooltips too
-        }
-        else if (inventoryPanel != null)
-        {
-            inventoryPanel.HideTooltip();
-        }
+        EventBus.Publish(new TooltipHideEvent());
+    }
+    
+    string GetEquipmentStatsText(EquipmentData equipment)
+    {
+        if (equipment == null) return "";
+        
+        string stats = $"<color=cyan>Slot: {equipment.slot}</color>\n";
+        
+        if (equipment.levelRequired > 1)
+            stats += $"<color=red>Requires Level {equipment.levelRequired}</color>\n";
+        
+        stats += "\n";
+        
+        if (equipment.attackDamage > 0) stats += $"+{equipment.attackDamage:F0} Attack Damage\n";
+        if (equipment.maxHealth > 0) stats += $"+{equipment.maxHealth:F0} Max Health\n";
+        if (equipment.attackSpeed != 0) stats += $"{(equipment.attackSpeed < 0 ? "" : "+")}{equipment.attackSpeed:F2}s Attack Speed\n";
+        if (equipment.armor > 0) stats += $"+{equipment.armor * 100:F0}% Armor\n";
+        if (equipment.criticalChance > 0) stats += $"+{equipment.criticalChance * 100:F0}% Critical Chance\n";
+        if (equipment.dodge > 0) stats += $"+{equipment.dodge * 100:F0}% Dodge\n";
+        if (equipment.lifesteal > 0) stats += $"+{equipment.lifesteal * 100:F0}% Lifesteal\n";
+        if (equipment.xpBonus > 0) stats += $"+{equipment.xpBonus * 100:F0}% XP Gain\n";
+        if (equipment.goldBonus > 0) stats += $"+{equipment.goldBonus * 100:F0}% Gold Gain\n";
+        
+        return stats;
     }
     
     /// <summary>
@@ -430,6 +452,9 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
                 itemIcon.color = iconColor;
             }
         }
+        
+        // Hide tooltip during drag
+        EventBus.Publish(new TooltipHideEvent());
         
         // Notify UI that drag started
         if (bankPanel != null)

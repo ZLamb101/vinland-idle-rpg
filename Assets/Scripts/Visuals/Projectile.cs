@@ -108,5 +108,31 @@ public class Projectile : MonoBehaviour
         isMoving = false;
         gameObject.SetActive(false);
     }
+    
+    /// <summary>
+    /// Apply visual settings from a skill (sprite, color, speed)
+    /// </summary>
+    public void ApplySkillVisuals(SkillData skill)
+    {
+        if (skill == null) return;
+        
+        // Override sprite if skill has one
+        if (skill.projectileSprite != null && projectileImage != null)
+        {
+            projectileImage.sprite = skill.projectileSprite;
+        }
+        
+        // Apply color tint
+        if (projectileImage != null && skill.projectileColor != Color.clear)
+        {
+            projectileImage.color = skill.projectileColor;
+        }
+        
+        // Apply speed multiplier
+        if (skill.projectileSpeedMultiplier > 0f)
+        {
+            speed *= skill.projectileSpeedMultiplier;
+        }
+    }
 }
 

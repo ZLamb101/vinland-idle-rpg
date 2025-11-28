@@ -136,3 +136,4 @@ MonoBehaviour:
   projectileImage: {fileID: 3649144347494234959}
   rectTransform: {fileID: 2246890949579542064}
   speed: 1000
+  hitRadius: 200

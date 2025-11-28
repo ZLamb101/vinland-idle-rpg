@@ -181,12 +181,10 @@ public class CharacterPanel : MonoBehaviour
         }
         
         // Get AFK gains from CombatStats (includes base + equipment + talents)
-        // Display as kill efficiency: kills * AFK gains %
         CombatStats combatStats = CombatLogic.GetCombatStats();
         if (afkGainsText != null)
         {
-            float afkKillEfficiency = combatStats.afkGainsPercent * 100f;
-            afkGainsText.text = $"<b>AFK Kills:</b> {afkKillEfficiency:F1}% of normal";
+            afkGainsText.text = $"<b>AFK Gains:</b> {combatStats.afkGainsPercent * 100:F1}%";
         }
     }
     
@@ -224,11 +222,72 @@ public class CharacterPanel : MonoBehaviour
         {
             slotUI.slotButton.onClick.RemoveAllListeners();
             slotUI.slotButton.onClick.AddListener(() => OnSlotClicked(slotType));
+            
+            // Add hover events for tooltip
+            UnityEngine.EventSystems.EventTrigger trigger = slotUI.slotButton.gameObject.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+            if (trigger == null)
+                trigger = slotUI.slotButton.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+            
+            // Clear existing triggers to avoid duplicates
+            trigger.triggers.Clear();
+            
+            // Pointer enter (hover start)
+            UnityEngine.EventSystems.EventTrigger.Entry pointerEnter = new UnityEngine.EventSystems.EventTrigger.Entry();
+            pointerEnter.eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter;
+            pointerEnter.callback.AddListener((data) => { OnSlotHoverStart(slotType); });
+            trigger.triggers.Add(pointerEnter);
+            
+            // Pointer exit (hover end)
+            UnityEngine.EventSystems.EventTrigger.Entry pointerExit = new UnityEngine.EventSystems.EventTrigger.Entry();
+            pointerExit.eventID = UnityEngine.EventSystems.EventTriggerType.PointerExit;
+            pointerExit.callback.AddListener((data) => { OnSlotHoverEnd(); });
+            trigger.triggers.Add(pointerExit);
         }
         else
         {
             Debug.LogWarning($"[CharacterPanel] Button is null for {slotType} slot! Assign the Button component in the Inspector.");
         }
+    }
+    
+    void OnSlotHoverStart(EquipmentSlot slotType)
+    {
+        if (equipmentService == null) return;
+        
+        EquipmentData equipment = equipmentService.GetEquipment(slotType);
+        if (equipment != null)
+        {
+            string description = equipment.description + "\n\n" + GetEquipmentStatsText(equipment);
+            EventBus.Publish(new TooltipShowEvent { title = equipment.equipmentName, description = description });
+        }
+    }
+    
+    void OnSlotHoverEnd()
+    {
+        EventBus.Publish(new TooltipHideEvent());
+    }
+    
+    string GetEquipmentStatsText(EquipmentData equipment)
+    {
+        if (equipment == null) return "";
+        
+        string stats = $"<color=cyan>Slot: {equipment.slot}</color>\n";
+        
+        if (equipment.levelRequired > 1)
+            stats += $"<color=red>Requires Level {equipment.levelRequired}</color>\n";
+        
+        stats += "\n";
+        
+        if (equipment.attackDamage > 0) stats += $"+{equipment.attackDamage:F0} Attack Damage\n";
+        if (equipment.maxHealth > 0) stats += $"+{equipment.maxHealth:F0} Max Health\n";
+        if (equipment.attackSpeed != 0) stats += $"{(equipment.attackSpeed < 0 ? "" : "+")}{equipment.attackSpeed:F2}s Attack Speed\n";
+        if (equipment.armor > 0) stats += $"+{equipment.armor * 100:F0}% Armor\n";
+        if (equipment.criticalChance > 0) stats += $"+{equipment.criticalChance * 100:F0}% Critical Chance\n";
+        if (equipment.dodge > 0) stats += $"+{equipment.dodge * 100:F0}% Dodge\n";
+        if (equipment.lifesteal > 0) stats += $"+{equipment.lifesteal * 100:F0}% Lifesteal\n";
+        if (equipment.xpBonus > 0) stats += $"+{equipment.xpBonus * 100:F0}% XP Gain\n";
+        if (equipment.goldBonus > 0) stats += $"+{equipment.goldBonus * 100:F0}% Gold Gain\n";
+        
+        return stats;
     }
     
     void OnSlotClicked(EquipmentSlot slot)

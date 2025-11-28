@@ -34,12 +34,14 @@ public class CombatSceneController : MonoBehaviour
     public float monsterXSpacing = 100f;
     
     private List<EnemyVisual> activeEnemies = new List<EnemyVisual>();
-    private List<GameObject> activeItemDrops = new List<GameObject>(); // Track active drop visuals for cleanup
     private int currentTargetIndex = 0;
-    private List<GameObject> activeDamageTexts = new List<GameObject>(); // Track active damage text GameObjects for cleanup
     
     private ICombatService combatService; // Cached combat service reference
-    private TMP_FontAsset damageTextFont; // Cached font for damage text
+    
+    // Sub-controllers (extracted for single responsibility)
+    private DamageTextController damageTextController;
+    private ProjectileController projectileController;
+    private ItemDropController itemDropController;
     
     /// <summary>
     /// Get enemy visual by index
@@ -84,15 +86,43 @@ public class CombatSceneController : MonoBehaviour
             poolObj.transform.SetParent(combatSceneContainer);
             projectilePool = poolObj.transform;
         }
+        
+        // Initialize sub-controllers
+        InitializeControllers();
+    }
+    
+    void InitializeControllers()
+    {
+        // Create and initialize DamageTextController
+        damageTextController = gameObject.AddComponent<DamageTextController>();
+        damageTextController.Initialize(
+            combatSceneContainer,
+            GetEnemyLocalPosition,
+            GetHeroLocalPosition
+        );
+        
+        // Create and initialize ProjectileController
+        projectileController = gameObject.AddComponent<ProjectileController>();
+        projectileController.Initialize(
+            combatSceneContainer,
+            projectilePool,
+            projectilePrefab,
+            heroVisual,
+            GetHeroLocalPosition,
+            (index) => GetEnemyLocalPosition(index),
+            GetEnemyVisual
+        );
+        
+        // Create and initialize ItemDropController
+        itemDropController = gameObject.AddComponent<ItemDropController>();
+        itemDropController.itemDropSpacing = itemDropSpacing;
+        itemDropController.Initialize(combatSceneContainer, GetEnemyVisual);
     }
     
     void Start()
     {
         // Get combat service
         combatService = Services.Get<ICombatService>();
-        
-        // Load and cache "Charlie don't surf SDF" font for damage text
-        damageTextFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/Charlie don't surf SDF");
         
         // Subscribe to combat events for health bar updates
         if (combatService != null)
@@ -101,6 +131,8 @@ public class CombatSceneController : MonoBehaviour
             EventBus.Subscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
             EventBus.Subscribe<TargetChangedEvent>(SetTargetIndicator);
             EventBus.Subscribe<PlayerDamageDealtEvent>(OnPlayerDamageDealt);
+            EventBus.Subscribe<SkillHitEvent>(OnSkillHit);
+            EventBus.Subscribe<PlayerDamageTakenEvent>(OnPlayerDamageTaken);
         }
     }
     
@@ -114,6 +146,8 @@ public class CombatSceneController : MonoBehaviour
         EventBus.Unsubscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
         EventBus.Unsubscribe<TargetChangedEvent>(SetTargetIndicator);
         EventBus.Unsubscribe<PlayerDamageDealtEvent>(OnPlayerDamageDealt);
+        EventBus.Unsubscribe<SkillHitEvent>(OnSkillHit);
+        EventBus.Unsubscribe<PlayerDamageTakenEvent>(OnPlayerDamageTaken);
     }
     
     void OnDisable()
@@ -141,6 +175,30 @@ public class CombatSceneController : MonoBehaviour
             {
                 ShowDamageHitText(targetIndex, e.damage, e.wasCritical);
             }
+        }
+    }
+    
+    void OnSkillHit(SkillHitEvent e)
+    {
+        // Show damage from skill hits
+        if (e.targetIndex >= 0)
+        {
+            // Skill hit a monster - show damage text
+            ShowDamageHitText(e.targetIndex, e.damage, e.wasCritical);
+        }
+        else if (e.targetIndex == -1)
+        {
+            // Skill hit player (enemy skill) - show damage on hero
+            ShowDamageOnHero(e.damage, e.wasCritical);
+        }
+    }
+    
+    void OnPlayerDamageTaken(PlayerDamageTakenEvent e)
+    {
+        // Show damage from enemy auto-attacks on hero
+        if (!e.wasMiss && e.damage > 0)
+        {
+            ShowDamageOnHero(e.damage, false);
         }
     }
     
@@ -429,40 +487,37 @@ public class CombatSceneController : MonoBehaviour
     /// </summary>
     public void HeroAttack(float damage, int targetIndex, System.Action<float, int> onHit)
     {
-        if (heroVisual == null || targetIndex < 0 || targetIndex >= activeEnemies.Count)
-            return;
-        
-        EnemyVisual targetEnemy = activeEnemies[targetIndex];
-        if (targetEnemy == null)
-            return;
-        
-        // Ensure projectile prefab is set
-        if (heroVisual.projectilePrefab == null && projectilePrefab != null)
+        if (projectileController != null)
         {
-            heroVisual.projectilePrefab = projectilePrefab;
+            projectileController.HeroAttack(damage, targetIndex, onHit);
         }
-        
-        Vector2 targetPos = targetEnemy.GetPosition();
-        
-        heroVisual.Attack(
-            targetPos,
-            damage,
-            (projectile) => {
-                // Projectile hit - move to projectile pool for organization
-                if (projectilePool != null && projectile.transform.parent != projectilePool)
-                {
-                    projectile.transform.SetParent(projectilePool);
-                }
-                
-                float dealtDamage = projectile.GetDamage();
-                onHit?.Invoke(dealtDamage, targetIndex);
-                Destroy(projectile.gameObject);
-            },
-            (projectile) => {
-                // Projectile miss (shouldn't happen in auto-combat, but handle it)
-                Destroy(projectile.gameObject);
-            }
-        );
+    }
+    
+    /// <summary>
+    /// Spawn a skill projectile that travels to target and triggers callback on hit
+    /// </summary>
+    public void SpawnSkillProjectile(SkillData skill, int targetIndex, float damage, System.Action<float, int> onHit)
+    {
+        if (projectileController != null)
+        {
+            projectileController.SpawnSkillProjectile(skill, targetIndex, damage, onHit);
+        }
+        else
+        {
+            // Fallback: apply damage immediately if no controller
+            onHit?.Invoke(damage, targetIndex);
+        }
+    }
+    
+    /// <summary>
+    /// Spawn a hit effect at the target's position (for instant skills)
+    /// </summary>
+    public void SpawnHitEffect(SkillData skill, int targetIndex)
+    {
+        if (projectileController != null)
+        {
+            projectileController.SpawnHitEffect(skill, targetIndex);
+        }
     }
     
     /// <summary>
@@ -470,20 +525,14 @@ public class CombatSceneController : MonoBehaviour
     /// </summary>
     public void EnemyAttack(int enemyIndex, System.Action onComplete)
     {
-        if (enemyIndex < 0 || enemyIndex >= activeEnemies.Count)
+        if (projectileController != null)
+        {
+            projectileController.EnemyAttack(enemyIndex, onComplete);
+        }
+        else
         {
             onComplete?.Invoke();
-            return;
         }
-        
-        EnemyVisual enemy = activeEnemies[enemyIndex];
-        if (enemy == null)
-        {
-            onComplete?.Invoke();
-            return;
-        }
-        
-        enemy.PerformAttack(onComplete);
     }
     
     /// <summary>
@@ -623,75 +672,51 @@ public class CombatSceneController : MonoBehaviour
     }
     
     /// <summary>
-    /// Create a floating text GameObject with common setup
-    /// </summary>
-    GameObject CreateFloatingText(string text, Vector2 position, Color color, float width = 100f, bool isMiss = false)
-    {
-        if (combatSceneContainer == null)
-            return null;
-        
-        // Create new text GameObject
-        GameObject textObj = new GameObject(isMiss ? "MissText" : "DamageText");
-        textObj.transform.SetParent(combatSceneContainer, false);
-        
-        // Add to tracking list
-        activeDamageTexts.Add(textObj);
-        
-        // Add RectTransform
-        RectTransform textRect = textObj.AddComponent<RectTransform>();
-        textRect.sizeDelta = new Vector2(width, 50f);
-        // Position above target (offset Y by +30 pixels)
-        textRect.anchoredPosition = position + new Vector2(0f, 30f);
-        
-        // Add CanvasGroup for fade effect
-        CanvasGroup canvasGroup = textObj.AddComponent<CanvasGroup>();
-        canvasGroup.alpha = 1f;
-        
-        // Add TextMeshProUGUI
-        TextMeshProUGUI textComponent = textObj.AddComponent<TextMeshProUGUI>();
-        textComponent.text = text;
-        textComponent.fontSize = 32;
-        textComponent.fontStyle = FontStyles.Bold;
-        textComponent.color = color;
-        textComponent.alignment = TextAlignmentOptions.Center;
-        textComponent.enableWordWrapping = false; // Prevent text wrapping
-        
-        // Set font if available
-        if (damageTextFont != null)
-        {
-            textComponent.font = damageTextFont;
-        }
-        
-        // Add outline for better visibility
-        var outline = textObj.AddComponent<UnityEngine.UI.Outline>();
-        outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(2f, -2f);
-        
-        return textObj;
-    }
-    
-    /// <summary>
     /// Show damage hit text above specific enemy
-    /// Creates independent damage text GameObject that floats above the enemy
     /// </summary>
     public void ShowDamageHitText(int enemyIndex, float damage, bool wasCritical = false)
     {
-        Vector2 localPosition = GetEnemyLocalPosition(enemyIndex);
-        if (localPosition == Vector2.zero && (enemyIndex < 0 || enemyIndex >= activeEnemies.Count))
-            return;
+        if (damageTextController != null)
+        {
+            damageTextController.ShowDamageHitText(enemyIndex, damage, wasCritical);
+        }
+    }
+    
+    /// <summary>
+    /// Show damage text on the hero when hit by enemy skills
+    /// </summary>
+    public void ShowDamageOnHero(float damage, bool wasCritical = false)
+    {
+        if (damageTextController != null)
+        {
+            damageTextController.ShowDamageOnHero(damage, wasCritical);
+        }
+    }
+    
+    /// <summary>
+    /// Get the hero's local position relative to combat scene container
+    /// </summary>
+    Vector2 GetHeroLocalPosition()
+    {
+        if (heroVisual == null || heroVisual.rectTransform == null || combatSceneContainer == null)
+            return Vector2.zero;
         
-        // Determine color based on crit
-        Color textColor = wasCritical ? new Color(1f, 0.84f, 0f) : Color.white;
+        // If hero is direct child of combat scene container, use anchored position
+        if (heroVisual.rectTransform.parent == combatSceneContainer)
+        {
+            return heroVisual.rectTransform.anchoredPosition;
+        }
         
-        // Create text GameObject
-        GameObject damageObj = CreateFloatingText($"{damage:F0}", localPosition, textColor, 100f, false);
-        if (damageObj == null)
-            return;
-        
-        TextMeshProUGUI damageText = damageObj.GetComponent<TextMeshProUGUI>();
-        
-        // Animate damage text (rise up and fade out, with pop animation for crits)
-        StartCoroutine(AnimateDamageText(damageText, damageObj, wasCritical));
+        // Otherwise, convert world position to local position
+        Vector3 heroWorldPos = heroVisual.rectTransform.position;
+        Vector2 localPoint;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            combatSceneContainer,
+            RectTransformUtility.WorldToScreenPoint(null, heroWorldPos),
+            null,
+            out localPoint
+        );
+        return localPoint;
     }
     
     /// <summary>
@@ -699,204 +724,9 @@ public class CombatSceneController : MonoBehaviour
     /// </summary>
     public void ShowMissText(int enemyIndex, bool isPlayerMiss)
     {
-        if (combatSceneContainer == null)
-            return;
-        
-        Vector2 localPosition;
-        
-        if (isPlayerMiss)
+        if (damageTextController != null)
         {
-            // Player miss - show above enemy
-            if (enemyIndex < 0 || enemyIndex >= activeEnemies.Count)
-                return;
-            
-            EnemyVisual enemy = activeEnemies[enemyIndex];
-            if (enemy == null)
-                return;
-            
-            // Get enemy's current world position
-            Vector2 enemyWorldPos = enemy.GetPosition();
-            
-            // Convert enemy position to local space of combat scene container
-            localPosition = enemyWorldPos;
-            if (enemy.rectTransform != null)
-            {
-                // If enemy and container share the same parent, positions are in same space
-                if (enemy.rectTransform.parent == combatSceneContainer)
-                {
-                    localPosition = enemy.rectTransform.anchoredPosition;
-                }
-                else
-                {
-                    // Convert world position to local position in combat container
-                    RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        combatSceneContainer,
-                        RectTransformUtility.WorldToScreenPoint(null, enemy.rectTransform.position),
-                        null,
-                        out localPosition
-                    );
-                }
-            }
-        }
-        else
-        {
-            // Enemy miss - show above hero (use hero position)
-            if (heroVisual != null)
-            {
-                Vector2 heroPos = heroVisual.GetPosition();
-                localPosition = heroPos;
-                if (heroVisual.rectTransform != null && heroVisual.rectTransform.parent == combatSceneContainer)
-                {
-                    localPosition = heroVisual.rectTransform.anchoredPosition;
-                }
-            }
-            else
-            {
-                return; // Can't show miss text without hero position
-            }
-        }
-        
-        // Create new miss text GameObject
-        GameObject missObj = new GameObject($"MissText_{enemyIndex}");
-        missObj.transform.SetParent(combatSceneContainer, false);
-        
-        // Add to tracking list
-        activeDamageTexts.Add(missObj);
-        
-        // Add RectTransform
-        RectTransform missRect = missObj.AddComponent<RectTransform>();
-        missRect.sizeDelta = new Vector2(150f, 50f); // Wider to prevent text wrapping
-        // Position above target (offset Y by +30 pixels)
-        missRect.anchoredPosition = localPosition + new Vector2(0f, 30f);
-        
-        // Add CanvasGroup for fade effect
-        CanvasGroup canvasGroup = missObj.AddComponent<CanvasGroup>();
-        canvasGroup.alpha = 1f;
-        
-        // Add TextMeshProUGUI for miss text
-        TextMeshProUGUI missText = missObj.AddComponent<TextMeshProUGUI>();
-        missText.text = "Miss";
-        missText.fontSize = 32;
-        missText.fontStyle = FontStyles.Bold;
-        // Darker blue for player misses, red for enemy misses
-        missText.color = isPlayerMiss ? new Color(0f, 0.4f, 0.8f) : Color.red;
-        missText.alignment = TextAlignmentOptions.Center;
-        missText.enableWordWrapping = false; // Prevent text wrapping
-        
-        // Set font if available
-        if (damageTextFont != null)
-        {
-            missText.font = damageTextFont;
-        }
-        
-        // Add outline for better visibility
-        var outline = missObj.AddComponent<UnityEngine.UI.Outline>();
-        outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(2f, -2f);
-        
-        // Animate miss text (rise up and fade out)
-        StartCoroutine(AnimateDamageText(missText, missObj, false));
-    }
-    
-    /// <summary>
-    /// Animate damage text rising up and fading out
-    /// For critical hits, adds a heartbeat pop animation (scale up then down)
-    /// </summary>
-    System.Collections.IEnumerator AnimateDamageText(TextMeshProUGUI damageText, GameObject damageObj, bool wasCritical = false)
-    {
-        if (damageText == null || damageText.rectTransform == null || damageObj == null) 
-            yield break;
-        
-        RectTransform rectTransform = damageText.rectTransform;
-        CanvasGroup canvasGroup = damageText.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
-        {
-            canvasGroup = damageText.gameObject.AddComponent<CanvasGroup>();
-        }
-        
-        // Store starting position and scale
-        Vector2 startPosition = rectTransform.anchoredPosition;
-        Vector2 endPosition = startPosition + new Vector2(0, 50f); // Rise 50 pixels
-        Vector3 defaultScale = Vector3.one;
-        
-        // Reset alpha and position
-        canvasGroup.alpha = 1f;
-        rectTransform.anchoredPosition = startPosition;
-        rectTransform.localScale = defaultScale;
-        
-        // For critical hits, play heartbeat pop animation first
-        if (wasCritical)
-        {
-            float popDuration = 0.2f; // 0.1s for scale up
-            float popElapsed = 0f;
-            
-            // Scale up (ease out)
-            while (popElapsed < popDuration)
-            {
-                if (damageText == null || rectTransform == null || damageObj == null)
-                    yield break;
-                
-                popElapsed += Time.deltaTime;
-                float t = popElapsed / popDuration;
-                float easedT = t * t; // Ease out
-                rectTransform.localScale = Vector3.Lerp(defaultScale, defaultScale * 1.3f, easedT);
-                yield return null;
-            }
-            
-            popElapsed = 0f;
-            popDuration = 0.2f; // 0.1s for scale down
-            
-            // Scale down (ease in)
-            while (popElapsed < popDuration)
-            {
-                if (damageText == null || rectTransform == null || damageObj == null)
-                    yield break;
-                
-                popElapsed += Time.deltaTime;
-                float t = popElapsed / popDuration;
-                float easedT = t * t; // Ease in
-                rectTransform.localScale = Vector3.Lerp(defaultScale * 1.3f, defaultScale, easedT);
-                yield return null;
-            }
-            
-            // Ensure scale is reset
-            rectTransform.localScale = defaultScale;
-        }
-        
-        float duration = 1f; // 1 second animation
-        float elapsed = 0f;
-        
-        while (elapsed < duration)
-        {
-            // Check if damage text has been destroyed
-            if (damageText == null || rectTransform == null || damageObj == null)
-            {
-                yield break;
-            }
-            
-            elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-            
-            // Ease out curve for smooth animation
-            float easedT = 1f - Mathf.Pow(1f - t, 3f);
-            
-            // Interpolate position (rise up)
-            rectTransform.anchoredPosition = Vector2.Lerp(startPosition, endPosition, easedT);
-            
-            // Interpolate alpha (fade out)
-            if (canvasGroup != null)
-            {
-                canvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
-            }
-            
-            yield return null;
-        }
-        
-        // Clean up: remove from tracking list and destroy
-        if (damageObj != null)
-        {
-            activeDamageTexts.Remove(damageObj);
-            Destroy(damageObj);
+            damageTextController.ShowMissText(enemyIndex, isPlayerMiss);
         }
     }
     
@@ -910,6 +740,56 @@ public class CombatSceneController : MonoBehaviour
         
         EnemyVisual enemy = activeEnemies[index];
         return enemy != null && enemy.IsInAttackRange();
+    }
+    
+    /// <summary>
+    /// Check if enemy is in range to cast a skill with a specific range type
+    /// Ranged skills can be cast from spawn, melee skills need enemy to be in melee range
+    /// </summary>
+    public bool IsEnemyInSkillRange(int index, SkillRange skillRange)
+    {
+        if (index < 0 || index >= activeEnemies.Count)
+            return false;
+        
+        EnemyVisual enemy = activeEnemies[index];
+        if (enemy == null)
+            return false;
+        
+        // Ranged skills can always be cast if enemy exists and is alive
+        if (skillRange == SkillRange.Ranged)
+        {
+            return true; // Ranged skills have unlimited range
+        }
+        
+        // Melee skills require enemy to be in melee range
+        return enemy.IsInAttackRange();
+    }
+    
+    /// <summary>
+    /// Spawn a skill projectile from an enemy toward the hero
+    /// </summary>
+    public void SpawnEnemySkillProjectile(SkillData skill, int enemyIndex, float damage, System.Action<float> onHit)
+    {
+        if (projectileController != null)
+        {
+            projectileController.SpawnEnemySkillProjectile(skill, enemyIndex, damage, onHit);
+        }
+        else
+        {
+            // Fallback: apply damage immediately
+            onHit?.Invoke(damage);
+        }
+    }
+    
+    /// <summary>
+    /// Spawn a hit effect on the hero (for instant enemy skills)
+    /// </summary>
+    public void SpawnHitEffectOnHero(SkillData skill)
+    {
+        if (projectileController != null)
+        {
+            projectileController.SpawnHitEffectOnHero(skill);
+        }
     }
     
     /// <summary>
@@ -952,146 +832,9 @@ public class CombatSceneController : MonoBehaviour
     /// </summary>
     public void ShowItemDrops(List<MonsterDropEntry> droppedItems, Vector2 enemyDeathPosition, int monsterIndex)
     {
-        if (droppedItems == null || droppedItems.Count == 0)
-            return;
-        
-        if (combatSceneContainer == null)
+        if (itemDropController != null)
         {
-            return;
-        }
-        
-        // Use the provided death position (already calculated correctly)
-        Vector2 localEnemyPosition = enemyDeathPosition;
-        
-        // Try to get the actual enemy position if it still exists (for better accuracy)
-        if (monsterIndex >= 0 && monsterIndex < activeEnemies.Count && activeEnemies[monsterIndex] != null)
-        {
-            EnemyVisual enemy = activeEnemies[monsterIndex];
-            if (enemy.rectTransform != null)
-            {
-                RectTransform enemyRect = enemy.rectTransform;
-            
-            // Check if enemy is a direct child of combatSceneContainer
-            if (enemyRect.parent == combatSceneContainer)
-            {
-                localEnemyPosition = enemyRect.anchoredPosition;
-            }
-            else
-            {
-                    // Convert to local space
-                Vector3 enemyWorldPos = enemyRect.position;
-                Camera uiCamera = null;
-                Canvas canvas = combatSceneContainer.GetComponentInParent<Canvas>();
-                if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
-                {
-                    uiCamera = canvas.worldCamera;
-                }
-                
-                Vector2 localPoint;
-                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    combatSceneContainer,
-                    RectTransformUtility.WorldToScreenPoint(uiCamera, enemyWorldPos),
-                    uiCamera,
-                    out localPoint))
-                {
-                    localEnemyPosition = localPoint;
-                    }
-                }
-            }
-        }
-        
-        // Calculate horizontal offset for multiple items (centered around enemy position)
-        float totalWidth = (droppedItems.Count - 1) * itemDropSpacing;
-        float startX = localEnemyPosition.x - (totalWidth * 0.5f);
-        
-        for (int i = 0; i < droppedItems.Count; i++)
-        {
-            MonsterDropEntry dropEntry = droppedItems[i];
-            
-            if (dropEntry.item == null || dropEntry.item.icon == null)
-                continue;
-            
-            // Calculate spawn position with horizontal offset
-            Vector2 spawnPos = new Vector2(startX + (i * itemDropSpacing), localEnemyPosition.y);
-            
-            // Create item drop visual GameObject
-            GameObject dropObj = new GameObject($"ItemDrop_{dropEntry.item.itemName}");
-            dropObj.transform.SetParent(combatSceneContainer);
-            
-            // Track for cleanup
-            activeItemDrops.Add(dropObj);
-            
-            // Add RectTransform
-            RectTransform dropRect = dropObj.AddComponent<RectTransform>();
-            dropRect.sizeDelta = new Vector2(64f, 64f); // Standard item icon size
-            dropRect.anchoredPosition = spawnPos;
-            
-            // Add CanvasGroup for fade effect
-            CanvasGroup canvasGroup = dropObj.AddComponent<CanvasGroup>();
-            
-            // Add Image for item icon
-            Image iconImage = dropObj.AddComponent<Image>();
-            iconImage.sprite = dropEntry.item.icon;
-            iconImage.preserveAspect = true;
-            
-            // Add quantity text if quantity > 1
-            if (dropEntry.quantity > 1)
-            {
-                GameObject textObj = new GameObject("QuantityText");
-                textObj.transform.SetParent(dropObj.transform);
-                
-                RectTransform textRect = textObj.AddComponent<RectTransform>();
-                textRect.anchorMin = new Vector2(0.6f, 0.6f);
-                textRect.anchorMax = new Vector2(1f, 1f);
-                textRect.sizeDelta = Vector2.zero;
-                textRect.anchoredPosition = Vector2.zero;
-                
-                TextMeshProUGUI quantityText = textObj.AddComponent<TextMeshProUGUI>();
-                quantityText.text = dropEntry.quantity.ToString();
-                quantityText.fontSize = 16;
-                quantityText.color = Color.white;
-                quantityText.alignment = TextAlignmentOptions.BottomRight;
-                quantityText.fontStyle = FontStyles.Bold;
-                
-                // Add outline for better visibility
-                var outline = textObj.AddComponent<UnityEngine.UI.Outline>();
-                outline.effectColor = Color.black;
-                outline.effectDistance = new Vector2(1f, -1f);
-            }
-            
-            // Add ItemDropVisual component
-            ItemDropVisual dropVisual = dropObj.AddComponent<ItemDropVisual>();
-            dropVisual.itemIcon = iconImage;
-            dropVisual.rectTransform = dropRect;
-            dropVisual.canvasGroup = canvasGroup;
-            
-            // Find quantity text if it exists
-            if (dropEntry.quantity > 1)
-            {
-                TextMeshProUGUI qtyText = dropObj.GetComponentInChildren<TextMeshProUGUI>();
-                dropVisual.quantityText = qtyText;
-            }
-            
-            // Setup and start animation
-            dropVisual.Setup(dropEntry.item.icon, dropEntry.quantity, spawnPos);
-            
-            // Remove from tracking list when destroyed
-            dropVisual.gameObject.AddComponent<ItemDropCleanup>().OnDestroyed += () => {
-                activeItemDrops.Remove(dropObj);
-            };
-        }
-    }
-    
-    /// <summary>
-    /// Helper component to track when item drops are destroyed
-    /// </summary>
-    private class ItemDropCleanup : MonoBehaviour
-    {
-        public System.Action OnDestroyed;
-        
-        void OnDestroy()
-        {
-            OnDestroyed?.Invoke();
+            itemDropController.ShowItemDrops(droppedItems, enemyDeathPosition, monsterIndex);
         }
     }
     
@@ -1102,46 +845,20 @@ public class CombatSceneController : MonoBehaviour
     {
         CleanupEnemies();
         
-        // Clean up projectiles
-        if (projectilePool != null)
+        // Delegate cleanup to sub-controllers
+        if (projectileController != null)
         {
-            foreach (Transform child in projectilePool)
-            {
-                Destroy(child.gameObject);
-            }
+            projectileController.Cleanup();
         }
         
-        // Clean up any active damage texts
-        foreach (GameObject damageText in activeDamageTexts)
+        if (damageTextController != null)
         {
-            if (damageText != null)
-            {
-                Destroy(damageText);
-            }
+            damageTextController.Cleanup();
         }
-        activeDamageTexts.Clear();
         
-        // Clean up any active item drop visuals
-        foreach (GameObject drop in activeItemDrops)
+        if (itemDropController != null)
         {
-            if (drop != null)
-            {
-                Destroy(drop);
-            }
-        }
-        activeItemDrops.Clear();
-        
-        // Also clean up any ItemDrop visuals that might be children of combatSceneContainer
-        if (combatSceneContainer != null)
-        {
-            ItemDropVisual[] remainingDrops = combatSceneContainer.GetComponentsInChildren<ItemDropVisual>();
-            foreach (ItemDropVisual drop in remainingDrops)
-            {
-                if (drop != null && drop.gameObject != null)
-                {
-                    Destroy(drop.gameObject);
-                }
-            }
+            itemDropController.Cleanup();
         }
     }
     

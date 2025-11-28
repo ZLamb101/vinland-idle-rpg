@@ -18,9 +18,6 @@ public class InventoryPanel : MonoBehaviour
     [Header("Current Setup")]
     public InventorySlot[] inventorySlots;
     
-    [Header("Tooltip")]
-    public Tooltip tooltip;
-    
     private InventoryData inventoryData;
     private int selectedSlot = -1;
     private int draggingSlotIndex = -1; // Track which slot is being dragged
@@ -336,26 +333,9 @@ public class InventoryPanel : MonoBehaviour
     public InventoryData GetInventoryData() => inventoryData;
     public int GetSelectedSlot() => selectedSlot;
     
-    public void ShowTooltip(InventoryItem item)
-    {
-        if (tooltip != null)
-        {
-            tooltip.ShowForInventoryItem(item);
-        }
-    }
-    
-    public void HideTooltip()
-    {
-        if (tooltip != null)
-        {
-            tooltip.Hide();
-        }
-    }
-    
     public void OnDragStart(int slotIndex)
     {
         draggingSlotIndex = slotIndex;
-        HideTooltip(); // Hide tooltip during drag
     }
     
     public void OnDragEnd()

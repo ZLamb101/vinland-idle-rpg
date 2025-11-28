@@ -30,9 +30,6 @@ public class ShopPanel : MonoBehaviour
     [Header("Controls")]
     public Button closeButton;
     
-    [Header("Tooltip")]
-    public Tooltip tooltip;
-    
     // Cached reference to inventoryPanel (for passing to shop slots)
     private InventoryPanel inventoryPanel;
     
@@ -230,28 +227,6 @@ public class ShopPanel : MonoBehaviour
                 if (buyBackPriceText != null)
                     buyBackPriceText.text = $"{buyBackPrice} Gold";
             }
-        }
-    }
-    
-    /// <summary>
-    /// Show tooltip for a shop item
-    /// </summary>
-    public void ShowTooltip(ItemData item)
-    {
-        if (tooltip != null)
-        {
-            tooltip.ShowForItemData(item);
-        }
-    }
-    
-    /// <summary>
-    /// Hide tooltip
-    /// </summary>
-    public void HideTooltip()
-    {
-        if (tooltip != null)
-        {
-            tooltip.Hide();
         }
     }
     

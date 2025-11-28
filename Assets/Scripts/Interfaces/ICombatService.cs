@@ -30,5 +30,8 @@ public interface ICombatService
     float GetPlayerAttackSpeed();
     float GetMonsterCurrentHealth(int index);
     float GetMonsterMaxHealth(int index);
+    
+    // Death Handling
+    void HandleMonsterDeath(int monsterIndex);
 }
 

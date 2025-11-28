@@ -158,18 +158,51 @@ public class ShopItemSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (entry != null && entry.item != null && shopPanel != null)
+        if (entry != null && entry.item != null)
         {
-            shopPanel.ShowTooltip(entry.item);
+            // Build tooltip description
+            string description = entry.item.description;
+            
+            // Add equipment stats if it's equipment
+            if (entry.item.IsEquipment() && entry.item.equipmentData != null)
+            {
+                description += "\n\n" + GetEquipmentStatsText(entry.item.equipmentData);
+            }
+            
+            // Add price info
+            description += $"\n\n<color=yellow>Price: {entry.price} Gold</color>";
+            
+            EventBus.Publish(new TooltipShowEvent { title = entry.item.itemName, description = description });
         }
     }
     
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (shopPanel != null)
-        {
-            shopPanel.HideTooltip();
-        }
+        EventBus.Publish(new TooltipHideEvent());
+    }
+    
+    string GetEquipmentStatsText(EquipmentData equipment)
+    {
+        if (equipment == null) return "";
+        
+        string stats = $"<color=cyan>Slot: {equipment.slot}</color>\n";
+        
+        if (equipment.levelRequired > 1)
+            stats += $"<color=red>Requires Level {equipment.levelRequired}</color>\n";
+        
+        stats += "\n";
+        
+        if (equipment.attackDamage > 0) stats += $"+{equipment.attackDamage:F0} Attack Damage\n";
+        if (equipment.maxHealth > 0) stats += $"+{equipment.maxHealth:F0} Max Health\n";
+        if (equipment.attackSpeed != 0) stats += $"{(equipment.attackSpeed < 0 ? "" : "+")}{equipment.attackSpeed:F2}s Attack Speed\n";
+        if (equipment.armor > 0) stats += $"+{equipment.armor * 100:F0}% Armor\n";
+        if (equipment.criticalChance > 0) stats += $"+{equipment.criticalChance * 100:F0}% Critical Chance\n";
+        if (equipment.dodge > 0) stats += $"+{equipment.dodge * 100:F0}% Dodge\n";
+        if (equipment.lifesteal > 0) stats += $"+{equipment.lifesteal * 100:F0}% Lifesteal\n";
+        if (equipment.xpBonus > 0) stats += $"+{equipment.xpBonus * 100:F0}% XP Gain\n";
+        if (equipment.goldBonus > 0) stats += $"+{equipment.goldBonus * 100:F0}% Gold Gain\n";
+        
+        return stats;
     }
 }
 

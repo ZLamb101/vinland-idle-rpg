@@ -78,6 +78,10 @@ public class MonsterData : ScriptableObject
     [Header("Drop Table")]
     [Tooltip("List of items that can drop from this monster. Each entry has its own drop chance.")]
     public List<MonsterDropEntry> dropTable = new List<MonsterDropEntry>();
+    
+    [Header("Skills")]
+    [Tooltip("Skills this monster can use in combat. Will be cast on cooldown when in range.")]
+    public List<SkillData> skills = new List<SkillData>();
 }
 
 

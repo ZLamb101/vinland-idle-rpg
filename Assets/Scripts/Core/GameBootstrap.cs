@@ -43,6 +43,9 @@ public class GameBootstrap : MonoBehaviour
         CreateManager<ShopManager>();
         CreateManager<BankManager>();
         
+        // Skills
+        CreateManager<SkillManager>();
+        
         // Activities
         CreateManager<AwayActivityManager>();
         
@@ -50,7 +53,7 @@ public class GameBootstrap : MonoBehaviour
         CreateManager<DialogueManager>();
         
         Log("═══════════════════════════════════════");
-        Log($"All {14} managers created successfully!");
+        Log($"All {15} managers created successfully!");
         Log($"Loading first scene: {firstSceneName}");
         Log("═══════════════════════════════════════");
         

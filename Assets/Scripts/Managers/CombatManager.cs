@@ -30,6 +30,10 @@ public class CombatManager : MonoBehaviour, ICombatService
     private float healthRegenTimer = 0f;
     private const float healthRegenTickRate = 1f; // Apply health regen every 1 second
     
+    [Header("Mana")]
+    private float playerCurrentMana;
+    private float playerMaxMana;
+    
     [Header("Visual Combat")]
     public CombatSceneController combatSceneController;
     
@@ -48,6 +52,7 @@ public class CombatManager : MonoBehaviour, ICombatService
 
     private IGameLogService gameLogService;
     private ICharacterService characterService;
+    private ISkillService skillService;
     
     void Awake()
     {
@@ -74,11 +79,13 @@ public class CombatManager : MonoBehaviour, ICombatService
     {
         Services.TryGet<IGameLogService>(out gameLogService);
         characterService = Services.Get<ICharacterService>();
+        skillService = Services.Get<ISkillService>();
         
         // Subscribe to events
         EventBus.Subscribe<TalentBonusesRecalculatedEvent>(OnTalentBonusesChanged);
         EventBus.Subscribe<StatsRecalculatedEvent>(OnStatsRecalculated);
         EventBus.Subscribe<CharacterLevelUpEvent>(OnCharacterLevelUp);
+        EventBus.Subscribe<CharacterHealthChangedEvent>(OnCharacterHealthChanged);
     }
     
     /// <summary>
@@ -103,6 +110,7 @@ public class CombatManager : MonoBehaviour, ICombatService
         EventBus.Unsubscribe<TalentBonusesRecalculatedEvent>(OnTalentBonusesChanged);
         EventBus.Unsubscribe<StatsRecalculatedEvent>(OnStatsRecalculated);
         EventBus.Unsubscribe<CharacterLevelUpEvent>(OnCharacterLevelUp);
+        EventBus.Unsubscribe<CharacterHealthChangedEvent>(OnCharacterHealthChanged);
         Services.Unregister<ICombatService>();
     }
     
@@ -181,8 +189,9 @@ public class CombatManager : MonoBehaviour, ICombatService
         
         Debug.Log($"[CombatManager] After CalculatePlayerStats - Attack: {playerAttackDamage}, Health: {playerMaxHealth}");
         
-        // Publish health change to update UI with new max health
+        // Publish health and mana change to update UI
         EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
+        EventBus.Publish(new CharacterManaChangedEvent { currentMana = playerCurrentMana, maxMana = playerMaxMana, manaChanged = 0 });
         
         // Spawn monster group (all at once)
         SpawnMonsterGroup(mobCount);
@@ -244,6 +253,29 @@ public class CombatManager : MonoBehaviour, ICombatService
     }
     
     /// <summary>
+    /// Sync combat health with character manager (for DoT damage, etc.)
+    /// </summary>
+    private void OnCharacterHealthChanged(CharacterHealthChangedEvent e)
+    {
+        // Only sync during combat and if health decreased (damage taken)
+        if (currentState == CombatState.Fighting && e.healthChanged < 0)
+        {
+            // Sync our local health with character manager
+            playerCurrentHealth = e.currentHealth;
+            playerMaxHealth = e.maxHealth;
+            
+            // Publish combat health event for UI updates
+            EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
+            
+            // Check for player death
+            if (playerCurrentHealth <= 0)
+            {
+                OnPlayerDefeated();
+            }
+        }
+    }
+    
+    /// <summary>
     /// Calculate player stats including equipment and talent bonuses
     /// Now uses attribute-based attack power from Strength + Agility
     /// </summary>
@@ -266,8 +298,12 @@ public class CombatManager : MonoBehaviour, ICombatService
             playerMaxHealth = charData.GetMaxHealth();
             playerCurrentHealth = characterService.GetCurrentHealth();
             
+            // Get mana from attributes (INT * 10)
+            playerMaxMana = charData.GetMaxMana();
+            playerCurrentMana = charData.currentMana;
+            
             // Debug logging to verify attribute values
-            Debug.Log($"[CombatManager] Character attributes - STR: {charData.strength}, AGI: {charData.agility}, STA: {charData.stamina}, SPR: {charData.spirit}");
+            Debug.Log($"[CombatManager] Character attributes - STR: {charData.strength}, AGI: {charData.agility}, STA: {charData.stamina}, SPR: {charData.spirit}, INT: {charData.intellect}");
             Debug.Log($"[CombatManager] Calculated attack power: {playerAttackDamage} (STR:{charData.strength}*2 + AGI:{charData.agility}*1)");
         }
         else
@@ -277,6 +313,8 @@ public class CombatManager : MonoBehaviour, ICombatService
             playerMaxHealth = GameBalance.Combat.playerStartingHealth;
             playerCurrentHealth = GameBalance.Combat.playerStartingHealth;
             playerAttackDamage = playerBaseAttackDamage;
+            playerMaxMana = 100f;
+            playerCurrentMana = 100f;
         }
         
         // Start with base attack speed (not affected by attributes currently)
@@ -492,21 +530,37 @@ public class CombatManager : MonoBehaviour, ICombatService
     
     void UpdateCombat()
     {
-        // Update player attack timer - player can attack immediately when enemy spawns
-        playerAttackTimer += Time.deltaTime;
-        EventBus.Publish(new PlayerAttackProgressEvent { progress = Mathf.Clamp01(playerAttackTimer / playerAttackSpeed) });
-        
-        if (playerAttackTimer >= playerAttackSpeed)
+        // Re-fetch skill service if null
+        if (skillService == null)
         {
-            PlayerAttack();
-            playerAttackTimer = 0f;
+            skillService = Services.Get<ISkillService>();
         }
         
-        // Update health regeneration timer
+        // Check if player is stunned
+        bool playerStunned = skillService != null && skillService.IsPlayerStunned();
+        
+        // Update player attack timer - player can attack immediately when enemy spawns
+        if (!playerStunned)
+        {
+            playerAttackTimer += Time.deltaTime;
+            EventBus.Publish(new PlayerAttackProgressEvent { progress = Mathf.Clamp01(playerAttackTimer / playerAttackSpeed) });
+            
+            if (playerAttackTimer >= playerAttackSpeed)
+            {
+                PlayerAttack();
+                playerAttackTimer = 0f;
+            }
+            
+            // Auto-cast action bar skills
+            UpdateSkillCasting();
+        }
+        
+        // Update health and mana regeneration timer
         healthRegenTimer += Time.deltaTime;
         if (healthRegenTimer >= healthRegenTickRate)
         {
             ApplyHealthRegeneration();
+            ApplyManaRegeneration();
             healthRegenTimer = 0f;
         }
         
@@ -515,6 +569,11 @@ public class CombatManager : MonoBehaviour, ICombatService
         {
             var monster = activeMonsters[i];
             if (!monster.IsAlive() || monster.isAttackInProgress)
+                continue;
+            
+            // Check if monster is stunned
+            bool monsterStunned = skillService != null && skillService.IsMonsterStunned(i);
+            if (monsterStunned)
                 continue;
             
             // Check if this specific enemy is in attack range
@@ -526,15 +585,322 @@ public class CombatManager : MonoBehaviour, ICombatService
             
             if (canAttack)
             {
-                monster.attackTimer += Time.deltaTime;
-                EventBus.Publish(new MonsterAttackProgressEvent { progress = Mathf.Clamp01(monster.attackTimer / monster.attackSpeed), monsterIndex = i });
+                // Apply slow from debuffs
+                float slowPercent = skillService != null ? skillService.GetMonsterSlowPercent(i) : 0f;
+                float effectiveAttackSpeed = monster.attackSpeed * (1f + slowPercent);
                 
-                if (monster.attackTimer >= monster.attackSpeed)
+                monster.attackTimer += Time.deltaTime;
+                EventBus.Publish(new MonsterAttackProgressEvent { progress = Mathf.Clamp01(monster.attackTimer / effectiveAttackSpeed), monsterIndex = i });
+                
+                if (monster.attackTimer >= effectiveAttackSpeed)
                 {
                     MonsterAttack(i);
                     monster.attackTimer = 0f;
                 }
             }
+        }
+        
+        // Update monster skill casting
+        UpdateMonsterSkillCasting();
+    }
+    
+    /// <summary>
+    /// Auto-cast action bar skills when off cooldown
+    /// </summary>
+    void UpdateSkillCasting()
+    {
+        if (skillService == null) return;
+        
+        SkillData[] actionBarSkills = skillService.GetAllActionBarSkills();
+        if (actionBarSkills == null) return;
+        
+        for (int i = 0; i < actionBarSkills.Length; i++)
+        {
+            SkillData skill = actionBarSkills[i];
+            if (skill == null) continue;
+            
+            // Check if skill can be cast
+            if (!skillService.CanCastSkill(skill)) continue;
+            
+            // Determine target based on skill type
+            int targetIndex = -1;
+            if (skill.RequiresTarget())
+            {
+                targetIndex = currentTargetIndex;
+                // Verify target is valid
+                if (targetIndex < 0 || targetIndex >= activeMonsters.Count || !activeMonsters[targetIndex].IsAlive())
+                {
+                    // Find a valid target
+                    targetIndex = -1;
+                    for (int m = 0; m < activeMonsters.Count; m++)
+                    {
+                        if (activeMonsters[m].IsAlive())
+                        {
+                            targetIndex = m;
+                            break;
+                        }
+                    }
+                }
+                
+                if (targetIndex < 0) continue; // No valid target
+            }
+            
+            // Cast the skill
+            if (skillService.CastSkill(skill, targetIndex))
+            {
+                LogCombatMessage($"You cast {skill.skillName}!", LogType.Info);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Handle monster skill casting
+    /// Monsters don't require mana - they cast skills purely based on cooldown
+    /// Skills use their own range (melee/ranged), NOT the monster's attack type
+    /// </summary>
+    void UpdateMonsterSkillCasting()
+    {
+        for (int i = 0; i < activeMonsters.Count; i++)
+        {
+            var monster = activeMonsters[i];
+            if (!monster.IsAlive())
+                continue;
+            
+            // Check if monster is stunned
+            bool monsterStunned = skillService != null && skillService.IsMonsterStunned(i);
+            if (monsterStunned)
+                continue;
+            
+            // Update skill cooldowns (always, even during attacks)
+            monster.UpdateSkillCooldowns(Time.deltaTime);
+            
+            // Skip skill casting if attack animation is in progress
+            // But still allow skill cooldowns to tick
+            if (monster.isAttackInProgress)
+                continue;
+            
+            // Check if monster has skills
+            if (!monster.HasSkills())
+                continue;
+            
+            // Try to cast an available skill that's in range
+            // Each skill is checked against its OWN range (melee/ranged)
+            SkillData availableSkill = GetAvailableMonsterSkillInRange(monster, i);
+            if (availableSkill != null)
+            {
+                CastMonsterSkill(monster, availableSkill, i);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Get an available skill for a monster that's in range
+    /// Skills use their own range setting, not the monster's attack type
+    /// </summary>
+    SkillData GetAvailableMonsterSkillInRange(CombatMonsterInstance monster, int monsterIndex)
+    {
+        if (monster.monsterData == null || monster.monsterData.skills == null)
+            return null;
+        
+        foreach (SkillData skill in monster.monsterData.skills)
+        {
+            if (skill == null || !monster.CanUseSkill(skill))
+                continue;
+            
+            // Check if monster is in range for THIS skill's range type
+            bool inRange = true;
+            if (combatSceneController != null)
+            {
+                inRange = combatSceneController.IsEnemyInSkillRange(monsterIndex, skill.skillRange);
+            }
+            
+            if (inRange)
+            {
+                return skill;
+            }
+        }
+        
+        return null;
+    }
+    
+    /// <summary>
+    /// Cast a skill from a monster
+    /// Monsters don't need mana - they cast based on cooldown only
+    /// </summary>
+    void CastMonsterSkill(CombatMonsterInstance monster, SkillData skill, int monsterIndex)
+    {
+        if (monster == null || skill == null) return;
+        
+        // Start cooldown
+        monster.StartSkillCooldown(skill);
+        
+        // Fire cast event
+        EventBus.Publish(new SkillCastEvent { skill = skill, isPlayerCast = false, casterIndex = monsterIndex });
+        
+        // Log skill cast
+        string monsterName = monster.monsterData != null ? monster.monsterData.monsterName : "Enemy";
+        LogCombatMessage($"{monsterName} casts {skill.skillName}!", LogType.Warning);
+        Debug.Log($"[CombatManager] Monster {monsterName} casting skill: {skill.skillName} (Type: {skill.skillType})");
+        
+        // Execute skill based on type
+        switch (skill.skillType)
+        {
+            case SkillType.Direct:
+                ExecuteMonsterDirectSkill(monster, skill, monsterIndex);
+                break;
+            case SkillType.Buff:
+                // Monster buffs self - apply effect to self
+                if (skillService != null)
+                {
+                    // For monster buffs, we'd need to track them separately
+                    // For now, just log it
+                    Debug.Log($"[CombatManager] Monster buff skill (not yet implemented): {skill.skillName}");
+                }
+                break;
+            case SkillType.Curse:
+                ExecuteMonsterCurseSkill(monster, skill, monsterIndex);
+                break;
+        }
+    }
+    
+    /// <summary>
+    /// Execute a direct damage skill from a monster on the player
+    /// Handles projectile/instant visuals based on skill settings
+    /// </summary>
+    void ExecuteMonsterDirectSkill(CombatMonsterInstance monster, SkillData skill, int monsterIndex)
+    {
+        // Check if player is invulnerable
+        if (skillService != null && skillService.IsPlayerInvulnerable())
+        {
+            LogCombatMessage($"You are invulnerable to {skill.skillName}!", LogType.Success);
+            return;
+        }
+        
+        // Calculate damage (monsters use their attack damage for scaling)
+        float damage = skill.CalculateDamage(monster.attackDamage);
+        
+        // Execute based on visual type
+        switch (skill.visualType)
+        {
+            case SkillVisualType.Projectile:
+                // Spawn projectile from enemy to hero, apply damage on hit
+                if (combatSceneController != null)
+                {
+                    combatSceneController.SpawnEnemySkillProjectile(skill, monsterIndex, damage, (finalDamage) => {
+                        ApplyMonsterSkillDamageToPlayer(skill, finalDamage);
+                    });
+                }
+                else
+                {
+                    ApplyMonsterSkillDamageToPlayer(skill, damage);
+                }
+                break;
+                
+            case SkillVisualType.Instant:
+                // Apply damage immediately, spawn hit effect on hero
+                ApplyMonsterSkillDamageToPlayer(skill, damage);
+                if (combatSceneController != null)
+                {
+                    combatSceneController.SpawnHitEffectOnHero(skill);
+                }
+                break;
+                
+            case SkillVisualType.None:
+            default:
+                // Apply damage immediately, no visuals
+                ApplyMonsterSkillDamageToPlayer(skill, damage);
+                break;
+        }
+    }
+    
+    /// <summary>
+    /// Apply damage from a monster skill to the player
+    /// </summary>
+    void ApplyMonsterSkillDamageToPlayer(SkillData skill, float damage)
+    {
+        // Check if player is invulnerable (might have become invulnerable during projectile travel)
+        if (skillService != null && skillService.IsPlayerInvulnerable())
+        {
+            LogCombatMessage($"You are invulnerable to {skill.skillName}!", LogType.Success);
+            return;
+        }
+        
+        // Get player stats for defense
+        CombatStats stats = CombatLogic.GetCombatStats();
+        
+        // Apply dodge
+        if (stats.dodge > 0 && UnityEngine.Random.value <= stats.dodge)
+        {
+            LogCombatMessage($"You dodge {skill.skillName}!", LogType.Success);
+            return;
+        }
+        
+        // Apply armor
+        if (stats.armor > 0)
+        {
+            damage *= (1f - stats.armor);
+        }
+        
+        // Apply skill effect modifiers
+        if (skillService != null)
+        {
+            StatModifiers effectMods = skillService.GetPlayerEffectModifiers();
+            if (effectMods != null)
+            {
+                damage *= (1f + effectMods.damageTakenMultiplier);
+                if (effectMods.armor > 0)
+                {
+                    damage *= (1f - effectMods.armor);
+                }
+            }
+        }
+        
+        damage = Mathf.Max(0f, damage);
+        
+        // Apply damage
+        playerCurrentHealth -= damage;
+        EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
+        EventBus.Publish(new SkillHitEvent { skill = skill, damage = damage, wasCritical = false, targetIndex = -1 });
+        
+        LogCombatMessage($"{skill.skillName} hits you for {damage:F0} damage!", LogType.Warning);
+        
+        // Sync with CharacterManager
+        if (characterService != null)
+        {
+            characterService.TakeDamage(damage);
+        }
+        
+        if (playerCurrentHealth <= 0)
+        {
+            OnPlayerDefeated();
+        }
+    }
+    
+    /// <summary>
+    /// Execute a curse skill from a monster on the player
+    /// </summary>
+    void ExecuteMonsterCurseSkill(CombatMonsterInstance monster, SkillData skill, int monsterIndex)
+    {
+        // Check if player is invulnerable
+        if (skillService != null && skillService.IsPlayerInvulnerable())
+        {
+            LogCombatMessage($"You are invulnerable to {skill.skillName}!", LogType.Success);
+            return;
+        }
+        
+        // Apply the curse effect to player (requires aura)
+        if (skillService != null && skill.appliedAura != null)
+        {
+            // Get monster's attack power for DoT scaling
+            float monsterAttackPower = monster.attackDamage;
+            skillService.ApplyEffect(skill, -1, monsterAttackPower); // -1 = player
+            LogCombatMessage($"You are afflicted by {skill.skillName}!", LogType.Warning);
+        }
+        
+        // Apply initial damage if any
+        if (skill.baseDamage > 0 || skill.attackPowerScaling > 0)
+        {
+            ExecuteMonsterDirectSkill(monster, skill, monsterIndex);
         }
     }
     
@@ -564,6 +930,37 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
     }
     
+    /// <summary>
+    /// Apply mana regeneration from Spirit attribute
+    /// </summary>
+    void ApplyManaRegeneration()
+    {
+        if (characterService == null) return;
+        
+        CharacterData charData = characterService.GetCharacterData();
+        if (charData == null) return;
+        
+        float manaRegen = charData.GetManaRegen();
+        if (manaRegen > 0)
+        {
+            float maxMana = charData.GetMaxMana();
+            if (charData.currentMana < maxMana)
+            {
+                float regenAmount = manaRegen * healthRegenTickRate;
+                charData.currentMana = Mathf.Min(charData.currentMana + regenAmount, maxMana);
+                playerCurrentMana = charData.currentMana;
+                playerMaxMana = maxMana;
+                
+                EventBus.Publish(new CharacterManaChangedEvent 
+                { 
+                    currentMana = charData.currentMana, 
+                    maxMana = maxMana, 
+                    manaChanged = regenAmount 
+                });
+            }
+        }
+    }
+    
     void PlayerAttack()
     {
         // Get current target
@@ -587,6 +984,17 @@ public class CombatManager : MonoBehaviour, ICombatService
         }
         
         float damage = playerAttackDamage;
+        
+        // Apply skill effect modifiers (damage bonus from buffs)
+        if (skillService != null)
+        {
+            StatModifiers effectMods = skillService.GetPlayerEffectModifiers();
+            if (effectMods != null)
+            {
+                damage += effectMods.attackDamage;
+                damage *= (1f + effectMods.damageMultiplier);
+            }
+        }
         
         // Get combined stats from equipment and talents
         CombatStats stats = CombatLogic.GetCombatStats();
@@ -718,6 +1126,16 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (!monster.IsAlive())
             return;
         
+        // Check if player is invulnerable from buffs
+        if (skillService != null && skillService.IsPlayerInvulnerable())
+        {
+            if (monster.monsterData != null)
+            {
+                LogCombatMessage($"{monster.monsterData.monsterName} attacks, but you are invulnerable!", LogType.Success);
+            }
+            return;
+        }
+        
         float damage = monster.attackDamage;
         
         // Get combined stats from equipment and talents
@@ -740,6 +1158,25 @@ public class CombatManager : MonoBehaviour, ICombatService
         {
             damage *= (1f - stats.armor); // Reduce damage by armor %
         }
+        
+        // Apply skill effect modifiers (damage taken multiplier)
+        if (skillService != null)
+        {
+            StatModifiers effectMods = skillService.GetPlayerEffectModifiers();
+            if (effectMods != null && effectMods.damageTakenMultiplier != 0)
+            {
+                damage *= (1f + effectMods.damageTakenMultiplier);
+            }
+            
+            // Apply additional armor from buffs
+            if (effectMods != null && effectMods.armor > 0)
+            {
+                damage *= (1f - effectMods.armor);
+            }
+        }
+        
+        // Ensure damage is at least 0
+        damage = Mathf.Max(0f, damage);
         
         playerCurrentHealth -= damage;
         EventBus.Publish(new PlayerHealthChangedEvent { currentHealth = playerCurrentHealth, maxHealth = playerMaxHealth });
@@ -889,6 +1326,12 @@ public class CombatManager : MonoBehaviour, ICombatService
             LogCombatMessage($"You were defeated by {monsterName}!", LogType.Error);
         }
         
+        // Clear all buffs and debuffs on death
+        if (skillService != null)
+        {
+            skillService.ClearAllEffects();
+        }
+        
         CombatState oldState = currentState;
         currentState = CombatState.Defeat;
         EventBus.Publish(new CombatStateChangedEvent { oldState = oldState, newState = currentState });
@@ -937,6 +1380,12 @@ public class CombatManager : MonoBehaviour, ICombatService
             awayActivityService.StopActivity();
         }
         
+        // Clear skill effects
+        if (skillService != null)
+        {
+            skillService.ClearAllEffects();
+        }
+        
         // Clean up visual combat
         if (combatSceneController != null)
         {
@@ -977,6 +1426,29 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (index >= 0 && index < activeMonsters.Count)
             return activeMonsters[index].maxHealth;
         return 0f;
+    }
+    
+    /// <summary>
+    /// Handle monster death from external sources (e.g., skills)
+    /// </summary>
+    public void HandleMonsterDeath(int monsterIndex)
+    {
+        if (monsterIndex < 0 || monsterIndex >= activeMonsters.Count)
+            return;
+        
+        var monster = activeMonsters[monsterIndex];
+        if (monster.IsAlive())
+            return; // Monster isn't dead yet
+        
+        // Get death position for item drops
+        Vector2 deathPosition = Vector2.zero;
+        if (combatSceneController != null)
+        {
+            deathPosition = combatSceneController.GetEnemyPosition(monsterIndex);
+        }
+        
+        // Trigger full death handling
+        OnMonsterDefeated(monsterIndex, deathPosition);
     }
 }
 

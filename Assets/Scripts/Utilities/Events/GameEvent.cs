@@ -60,7 +60,7 @@ public class CharacterLevelUpEvent : GameEvent
 public class CharacterGoldChangedEvent : GameEvent
 {
     public int newGold;
-    public int goldChanged; // positive = gained, negative = spent
+    public int goldChanged; 
 }
 
 public class CharacterNameChangedEvent : GameEvent
@@ -72,12 +72,19 @@ public class CharacterHealthChangedEvent : GameEvent
 {
     public float currentHealth;
     public float maxHealth;
-    public float healthChanged; // positive = healed, negative = damaged
+    public float healthChanged; 
 }
 
 public class CharacterDiedEvent : GameEvent
 {
     public string deathReason;
+}
+
+public class CharacterManaChangedEvent : GameEvent
+{
+    public float currentMana;
+    public float maxMana;
+    public float manaChanged; 
 }
 
 public class CharacterLoadedEvent : GameEvent
@@ -165,14 +172,6 @@ public class PlayerDamageTakenEvent : GameEvent
 {
     public float damage;
     public bool wasMiss;
-}
-
-public class DamageDealtEvent : GameEvent
-{
-    public float damage;
-    public bool wasCritical;
-    public string source; // "Player" or "Monster"
-    public int targetIndex = -1; // For monster targets
 }
 
 // ==================== Inventory Events ====================
@@ -454,5 +453,65 @@ public class MessageEvent : GameEvent
 {
     public string message;
     public GameMessageType messageType;
+}
+
+// ==================== Skill Events ====================
+
+public class SkillCastEvent : GameEvent
+{
+    public SkillData skill;
+    public bool isPlayerCast;
+    public int casterIndex; // For monsters, -1 for player
+}
+
+public class SkillHitEvent : GameEvent
+{
+    public SkillData skill;
+    public float damage;
+    public bool wasCritical;
+    public int targetIndex; // -1 for player
+}
+
+public class BuffAppliedEvent : GameEvent
+{
+    public SkillData sourceSkill;
+    public float duration;
+    public bool isOnPlayer;
+    public int targetIndex; // For monsters, -1 for player
+}
+
+public class BuffExpiredEvent : GameEvent
+{
+    public SkillData sourceSkill;
+    public bool wasOnPlayer;
+    public int targetIndex;
+}
+
+public class DebuffAppliedEvent : GameEvent
+{
+    public SkillData sourceSkill;
+    public float duration;
+    public bool isOnPlayer;
+    public int targetIndex;
+}
+
+public class DebuffExpiredEvent : GameEvent
+{
+    public SkillData sourceSkill;
+    public bool wasOnPlayer;
+    public int targetIndex;
+}
+
+public class ActionBarChangedEvent : GameEvent
+{
+    public int slotIndex;
+    public SkillData skill; // null if slot cleared
+}
+
+public class SkillCooldownUpdatedEvent : GameEvent
+{
+    public SkillData skill;
+    public float remainingCooldown;
+    public float totalCooldown;
 }
 

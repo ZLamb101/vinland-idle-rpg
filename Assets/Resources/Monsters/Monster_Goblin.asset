@@ -22,8 +22,8 @@ MonoBehaviour:
   damageModifier: 1
   speedModifier: 1
   armorModifier: 1
-  baseXPReward: 10
-  baseGoldReward: 5
+  xpRewardModifier: 1
+  goldRewardModifier: 1
   dropTable:
   - item: {fileID: 11400000, guid: ed6b975fc6fcaef44a5f856fba31e40a, type: 2}
     quantity: 1
@@ -31,3 +31,5 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: fd63b04a6abe3bf42b95bdcf08f48b65, type: 2}
     quantity: 1
     dropChance: 0.2
+  skills:
+  - {fileID: 11400000, guid: d40eda06ba983374e8fd56e81ac470b9, type: 2}

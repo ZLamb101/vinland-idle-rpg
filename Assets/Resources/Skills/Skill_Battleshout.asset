@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4680f0b7505badf4ca65e14636779f95, type: 3}
+  m_Name: Skill_Battleshout
+  m_EditorClassIdentifier: Assembly-CSharp::SkillData
+  skillName: Battleshout
+  description: Increases attackpower
+  icon: {fileID: 3437787994610807008, guid: 8630b578fec389b42bbeef70d96338f3, type: 3}
+  skillType: 1
+  skillRange: 1
+  manaCost: 5
+  cooldown: 12
+  castTime: 0
+  baseDamage: 0
+  attackPowerScaling: 0
+  canCrit: 0
+  dotDamagePerSecond: 0
+  appliedAura: {fileID: 11400000, guid: 6a473c33820336d429168528ab222016, type: 2}
+  isAoE: 0
+  aoeTargetCount: 0
+  visualType: 2
+  projectilePrefab: {fileID: 0}
+  projectileSprite: {fileID: 0}
+  projectileColor: {r: 0.8113208, g: 0.42907384, b: 0.13394445, a: 1}
+  projectileSpeedMultiplier: 0
+  animationTrigger: 
+  castEffectPrefab: {fileID: 0}
+  hitEffectPrefab: {fileID: 0}
+  hitEffectDuration: 0

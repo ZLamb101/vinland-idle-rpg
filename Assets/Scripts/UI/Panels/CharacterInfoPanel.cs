@@ -4,6 +4,7 @@ using TMPro;
 /// <summary>
 /// Displays character information on the UI.
 /// Automatically updates when CharacterManager data changes.
+/// For animated resource bars (Health, Mana, XP), use AnimatedResourceBar component instead.
 /// </summary>
 public class CharacterInfoPanel : MonoBehaviour
 {
@@ -13,10 +14,12 @@ public class CharacterInfoPanel : MonoBehaviour
     public TextMeshProUGUI xpText;
     public TextMeshProUGUI goldText;
     public TextMeshProUGUI healthText;
+    public TextMeshProUGUI manaText; // Optional text display (use AnimatedResourceBar for bar)
     
     [Header("Display Format")]
     public bool showXPToNextLevel = true;
     public bool showMaxHealth = true;
+    public bool showMaxMana = true;
     
     private ICharacterService characterService; // Cached character service reference
     
@@ -51,6 +54,7 @@ public class CharacterInfoPanel : MonoBehaviour
             EventBus.Subscribe<CharacterXPChangedEvent>(e => UpdateXPDisplay(e.newXP));
             EventBus.Subscribe<CharacterGoldChangedEvent>(e => UpdateGoldDisplay(e.newGold));
             EventBus.Subscribe<CharacterHealthChangedEvent>(e => UpdateHealthDisplay(e.currentHealth, e.maxHealth));
+            EventBus.Subscribe<CharacterManaChangedEvent>(e => UpdateManaDisplay(e.currentMana, e.maxMana));
             
             // Initialize displays with current values (after character has been loaded)
             UpdateNameDisplay(characterService.GetName());
@@ -58,6 +62,7 @@ public class CharacterInfoPanel : MonoBehaviour
             UpdateXPDisplay(characterService.GetCurrentXP());
             UpdateGoldDisplay(characterService.GetGold());
             UpdateHealthDisplay(characterService.GetCurrentHealth(), characterService.GetMaxHealth());
+            UpdateManaDisplay();
         }
         else
         {
@@ -72,6 +77,7 @@ public class CharacterInfoPanel : MonoBehaviour
         EventBus.Unsubscribe<CharacterXPChangedEvent>(e => UpdateXPDisplay(e.newXP));
         EventBus.Unsubscribe<CharacterGoldChangedEvent>(e => UpdateGoldDisplay(e.newGold));
         EventBus.Unsubscribe<CharacterHealthChangedEvent>(e => UpdateHealthDisplay(e.currentHealth, e.maxHealth));
+        EventBus.Unsubscribe<CharacterManaChangedEvent>(e => UpdateManaDisplay(e.currentMana, e.maxMana));
     }
     
     void UpdateNameDisplay(string characterName)
@@ -142,6 +148,36 @@ public class CharacterInfoPanel : MonoBehaviour
             else
             {
                 healthText.text = $"HP: {displayHealth:F0}";
+            }
+        }
+    }
+    
+    void UpdateManaDisplay()
+    {
+        if (characterService != null)
+        {
+            CharacterData charData = characterService.GetCharacterData();
+            if (charData != null)
+            {
+                UpdateManaDisplay(charData.currentMana, charData.GetMaxMana());
+            }
+        }
+    }
+    
+    void UpdateManaDisplay(float currentMana, float maxMana)
+    {
+        if (manaText != null)
+        {
+            // Clamp mana to 0 minimum for display
+            float displayMana = Mathf.Max(0f, currentMana);
+            
+            if (showMaxMana)
+            {
+                manaText.text = $"MP: {displayMana:F0} / {maxMana:F0}";
+            }
+            else
+            {
+                manaText.text = $"MP: {displayMana:F0}";
             }
         }
     }

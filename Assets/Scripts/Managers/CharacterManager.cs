@@ -57,9 +57,81 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         }
     }
     
+    void Update()
+    {
+        // Apply out-of-combat regeneration
+        ApplyOutOfCombatRegen();
+    }
+    
     void OnDestroy()
     {
         Services.Unregister<ICharacterService>();
+    }
+    
+    /// <summary>
+    /// Apply health and mana regeneration when not in combat
+    /// </summary>
+    void ApplyOutOfCombatRegen()
+    {
+        // Check if we're in combat
+        if (Services.TryGet<ICombatService>(out var combatService))
+        {
+            var combatState = combatService.GetCombatState();
+            if (combatState == CombatManager.CombatState.Fighting)
+            {
+                // In combat - CombatManager handles regen
+                return;
+            }
+        }
+        
+        // Out of combat - apply regen
+        float deltaTime = Time.deltaTime;
+        
+        // Health regen
+        float maxHealth = characterData.GetMaxHealth();
+        if (characterData.currentHealth < maxHealth)
+        {
+            float healthRegen = characterData.GetHealthRegen();
+            
+            // Add equipment health regen
+            if (Services.TryGet<IEquipmentService>(out var equipmentService))
+            {
+                healthRegen += equipmentService.GetTotalHealthRegen();
+            }
+            
+            if (healthRegen > 0)
+            {
+                float healthGained = healthRegen * deltaTime;
+                characterData.currentHealth = Mathf.Min(characterData.currentHealth + healthGained, maxHealth);
+                
+                EventBus.Publish(new CharacterHealthChangedEvent 
+                { 
+                    currentHealth = characterData.currentHealth, 
+                    maxHealth = maxHealth, 
+                    healthChanged = healthGained 
+                });
+            }
+        }
+        
+        // Mana regen
+        float maxMana = characterData.GetMaxMana();
+        if (characterData.currentMana < maxMana)
+        {
+            float manaRegen = characterData.GetManaRegen();
+            
+            if (manaRegen > 0)
+            {
+                float manaGained = manaRegen * deltaTime;
+                characterData.currentMana = Mathf.Min(characterData.currentMana + manaGained, maxMana);
+                
+                EventBus.Publish(new CharacterManaChangedEvent 
+                { 
+                    currentMana = characterData.currentMana, 
+                    maxMana = maxMana, 
+                    manaChanged = manaGained 
+                });
+            }
+        }
     }
     
     void OnApplicationQuit()

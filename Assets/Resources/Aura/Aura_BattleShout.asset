@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ad03cad4fe2bf443a1c8e210fd13020, type: 3}
+  m_Name: Aura_BattleShout
+  m_EditorClassIdentifier: Assembly-CSharp::AuraData
+  auraName: Battleshout
+  description: Gain attackpower
+  icon: {fileID: 3437787994610807008, guid: 8630b578fec389b42bbeef70d96338f3, type: 3}
+  auraType: 0
+  duration: 10
+  canStack: 0
+  maxStacks: 3
+  statModifiers:
+    attackDamage: 10
+    attackSpeed: 0
+    maxHealth: 0
+    armor: 0
+    damageMultiplier: 0
+    damageTakenMultiplier: 0
+    slowPercent: 0
+    invulnerable: 0
+    stunned: 0
+  damagePerSecond: 0
+  activeEffectPrefab: {fileID: 0}
+  iconTint: {r: 1, g: 1, b: 1, a: 1}

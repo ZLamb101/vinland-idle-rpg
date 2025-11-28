@@ -3,10 +3,17 @@ using TMPro;
 
 /// <summary>
 /// Reusable tooltip component that handles display, positioning, and content for tooltips.
-/// Can be used by any UI panel that needs tooltip functionality.
+/// Uses a singleton pattern to ensure tooltip events work even if GameObject starts inactive.
 /// </summary>
 public class Tooltip : MonoBehaviour
 {
+    // Singleton instance
+    private static Tooltip _instance;
+    public static Tooltip Instance => _instance;
+    
+    // Static flag to track if we've subscribed to events
+    private static bool _eventsSubscribed = false;
+    
     [Header("Tooltip UI")]
     public GameObject tooltipPanel;
     public TextMeshProUGUI tooltipNameText;
@@ -20,9 +27,75 @@ public class Tooltip : MonoBehaviour
     private RectTransform canvasRect;
     private bool isVisible = false;
     
+    // Static initialization - runs when the class is first accessed
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    static void StaticInit()
+    {
+        SubscribeToEvents();
+    }
+    
+    static void SubscribeToEvents()
+    {
+        if (_eventsSubscribed) return;
+        
+        EventBus.Subscribe<TooltipShowEvent>(OnTooltipShowStatic);
+        EventBus.Subscribe<TooltipHideEvent>(OnTooltipHideStatic);
+        _eventsSubscribed = true;
+    }
+    
+    static void OnTooltipShowStatic(TooltipShowEvent e)
+    {
+        // Find instance if not set
+        if (_instance == null)
+        {
+            _instance = FindObjectOfType<Tooltip>(true); // true = include inactive
+        }
+        
+        if (_instance != null)
+        {
+            // Ensure the GameObject is active so the tooltip can show
+            if (!_instance.gameObject.activeInHierarchy)
+            {
+                _instance.gameObject.SetActive(true);
+            }
+            _instance.Show(e.title, e.description);
+        }
+    }
+    
+    static void OnTooltipHideStatic(TooltipHideEvent e)
+    {
+        if (_instance != null)
+        {
+            _instance.Hide();
+        }
+    }
+    
     void Awake()
     {
+        // Register as singleton instance
+        if (_instance == null)
+        {
+            _instance = this;
+        }
+        else if (_instance != this)
+        {
+            // Another tooltip exists, destroy this one
+            Destroy(gameObject);
+            return;
+        }
+        
         SetupTooltip();
+        
+        // Ensure events are subscribed
+        SubscribeToEvents();
+    }
+    
+    void OnDestroy()
+    {
+        if (_instance == this)
+        {
+            _instance = null;
+        }
     }
     
     void Update()
@@ -48,9 +121,23 @@ public class Tooltip : MonoBehaviour
         {
             // Top-left pivot so offset behaves intuitively
             tooltipRect.pivot = new Vector2(0f, 1f);
+            
+            // Set anchors to center so positioning works correctly with canvas
+            tooltipRect.anchorMin = new Vector2(0.5f, 0.5f);
+            tooltipRect.anchorMax = new Vector2(0.5f, 0.5f);
         }
         
+        // Find the root canvas for positioning
         tooltipCanvas = tooltipPanel.GetComponentInParent<Canvas>();
+        while (tooltipCanvas != null && !tooltipCanvas.isRootCanvas)
+        {
+            Canvas parentCanvas = tooltipCanvas.transform.parent?.GetComponentInParent<Canvas>();
+            if (parentCanvas != null)
+                tooltipCanvas = parentCanvas;
+            else
+                break;
+        }
+        
         if (tooltipCanvas != null)
         {
             canvasRect = tooltipCanvas.GetComponent<RectTransform>();
@@ -82,15 +169,8 @@ public class Tooltip : MonoBehaviour
     void UpdateTooltipPosition()
     {
         Vector2 mousePos = GetMousePosition();
-        Vector2 localPoint;
-        RectTransform targetRect = tooltipRect.parent as RectTransform;
         
-        if (targetRect == null)
-        {
-            targetRect = canvasRect;
-        }
-        
-        if (targetRect == null) return;
+        if (canvasRect == null) return;
         
         Camera uiCamera = null;
         if (tooltipCanvas != null && tooltipCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
@@ -98,14 +178,34 @@ public class Tooltip : MonoBehaviour
             uiCamera = tooltipCanvas.worldCamera;
         }
         
+        // Convert screen position to canvas local position
+        Vector2 localPoint;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            targetRect,
+            canvasRect,
             mousePos,
             uiCamera,
             out localPoint
         );
         
-        tooltipRect.anchoredPosition = localPoint + tooltipOffset;
+        // Apply offset
+        Vector2 targetPosition = localPoint + tooltipOffset;
+        
+        // Clamp to screen bounds to prevent tooltip going off-screen
+        Vector2 tooltipSize = tooltipRect.sizeDelta;
+        Vector2 canvasSize = canvasRect.sizeDelta;
+        
+        // Account for canvas pivot (usually 0.5, 0.5)
+        Vector2 canvasPivotOffset = canvasSize * (canvasRect.pivot - new Vector2(0.5f, 0.5f));
+        
+        float minX = -canvasSize.x * 0.5f - canvasPivotOffset.x;
+        float maxX = canvasSize.x * 0.5f - canvasPivotOffset.x - tooltipSize.x;
+        float minY = -canvasSize.y * 0.5f - canvasPivotOffset.y + tooltipSize.y;
+        float maxY = canvasSize.y * 0.5f - canvasPivotOffset.y;
+        
+        targetPosition.x = Mathf.Clamp(targetPosition.x, minX, maxX);
+        targetPosition.y = Mathf.Clamp(targetPosition.y, minY, maxY);
+        
+        tooltipRect.anchoredPosition = targetPosition;
     }
     
     /// <summary>
@@ -117,6 +217,12 @@ public class Tooltip : MonoBehaviour
     {
         if (tooltipPanel == null) return;
         
+        // Ensure setup is complete (in case Awake didn't run)
+        if (tooltipRect == null)
+        {
+            SetupTooltip();
+        }
+        
         if (tooltipNameText != null)
             tooltipNameText.text = title;
         
@@ -125,6 +231,9 @@ public class Tooltip : MonoBehaviour
         
         tooltipPanel.SetActive(true);
         isVisible = true;
+        
+        // Update position immediately
+        UpdateTooltipPosition();
     }
     
     /// <summary>
@@ -187,6 +296,22 @@ public class Tooltip : MonoBehaviour
             tooltipPanel.SetActive(false);
             isVisible = false;
         }
+    }
+    
+    /// <summary>
+    /// Event handler for TooltipShowEvent
+    /// </summary>
+    void OnTooltipShow(TooltipShowEvent e)
+    {
+        Show(e.title, e.description);
+    }
+    
+    /// <summary>
+    /// Event handler for TooltipHideEvent
+    /// </summary>
+    void OnTooltipHide(TooltipHideEvent e)
+    {
+        Hide();
     }
     
     /// <summary>

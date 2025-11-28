@@ -13,6 +13,7 @@ public class CharacterData
     public int currentXP = 0;
     public int gold = 0;
     public float currentHealth = 50f;
+    public float currentMana = 100f;
     public InventoryData inventory = new InventoryData();
     public ProfessionData professions = new ProfessionData();
     
@@ -27,9 +28,9 @@ public class CharacterData
     // These are the primary stats that derive all other combat stats
     public int strength = 10;      // +2 Attack Power, +1 Armor per point
     public int agility = 10;       // +0.5% Crit, +0.5% Dodge, +1 Attack Power per point
-    public int intellect = 10;     // Currently unused
+    public int intellect = 10;     // +10 Max Mana per point
     public int stamina = 10;       // +10 Health per point
-    public int spirit = 1;        // +1 Health/sec regen per point
+    public int spirit = 1;        // +1 Health/sec regen per point, +0.5 Mana/sec regen per point
     
     // Health is now derived from Stamina (10 health per point)
     public float GetMaxHealth()
@@ -95,6 +96,24 @@ public class CharacterData
     }
     
     /// <summary>
+    /// Get max mana from Intellect attribute
+    /// Intellect: +10 Max Mana per point
+    /// </summary>
+    public float GetMaxMana()
+    {
+        return intellect * 10f;
+    }
+    
+    /// <summary>
+    /// Get mana regen per second from Spirit attribute
+    /// Spirit: +0.5 Mana/sec per point
+    /// </summary>
+    public float GetManaRegen()
+    {
+        return spirit * 0.5f;
+    }
+    
+    /// <summary>
     /// Get base attack damage at a specific level (now based on attributes)
     /// Uses Strength and Agility
     /// </summary>
@@ -142,9 +161,10 @@ public class CharacterData
             level++;
             
             // Grant stat increases on level up
-            // +1 Strength, +1 Stamina per level
+            // +1 Strength, +1 Stamina, +1 Intellect per level
             strength += 1;
             stamina += 1;
+            intellect += 1;
         }
     }
 }

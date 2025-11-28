@@ -41,7 +41,8 @@ public class AnimatedResourceBar : MonoBehaviour
     public enum ResourceType
     {
         Health,
-        Experience
+        Experience,
+        Mana
     }
     
     private float targetValue = 1f;
@@ -110,6 +111,21 @@ public class AnimatedResourceBar : MonoBehaviour
                         xpGained = 0
                     });
                     break;
+                    
+                case ResourceType.Mana:
+                    EventBus.Subscribe<CharacterManaChangedEvent>(UpdateManaBar);
+                    // Initialize with current values
+                    CharacterData charData = characterService.GetCharacterData();
+                    if (charData != null)
+                    {
+                        UpdateManaBar(new CharacterManaChangedEvent 
+                        { 
+                            currentMana = charData.currentMana,
+                            maxMana = charData.GetMaxMana(),
+                            manaChanged = 0
+                        });
+                    }
+                    break;
             }
         }
     }
@@ -125,6 +141,10 @@ public class AnimatedResourceBar : MonoBehaviour
             case ResourceType.Experience:
                 EventBus.Unsubscribe<CharacterXPChangedEvent>(UpdateXPBar);
                 EventBus.Unsubscribe<CharacterLevelChangedEvent>(OnLevelChanged);
+                break;
+                
+            case ResourceType.Mana:
+                EventBus.Unsubscribe<CharacterManaChangedEvent>(UpdateManaBar);
                 break;
         }
     }
@@ -198,6 +218,41 @@ public class AnimatedResourceBar : MonoBehaviour
         if (backgroundSlider != null)
         {
             backgroundSlider.value = targetValue;
+        }
+        
+        UpdateText();
+    }
+    
+    void UpdateManaBar(CharacterManaChangedEvent e)
+    {
+        currentAmount = e.currentMana;
+        maxAmount = e.maxMana;
+        
+        float newTargetValue = e.maxMana > 0 ? e.currentMana / e.maxMana : 0;
+        
+        // Handle background bar for mana usage preview
+        if (useBackgroundBar && backgroundSlider != null)
+        {
+            if (newTargetValue < currentValue) // Using mana
+            {
+                // Background bar stays at old value temporarily
+                CancelInvoke(nameof(UpdateBackgroundBar));
+                Invoke(nameof(UpdateBackgroundBar), backgroundBarDelay);
+            }
+            else // Regenerating mana
+            {
+                // Background bar updates immediately
+                backgroundSlider.value = newTargetValue;
+            }
+        }
+        
+        targetValue = newTargetValue;
+        
+        if (!useSmoothing && mainSlider != null)
+        {
+            mainSlider.value = targetValue;
+            currentValue = targetValue;
+            UpdateBarColor(targetValue);
         }
         
         UpdateText();

@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ad03cad4fe2bf443a1c8e210fd13020, type: 3}
+  m_Name: Aura_Weakness
+  m_EditorClassIdentifier: Assembly-CSharp::AuraData
+  auraName: Weakness
+  description: Take Damage over Time
+  icon: {fileID: 7887899371539362621, guid: 711606d25c98e844b8aa7f25997d0f93, type: 3}
+  auraType: 1
+  duration: 10
+  canStack: 1
+  maxStacks: 3
+  statModifiers:
+    attackDamage: 0
+    attackSpeed: 0
+    maxHealth: 0
+    armor: 0
+    damageMultiplier: 0
+    damageTakenMultiplier: 0
+    slowPercent: 0
+    invulnerable: 0
+    stunned: 0
+  damagePerSecond: 2
+  dotAttackPowerScaling: 0.2
+  activeEffectPrefab: {fileID: 0}
+  iconTint: {r: 1, g: 1, b: 1, a: 1}

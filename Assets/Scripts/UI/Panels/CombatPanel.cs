@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections;
-using System.Collections.Generic;
 
 /// <summary>
 /// UI panel that displays auto-battle combat.
@@ -32,18 +30,7 @@ public class CombatPanel : MonoBehaviour
     [Tooltip("Mob count selector. If not assigned, will try to find it in the scene.")]
     public MobCountSelector mobCountSelector; // Selector for number of mobs to fight
     
-    [Header("Damage Display")]
-    [Tooltip("Prefab for player damage text. Required for showing damage numbers.")]
-    public GameObject playerDamageTextPrefab; // Prefab for floating damage numbers
-    [Tooltip("Parent container for damage text instances")]
-    public RectTransform damageTextContainer; // Container for damage text instances
-    public float damageAnimationDuration = 1f; // How long damage numbers animate
-    public float damageRiseDistance = 50f; // How far damage numbers rise (pixels)
-    [Tooltip("Horizontal spread for multiple damage texts (pixels)")]
-    public float damageTextSpread = 30f; // Spread damage texts horizontally to avoid overlap
-    
-    private List<GameObject> activeDamageTexts = new List<GameObject>(); // Track active damage text instances
-    private int damageTextCounter = 0; // Counter for positioning multiple damage texts
+    // Note: Player damage display is now handled by CombatSceneController (floating text on hero visual)
     
     private ICombatService combatService; // Cached combat service reference
     
@@ -59,10 +46,10 @@ public class CombatPanel : MonoBehaviour
         combatService = Services.Get<ICombatService>();
         
         // Subscribe to combat events via EventBus
+        // Note: Player damage display is now handled by CombatSceneController (floating text on hero)
         EventBus.Subscribe<CombatStateChangedEvent>(OnCombatStateChanged);
         EventBus.Subscribe<PlayerHealthChangedEvent>(UpdatePlayerHealth);
         EventBus.Subscribe<PlayerAttackProgressEvent>(UpdatePlayerAttackProgress);
-        EventBus.Subscribe<PlayerDamageTakenEvent>(ShowPlayerDamage);
         EventBus.Subscribe<ZoneChangedEvent>(OnZoneChanged);
         
         // Setup buttons
@@ -78,16 +65,6 @@ public class CombatPanel : MonoBehaviour
         // Hide panel initially
         if (combatPanel != null)
             combatPanel.SetActive(false);
-        
-        // Setup damage text container if not assigned
-        if (damageTextContainer == null && playerDamageTextPrefab != null)
-        {
-            // Use prefab's parent as container if it exists in scene
-            if (playerDamageTextPrefab.transform.parent != null)
-            {
-                damageTextContainer = playerDamageTextPrefab.transform.parent.GetComponent<RectTransform>();
-            }
-        }
 
         // Initialize background
         if (Services.TryGet<IZoneService>(out var zoneService))
@@ -106,7 +83,6 @@ public class CombatPanel : MonoBehaviour
         EventBus.Unsubscribe<CombatStateChangedEvent>(OnCombatStateChanged);
         EventBus.Unsubscribe<PlayerHealthChangedEvent>(UpdatePlayerHealth);
         EventBus.Unsubscribe<PlayerAttackProgressEvent>(UpdatePlayerAttackProgress);
-        EventBus.Unsubscribe<PlayerDamageTakenEvent>(ShowPlayerDamage);
         EventBus.Unsubscribe<ZoneChangedEvent>(OnZoneChanged);
     }
     
@@ -126,8 +102,6 @@ public class CombatPanel : MonoBehaviour
                 HideCombatPanel();
                 if (continueButton != null)
                     continueButton.gameObject.SetActive(false);
-                // Clear damage numbers when leaving combat
-                HidePlayerDamage();
                 break;
                 
             case CombatManager.CombatState.Fighting:
@@ -136,8 +110,6 @@ public class CombatPanel : MonoBehaviour
                     retreatButton.gameObject.SetActive(true);
                 if (continueButton != null)
                     continueButton.gameObject.SetActive(false);
-                // Clear damage numbers when starting combat
-                HidePlayerDamage();
                 UpdateCombatLog("Battle started!");
                 break;
                 
@@ -173,167 +145,6 @@ public class CombatPanel : MonoBehaviour
             playerAttackProgressBar.value = e.progress;
     }
     
-    void ShowPlayerDamage(PlayerDamageTakenEvent e)
-    {
-        // Only show damage if the panel GameObject is active (can't start coroutines on inactive objects)
-        // Also check if combatPanel is active since that controls visibility
-        if (!gameObject.activeInHierarchy || (combatPanel != null && !combatPanel.activeInHierarchy))
-        {
-            return;
-        }
-        
-        // Get or create damage text instance
-        TextMeshProUGUI damageTextInstance = GetOrCreateDamageText();
-        
-        if (damageTextInstance != null)
-        {
-            // Calculate offset for this damage text (spread horizontally)
-            float xOffset = (damageTextCounter % 3 - 1) * damageTextSpread; // -spread, 0, +spread pattern
-            damageTextCounter++;
-            
-            // Set text and color based on whether it's a miss
-            if (e.wasMiss)
-            {
-                damageTextInstance.text = "Miss";
-                damageTextInstance.color = Color.red; // Red for enemy misses
-            }
-            else
-            {
-                damageTextInstance.text = $"-{e.damage:F0}";
-                damageTextInstance.color = Color.white; // White for normal damage
-            }
-            
-            // Start animation with offset
-            StartCoroutine(AnimateDamageNumber(damageTextInstance, damageRiseDistance, damageAnimationDuration, xOffset));
-        }
-    }
-    
-    /// <summary>
-    /// Get or create a damage text instance
-    /// </summary>
-    TextMeshProUGUI GetOrCreateDamageText()
-    {
-        if (playerDamageTextPrefab == null)
-        {
-            return null;
-        }
-        
-        Transform parent = damageTextContainer != null ? damageTextContainer : transform;
-        GameObject damageObj = Instantiate(playerDamageTextPrefab, parent);
-        TextMeshProUGUI text = damageObj.GetComponent<TextMeshProUGUI>();
-        if (text == null)
-            text = damageObj.GetComponentInChildren<TextMeshProUGUI>();
-        
-        if (text != null && damageObj != null)
-        {
-            activeDamageTexts.Add(damageObj);
-            return text;
-        }
-        return null;
-    }
-    
-    /// <summary>
-    /// Animate a damage number rising up and fading out
-    /// </summary>
-    IEnumerator AnimateDamageNumber(TextMeshProUGUI damageText, float riseDistance, float duration, float xOffset = 0f)
-    {
-        if (damageText == null) yield break;
-        
-        RectTransform rectTransform = damageText.rectTransform;
-        CanvasGroup canvasGroup = damageText.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
-        {
-            canvasGroup = damageText.gameObject.AddComponent<CanvasGroup>();
-        }
-        
-        // Get base position (from player health bar, player sprite, or damage text container)
-        Vector2 basePosition = Vector2.zero;
-        RectTransform referenceRect = null;
-        
-        if (playerHealthBar != null)
-        {
-            referenceRect = playerHealthBar.GetComponent<RectTransform>();
-        }
-        else if (playerSprite != null)
-        {
-            referenceRect = playerSprite.GetComponent<RectTransform>();
-        }
-        else if (damageTextContainer != null)
-        {
-            referenceRect = damageTextContainer;
-        }
-        
-        if (referenceRect != null)
-        {
-            basePosition = referenceRect.anchoredPosition;
-            // Offset upward from the reference (above health bar/sprite)
-            basePosition += new Vector2(0f, 20f);
-        }
-        
-        // Store starting position with X offset
-        Vector2 startPosition = basePosition + new Vector2(xOffset, 0f);
-        Vector2 endPosition = startPosition + new Vector2(0, riseDistance);
-        
-        // Reset alpha and position
-        canvasGroup.alpha = 1f;
-        rectTransform.anchoredPosition = startPosition;
-        damageText.gameObject.SetActive(true);
-        
-        float elapsed = 0f;
-        
-        while (elapsed < duration)
-        {
-            // Check if text was destroyed
-            if (damageText == null || damageText.gameObject == null)
-                yield break;
-                
-            elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-            
-            // Ease out curve for smooth animation
-            float easedT = 1f - Mathf.Pow(1f - t, 3f);
-            
-            // Interpolate position (rise up)
-            if (rectTransform != null)
-            {
-                rectTransform.anchoredPosition = Vector2.Lerp(startPosition, endPosition, easedT);
-            }
-            
-            // Interpolate alpha (fade out)
-            if (canvasGroup != null)
-            {
-                canvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
-            }
-            
-            yield return null;
-        }
-        
-        // Clean up: destroy if it was instantiated, otherwise just hide
-        if (damageText != null && damageText.gameObject != null)
-        {
-            GameObject damageObj = damageText.gameObject;
-            
-            // Remove from active list
-            activeDamageTexts.Remove(damageObj);
-            
-            // Always destroy instantiated instances (they're all dynamically created)
-            Destroy(damageObj);
-        }
-    }
-    
-    void HidePlayerDamage()
-    {
-        // Clean up all active damage text instances
-        foreach (GameObject damageObj in activeDamageTexts)
-        {
-            if (damageObj != null)
-            {
-                Destroy(damageObj);
-            }
-        }
-        activeDamageTexts.Clear();
-        damageTextCounter = 0;
-    }
     
     void UpdateCombatLog(string message)
     {

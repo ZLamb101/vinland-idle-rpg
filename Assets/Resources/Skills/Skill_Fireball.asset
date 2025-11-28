@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4680f0b7505badf4ca65e14636779f95, type: 3}
+  m_Name: Skill_Fireball
+  m_EditorClassIdentifier: Assembly-CSharp::SkillData
+  skillName: Fire Ball
+  description: A powerful ability
+  icon: {fileID: -2515416156467971403, guid: c644bb6e1eeba8e4db1a872518d287d4, type: 3}
+  skillType: 0
+  skillRange: 1
+  manaCost: 10
+  cooldown: 8
+  castTime: 0
+  baseDamage: 45
+  attackPowerScaling: 0
+  canCrit: 1
+  dotDamagePerSecond: 0
+  duration: 0
+  statModifiers:
+    attackDamage: 0
+    attackSpeed: 0
+    maxHealth: 0
+    armor: 0
+    damageMultiplier: 0
+    damageTakenMultiplier: 0
+    slowPercent: 0
+    invulnerable: 0
+    stunned: 0
+  isAoE: 0
+  aoeTargetCount: 0
+  visualType: 1
+  projectilePrefab: {fileID: 7906434088891702605, guid: 03dfe92badb3f294095c38fb1187a63b, type: 3}
+  projectileSprite: {fileID: 1800556822716040559, guid: 810be62e2eb433f45900437ce4aaa483, type: 3}
+  projectileColor: {r: 0.8113208, g: 0.42907384, b: 0.13394445, a: 1}
+  projectileSpeedMultiplier: 1
+  animationTrigger: 
+  castEffectPrefab: {fileID: 0}
+  hitEffectPrefab: {fileID: 0}
+  hitEffectDuration: 0
