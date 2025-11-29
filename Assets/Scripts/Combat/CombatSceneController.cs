@@ -380,12 +380,23 @@ public class CombatSceneController : MonoBehaviour
                 {
                     TextMeshProUGUI[] allTexts = detailsRect.GetComponentsInChildren<TextMeshProUGUI>();
                     int monsterLevel = monsterInstance[i].level;
+                    
+                    // Get player level to check if monster level should be hidden
+                    int playerLevel = 1;
+                    if (Services.TryGet<ICharacterService>(out var charService))
+                    {
+                        playerLevel = charService.GetLevel();
+                    }
+                    
+                    // Show "???" if monster is 10+ levels higher than player
+                    string levelText = (monsterLevel >= playerLevel + 10) ? "Lvl ???" : $"Lvl {monsterLevel}";
+                    
                     foreach (TextMeshProUGUI text in allTexts)
                     {
                         // Find level text (doesn't contain numbers or "/")
                         if (!text.text.Contains("/") && !System.Text.RegularExpressions.Regex.IsMatch(text.text, @"^\d+"))
                         {
-                            text.text = $"Lvl {monsterLevel}";
+                            text.text = levelText;
                             break;
                         }
                     }
@@ -568,25 +579,6 @@ public class CombatSceneController : MonoBehaviour
                 {
                     text.text = $"{Mathf.Max(0f, e.currentHealth):F0}";
                     break; // Update first matching text (health text)
-                }
-            }
-            
-            // Update monster level (if we have access to monster data)
-            if (combatService != null)
-            {
-                var monsterInstance = combatService.GetActiveMonsters();
-                if (e.monsterIndex < monsterInstance.Count && monsterInstance[e.monsterIndex].monsterData != null)
-                {
-                    int monsterLevel = monsterInstance[e.monsterIndex].level;
-                    // Find level text (usually doesn't contain numbers or "/")
-                    foreach (TextMeshProUGUI text in texts)
-                    {
-                        if (!text.text.Contains("/") && !System.Text.RegularExpressions.Regex.IsMatch(text.text, @"^\d+"))
-                        {
-                            text.text = $"Level {monsterLevel}";
-                            break; // Update first non-numeric text (level text)
-                        }
-                    }
                 }
             }
         }

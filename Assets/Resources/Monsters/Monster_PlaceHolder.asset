@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3c1fdc907f8cc04b8e19aabcf3fba18, type: 3}
-  m_Name: Monster_BurningBladeAcolyte
+  m_Name: Monster_PlaceHolder
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
-  monsterName: Burning Blade Acolyte
-  monsterSprite: {fileID: 766519524516807416, guid: 8d21ef71558cf2c4fbc6839332e8ffcc, type: 3}
-  flipSprite: 0
-  minLevel: 18
-  maxLevel: 19
+  monsterName: Experiment X
+  monsterSprite: {fileID: -6574729908752276363, guid: 25bdae0165337e94dabebc31cea95ef5, type: 3}
+  flipSprite: 1
+  minLevel: 35
+  maxLevel: 38
   attackRangeType: 0
-  healthModifier: 1
+  healthModifier: 1.111
   damageModifier: 1
   speedModifier: 1
   armorModifier: 1
-  xpRewardModifier: 1
-  goldRewardModifier: 1
+  xpRewardModifier: 20
+  goldRewardModifier: 15
   dropTable:
-  - item: {fileID: 11400000, guid: be26e4be8f3978045a511170af4fbea0, type: 2}
+  - item: {fileID: 11400000, guid: f573099df85a12d40ac0bc6a68dade01, type: 2}
     quantity: 1
-    dropChance: 1
+    dropChance: 0.01
   skills: []

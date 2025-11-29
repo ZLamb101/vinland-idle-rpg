@@ -16,7 +16,9 @@ MonoBehaviour:
   levelRequired: 1
   prerequisiteZone: {fileID: 0}
   availableQuests: []
-  monsters: []
+  monsters:
+  - monster: {fileID: 11400000, guid: d7da33183d25a9c4ebfd7e5d24069f8b, type: 2}
+    position: {x: 0, y: 0}
   resources: []
   npcs: []
   nextZone: {fileID: 0}
@@ -25,7 +27,8 @@ MonoBehaviour:
   - displayName: Zepplin
     targetZone: {fileID: 11400000, guid: 21f9a08e16ada4d4598bcd06497fa1be, type: 2}
     icon: {fileID: 7167971821754250806, guid: f82c644ea8f1ab54ca664557f13f76bc, type: 3}
-    position: {x: -250, y: 300}
+    position: {x: -250, y: 400}
     scale: 2
   isUnlocked: 0
   backgroundImage: {fileID: 1417011363364721183, guid: f04771c5067fcd84eb1487d5527d7be2, type: 3}
+  craftingStations: []

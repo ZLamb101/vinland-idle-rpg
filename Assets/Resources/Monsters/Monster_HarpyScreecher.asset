@@ -15,14 +15,17 @@ MonoBehaviour:
   monsterName: Harpy Screecher
   monsterSprite: {fileID: 7190239709367618576, guid: 8d21ef71558cf2c4fbc6839332e8ffcc, type: 3}
   flipSprite: 1
-  level: 7
-  health: 350
-  attackDamage: 35
-  attackSpeed: 2
-  attackRange: 200
-  xpReward: 140
-  goldReward: 70
+  minLevel: 12
+  maxLevel: 13
+  attackRangeType: 0
+  healthModifier: 1
+  damageModifier: 1
+  speedModifier: 1
+  armorModifier: 1
+  xpRewardModifier: 1
+  goldRewardModifier: 1
   dropTable:
   - item: {fileID: 11400000, guid: 42f80c0560091e542ab3871ded650d63, type: 2}
     quantity: 1
     dropChance: 1
+  skills: []

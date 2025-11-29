@@ -20,11 +20,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 729b1c409b0a6a64098d39e3f76bc773, type: 2}
   monsters:
   - monster: {fileID: 11400000, guid: 89ee92cf6f85e884baae3a8b23317734, type: 2}
-    position: {x: 540, y: -175}
+    position: {x: 540, y: -130}
   resources: []
   npcs:
   - npc: {fileID: 11400000, guid: d621a9889936ab7419bed89b4695c249, type: 2}
-    position: {x: -760, y: -221}
+    position: {x: -700, y: -100}
   nextZone: {fileID: 11400000, guid: 8aa0f8ef764cae54fb54e737325108b1, type: 2}
   previousZone: {fileID: 0}
   extraConnections: []
@@ -33,6 +33,6 @@ MonoBehaviour:
   craftingStations:
   - professionType: 4
     stationName: Cooking Pot
-    position: {x: 0, y: 0}
+    position: {x: -323, y: -170}
     stationIcon: {fileID: -8348536425000926015, guid: 8919b8af02a0ee54695b30eba6e08462, type: 3}
     isAvailable: 1

@@ -15,14 +15,17 @@ MonoBehaviour:
   monsterName: Quillboar Bruite
   monsterSprite: {fileID: -403631161642065989, guid: 12be457dbe2beea42aab44c446b2b394, type: 3}
   flipSprite: 1
-  level: 6
-  health: 300
-  attackDamage: 30
-  attackSpeed: 2
-  attackRange: 100
-  xpReward: 120
-  goldReward: 60
+  minLevel: 10
+  maxLevel: 11
+  attackRangeType: 0
+  healthModifier: 1
+  damageModifier: 1
+  speedModifier: 1
+  armorModifier: 1
+  xpRewardModifier: 1
+  goldRewardModifier: 1
   dropTable:
   - item: {fileID: 11400000, guid: 095019d008c87b542b857114ac593f5b, type: 2}
     quantity: 1
     dropChance: 1
+  skills: []

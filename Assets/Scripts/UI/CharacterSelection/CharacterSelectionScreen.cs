@@ -672,12 +672,12 @@ public class CharacterSelectionScreen : MonoBehaviour
     {
         if (data == null) return "";
         
-        // AwayActivityType enum: 0=None, 1=Mining, 2=Fighting
-        if (data.awayActivityType == 1) // Mining
+        // AwayActivityType enum: 0=None, 1=Gathering, 2=Fighting
+        if (data.awayActivityType == 1) // Gathering resources
         {
             return !string.IsNullOrEmpty(data.awayResourceName) 
-                ? $"Currently Mining {data.awayResourceName}" 
-                : "Currently Mining";
+                ? $"Currently Gathering {data.awayResourceName}" 
+                : "Currently Gathering";
         }
         else if (data.awayActivityType == 2) // Fighting
         {

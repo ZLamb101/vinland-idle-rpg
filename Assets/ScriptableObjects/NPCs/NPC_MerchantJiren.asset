@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPCData
   npcName: Merchant Jiren
   npcSprite: {fileID: 2849948950073389046, guid: 06f3debb3d9f9db4586c77a6be6cda7d, type: 3}
+  flipSprite: 1
   npcType: 1
   dialogueLines:
   - text: Hello, traveler!
+  availableQuests: []
   shopData: {fileID: 11400000, guid: cae1f1b2911986c449b896965a0107a4, type: 2}

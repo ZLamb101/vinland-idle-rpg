@@ -207,7 +207,7 @@ public class CharacterSessionManager : MonoBehaviour, ICharacterSessionService
         {
             if (activity == AwayActivityType.Mining)
             {
-                rewards.activityName = "Mining";
+                rewards.activityName = "Gathering";
             }
             else if (activity == AwayActivityType.Fighting)
             {

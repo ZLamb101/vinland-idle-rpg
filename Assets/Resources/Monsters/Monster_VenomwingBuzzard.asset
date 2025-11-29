@@ -15,14 +15,17 @@ MonoBehaviour:
   monsterName: Venomwing Buzzard
   monsterSprite: {fileID: 8044084074481901796, guid: 8d21ef71558cf2c4fbc6839332e8ffcc, type: 3}
   flipSprite: 0
-  level: 11
-  health: 550
-  attackDamage: 55
-  attackSpeed: 2
-  attackRange: 150
-  xpReward: 220
-  goldReward: 110
+  minLevel: 20
+  maxLevel: 22
+  attackRangeType: 0
+  healthModifier: 1
+  damageModifier: 1
+  speedModifier: 1
+  armorModifier: 1
+  xpRewardModifier: 1
+  goldRewardModifier: 1
   dropTable:
   - item: {fileID: 11400000, guid: b18c36f277537fb4b934db794ee9d44a, type: 2}
     quantity: 1
     dropChance: 1
+  skills: []

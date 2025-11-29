@@ -16,7 +16,7 @@ MonoBehaviour:
   monsterSprite: {fileID: 4593146670773059579, guid: 0c15d247ab74d7d4da06c0a8ab22d4de, type: 3}
   flipSprite: 0
   minLevel: 6
-  maxLevel: 8
+  maxLevel: 7
   attackRangeType: 0
   healthModifier: 1
   damageModifier: 1

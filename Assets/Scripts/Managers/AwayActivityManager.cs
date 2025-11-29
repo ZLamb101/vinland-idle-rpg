@@ -284,10 +284,10 @@ public class AwayActivityManager : MonoBehaviour, IAwayActivityService
                 ResourceData resource = FindResourceByName(resourceName);
                 if (resource != null)
                 {
-                    return $"Currently Mining {resource.resourceName}";
+                    return $"Currently Gathering {resource.resourceName}";
                 }
                 // Fallback to saved name if ScriptableObject not found
-                return $"Currently Mining {resourceName}";
+                return $"Currently Gathering {resourceName}";
             }
         }
         else if (savedActivity == AwayActivityType.Fighting)

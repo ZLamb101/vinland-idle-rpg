@@ -15,14 +15,17 @@ MonoBehaviour:
   monsterName: Stonehide Turtle
   monsterSprite: {fileID: 3991291993272723132, guid: 2a3c457233dde5545b2849f1d80503e7, type: 3}
   flipSprite: 1
-  level: 8
-  health: 400
-  attackDamage: 40
-  attackSpeed: 2
-  attackRange: 100
-  xpReward: 160
-  goldReward: 80
+  minLevel: 14
+  maxLevel: 15
+  attackRangeType: 0
+  healthModifier: 1
+  damageModifier: 1
+  speedModifier: 1
+  armorModifier: 1
+  xpRewardModifier: 1
+  goldRewardModifier: 1
   dropTable:
   - item: {fileID: 11400000, guid: f7a2bfd64fb36b2439649e01fd2515e9, type: 2}
     quantity: 1
     dropChance: 1
+  skills: []

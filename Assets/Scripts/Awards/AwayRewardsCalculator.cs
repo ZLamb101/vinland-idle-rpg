@@ -73,7 +73,7 @@ public static class AwayRewardsCalculator
     /// </summary>
     private static void CalculateMiningRewards(AwayRewards rewards, ResourceData resource, TimeSpan timeAway)
     {
-        rewards.activityName = $"Mining {resource.resourceName}";
+        rewards.activityName = $"Gathering {resource.resourceName}";
         
         if (resource.gatheredItem == null)
         {
@@ -90,7 +90,7 @@ public static class AwayRewardsCalculator
         CombatStats stats = CombatLogic.GetCombatStats();
         int totalItems = Mathf.FloorToInt(baseTotalItems * stats.afkGainsPercent);
         
-        Debug.Log($"[AwayRewards] Mining calculation - Time away: {totalSeconds}s, Time per gather: {timePerGather}s, Gather cycles: {gatherCycles}, Items per gather: {resource.itemsPerGather}, Base items: {baseTotalItems}, AFK multiplier: {stats.afkGainsPercent:P0}, Final items: {totalItems}");
+        Debug.Log($"[AwayRewards] Gathering calculation - Time away: {totalSeconds}s, Time per gather: {timePerGather}s, Gather cycles: {gatherCycles}, Items per gather: {resource.itemsPerGather}, Base items: {baseTotalItems}, AFK multiplier: {stats.afkGainsPercent:P0}, Final items: {totalItems}");
         
         if (totalItems > 0)
         {

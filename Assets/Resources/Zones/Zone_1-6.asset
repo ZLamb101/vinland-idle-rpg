@@ -20,7 +20,7 @@ MonoBehaviour:
   - monster: {fileID: 11400000, guid: 77998f267e7f9ce419e7d19bdfcb45a5, type: 2}
     position: {x: 300, y: -175}
   resources:
-  - resource: {fileID: 11400000, guid: 43dfac370de9740419c5b3edbc2d6808, type: 2}
+  - resource: {fileID: 11400000, guid: da170d8b2017fa242b035d40b43ca95a, type: 2}
     position: {x: -500, y: -200}
   npcs: []
   nextZone: {fileID: 11400000, guid: 9dc80a57df775ba44ad5df55c841d674, type: 2}
@@ -28,3 +28,4 @@ MonoBehaviour:
   extraConnections: []
   isUnlocked: 0
   backgroundImage: {fileID: 4382981799794339143, guid: 1d22e75a25b6a99468a4b1308ea50bb3, type: 3}
+  craftingStations: []

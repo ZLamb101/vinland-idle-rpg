@@ -15,8 +15,8 @@ MonoBehaviour:
   monsterName: Witch Doctor
   monsterSprite: {fileID: -8192757947983677235, guid: 8d21ef71558cf2c4fbc6839332e8ffcc, type: 3}
   flipSprite: 0
-  minLevel: 11
-  maxLevel: 11
+  minLevel: 26
+  maxLevel: 28
   attackRangeType: 0
   healthModifier: 1
   damageModifier: 1
