@@ -10,6 +10,9 @@ public class BankPanel : MonoBehaviour
     public Button closeButton;
     public Button depositAllButton;
     
+    [Header("Panel Controller")]
+    public UIPanelController panelController;
+    
     private List<InventorySlot> slots = new List<InventorySlot>();
     private IBankService bankService;
     private ICharacterService characterService;
@@ -132,7 +135,14 @@ public class BankPanel : MonoBehaviour
     
     public void Show()
     {
-        gameObject.SetActive(true);
+        if (panelController != null)
+        {
+            panelController.OpenPanel(gameObject);
+        }
+        else
+        {
+            gameObject.SetActive(true);
+        }
         
         // Initialize slots if not already done
         if (slots.Count == 0)
@@ -145,13 +155,36 @@ public class BankPanel : MonoBehaviour
     
     public void Hide()
     {
-        gameObject.SetActive(false);
+        if (panelController != null)
+        {
+            panelController.ClosePanel(gameObject);
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
     }
     
     public void Toggle()
     {
-        if (gameObject.activeSelf) Hide();
-        else Show();
+        if (panelController != null)
+        {
+            panelController.TogglePanel(gameObject);
+            if (gameObject.activeSelf)
+            {
+                // Initialize slots if not already done
+                if (slots.Count == 0)
+                {
+                    InitializeSlots();
+                }
+                RefreshUI();
+            }
+        }
+        else
+        {
+            if (gameObject.activeSelf) Hide();
+            else Show();
+        }
     }
     
     private void RefreshUI()

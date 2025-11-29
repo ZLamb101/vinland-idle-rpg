@@ -12,6 +12,9 @@ public class TalentPanel : MonoBehaviour
     [Header("Panel")]
     public GameObject talentPanel;
     
+    [Header("Panel Controller")]
+    public UIPanelController panelController;
+    
     [Header("Talent Tree Tabs")]
     public Button combatTab;
     public Button defenseTab;
@@ -26,23 +29,15 @@ public class TalentPanel : MonoBehaviour
     public TextMeshProUGUI talentPointsText;
     public TextMeshProUGUI treeSummaryText; // Shows points in current tree
     
-    [Header("Tooltip")]
-    public GameObject tooltipPanel;
-    public TextMeshProUGUI tooltipNameText;
-    public TextMeshProUGUI tooltipDescriptionText;
-    
-    [Header("Reset")]
+    [Header("Controls")]
+    public Button closeButton;
     public Button resetButton;
     // Reset cost now comes from GameBalance.Economy.talentResetCost
     
     [Header("Talent Data")]
     public TalentData[] allTalents; // Assign all talent assets here
     
-    [Header("Tooltip Settings")]
-    public Vector2 tooltipOffset = new Vector2(30f, -40f); // Offset from cursor
-    
     private Dictionary<TalentData, TalentButton> talentButtons = new Dictionary<TalentData, TalentButton>();
-    private RectTransform tooltipRect;
     private ITalentService talentService; // Cached talent service reference
     
     void Start()
@@ -65,6 +60,10 @@ public class TalentPanel : MonoBehaviour
         if (utilityTab != null)
             utilityTab.onClick.AddListener(() => SwitchTree(TalentTree.Utility));
         
+        // Setup close button
+        if (closeButton != null)
+            closeButton.onClick.AddListener(HidePanel);
+        
         // Setup reset button
         if (resetButton != null)
             resetButton.onClick.AddListener(ResetTalents);
@@ -73,27 +72,6 @@ public class TalentPanel : MonoBehaviour
         if (talentPanel != null)
             talentPanel.SetActive(false);
         
-        if (tooltipPanel != null)
-        {
-            tooltipPanel.SetActive(false);
-            tooltipRect = tooltipPanel.GetComponent<RectTransform>();
-            
-            // Disable raycast blocking on tooltip so it doesn't interfere with hover detection
-            CanvasGroup tooltipCanvasGroup = tooltipPanel.GetComponent<CanvasGroup>();
-            if (tooltipCanvasGroup == null)
-            {
-                tooltipCanvasGroup = tooltipPanel.AddComponent<CanvasGroup>();
-            }
-            tooltipCanvasGroup.blocksRaycasts = false;
-            tooltipCanvasGroup.interactable = false;
-            
-            // Also disable raycasts on all child Image/Text components
-            foreach (Graphic graphic in tooltipPanel.GetComponentsInChildren<Graphic>(true))
-            {
-                graphic.raycastTarget = false;
-            }
-        }
-        
         // Initialize
         CreateTalentButtons();
         UpdatePointsDisplay(new TalentPointsChangedEvent 
@@ -101,44 +79,6 @@ public class TalentPanel : MonoBehaviour
             unspentPoints = talentService?.GetUnspentPoints() ?? 0,
             totalPoints = talentService?.GetTotalPoints() ?? 0
         });
-    }
-    
-    void Update()
-    {
-        // Update tooltip position to follow cursor
-        if (tooltipPanel != null && tooltipPanel.activeSelf && tooltipRect != null)
-        {
-            Vector2 mousePos = GetMousePosition();
-            Vector2 localPoint;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                talentPanel.GetComponent<RectTransform>(),
-                mousePos,
-                null,
-                out localPoint
-            );
-            
-            tooltipRect.anchoredPosition = localPoint + tooltipOffset;
-        }
-    }
-    
-    /// <summary>
-    /// Get mouse position - compatible with both old and new Input System
-    /// </summary>
-    Vector2 GetMousePosition()
-    {
-        #if ENABLE_INPUT_SYSTEM
-        if (UnityEngine.InputSystem.Mouse.current != null)
-        {
-            return UnityEngine.InputSystem.Mouse.current.position.ReadValue();
-        }
-        #endif
-        
-        #if ENABLE_LEGACY_INPUT_MANAGER
-        return Input.mousePosition;
-        #endif
-        
-        // Fallback
-        return Vector2.zero;
     }
     
     void OnDestroy()
@@ -237,30 +177,24 @@ public class TalentPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// Show tooltip when hovering over a talent
+    /// Show tooltip when hovering over a talent (uses global tooltip)
     /// </summary>
     public void ShowTooltip(TalentData talent)
     {
-        if (tooltipPanel == null || talent == null) return;
+        if (talent == null) return;
         
         int currentRank = talentService?.GetTalentRank(talent) ?? 0;
+        string description = talent.GetFullDescription(currentRank);
         
-        if (tooltipNameText != null)
-            tooltipNameText.text = talent.talentName;
-        
-        if (tooltipDescriptionText != null)
-            tooltipDescriptionText.text = talent.GetFullDescription(currentRank);
-        
-        tooltipPanel.SetActive(true);
+        EventBus.Publish(new TooltipShowEvent { title = talent.talentName, description = description });
     }
     
     /// <summary>
-    /// Hide tooltip when no longer hovering
+    /// Hide tooltip when no longer hovering (uses global tooltip)
     /// </summary>
     public void HideTooltip()
     {
-        if (tooltipPanel != null)
-            tooltipPanel.SetActive(false);
+        EventBus.Publish(new TooltipHideEvent());
     }
     
     void OnTalentUnlocked(TalentUnlockedEvent e)
@@ -316,13 +250,48 @@ public class TalentPanel : MonoBehaviour
     {
         if (talentPanel != null)
         {
-            bool isActive = !talentPanel.activeSelf;
-            talentPanel.SetActive(isActive);
-            
-            if (isActive)
+            if (panelController != null)
             {
-                RefreshAllButtons();
+                panelController.TogglePanel(talentPanel);
+                if (talentPanel.activeSelf)
+                {
+                    RefreshAllButtons();
+                }
             }
+            else
+            {
+                bool isActive = !talentPanel.activeSelf;
+                talentPanel.SetActive(isActive);
+                
+                if (isActive)
+                {
+                    RefreshAllButtons();
+                }
+            }
+        }
+    }
+    
+    public void ShowPanel()
+    {
+        if (talentPanel != null)
+        {
+            if (panelController != null)
+                panelController.OpenPanel(talentPanel);
+            else
+                talentPanel.SetActive(true);
+            
+            RefreshAllButtons();
+        }
+    }
+    
+    public void HidePanel()
+    {
+        if (talentPanel != null)
+        {
+            if (panelController != null)
+                panelController.ClosePanel(talentPanel);
+            else
+                talentPanel.SetActive(false);
         }
     }
     

@@ -82,3 +82,5 @@ crashlytics-build.properties
 *.swo
 *~
 
+# Art Assets (large files)
+[Aa]ssets/[Aa]rt/

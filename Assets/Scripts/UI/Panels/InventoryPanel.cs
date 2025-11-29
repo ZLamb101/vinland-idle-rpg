@@ -15,10 +15,14 @@ public class InventoryPanel : MonoBehaviour
     public Transform inventoryGridParent;
     public GameObject inventorySlotPrefab;
     
+    [Header("Gold Display")]
+    public TextMeshProUGUI goldText;
+    
     [Header("Current Setup")]
     public InventorySlot[] inventorySlots;
     
     private InventoryData inventoryData;
+    private ICharacterService characterService;
     private int selectedSlot = -1;
     private int draggingSlotIndex = -1; // Track which slot is being dragged
     
@@ -34,6 +38,10 @@ public class InventoryPanel : MonoBehaviour
         // Subscribe to inventory events for auto-refresh
         EventBus.Subscribe<ItemAddedEvent>(OnItemAdded);
         EventBus.Subscribe<ItemRemovedEvent>(OnItemRemoved);
+        EventBus.Subscribe<CharacterGoldChangedEvent>(OnGoldChanged);
+        
+        // Initialize gold display
+        UpdateGoldDisplay();
     }
     
     void OnDestroy()
@@ -42,6 +50,31 @@ public class InventoryPanel : MonoBehaviour
         EventBus.Unsubscribe<CharacterLoadedEvent>(OnCharacterLoaded);
         EventBus.Unsubscribe<ItemAddedEvent>(OnItemAdded);
         EventBus.Unsubscribe<ItemRemovedEvent>(OnItemRemoved);
+        EventBus.Unsubscribe<CharacterGoldChangedEvent>(OnGoldChanged);
+    }
+    
+    void OnGoldChanged(CharacterGoldChangedEvent e)
+    {
+        UpdateGoldDisplay(e.newGold);
+    }
+    
+    void UpdateGoldDisplay()
+    {
+        if (goldText == null) return;
+        
+        if (characterService == null)
+            characterService = Services.Get<ICharacterService>();
+        
+        if (characterService != null)
+        {
+            UpdateGoldDisplay(characterService.GetGold());
+        }
+    }
+    
+    void UpdateGoldDisplay(int gold)
+    {
+        if (goldText != null)
+            goldText.text = $"Gold: {gold}";
     }
 
     void OnCharacterLoaded(CharacterLoadedEvent e)

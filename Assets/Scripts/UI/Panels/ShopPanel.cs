@@ -11,6 +11,9 @@ public class ShopPanel : MonoBehaviour
     [Header("Shop Panel")]
     public GameObject shopPanel; // The main panel to show/hide
     
+    [Header("Panel Controller")]
+    public UIPanelController panelController;
+    
     [Header("Shop Display")]
     [Tooltip("Optional: Shop name display (leave empty if not displaying shop name)")]
     public TextMeshProUGUI shopNameText;
@@ -99,7 +102,12 @@ public class ShopPanel : MonoBehaviour
     {
         ShopData shop = e.shop;
         if (shopPanel != null)
-            shopPanel.SetActive(true);
+        {
+            if (panelController != null)
+                panelController.OpenPanel(shopPanel);
+            else
+                shopPanel.SetActive(true);
+        }
         
         if (shopNameText != null && shop != null)
             shopNameText.text = shop.shopName;
@@ -112,7 +120,12 @@ public class ShopPanel : MonoBehaviour
     void OnShopClosed(ShopClosedEvent e)
     {
         if (shopPanel != null)
-            shopPanel.SetActive(false);
+        {
+            if (panelController != null)
+                panelController.ClosePanel(shopPanel);
+            else
+                shopPanel.SetActive(false);
+        }
         
         ClearShopItems();
     }

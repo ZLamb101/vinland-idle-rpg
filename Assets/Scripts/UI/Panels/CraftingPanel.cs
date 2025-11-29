@@ -12,6 +12,9 @@ public class CraftingPanel : MonoBehaviour
     [Header("Panel")]
     public GameObject craftingPanel;
     
+    [Header("Panel Controller")]
+    public UIPanelController panelController;
+    
     [Header("Recipe List")]
     public Transform recipeListContainer;
     public GameObject recipeSlotPrefab;
@@ -99,7 +102,12 @@ public class CraftingPanel : MonoBehaviour
     public void OpenPanel()
     {
         if (craftingPanel != null)
-            craftingPanel.SetActive(true);
+        {
+            if (panelController != null)
+                panelController.OpenPanel(craftingPanel);
+            else
+                craftingPanel.SetActive(true);
+        }
         
         // Clear selection when opening
         selectedRecipe = null;
@@ -114,12 +122,44 @@ public class CraftingPanel : MonoBehaviour
     public void ClosePanel()
     {
         if (craftingPanel != null)
-            craftingPanel.SetActive(false);
+        {
+            if (panelController != null)
+                panelController.ClosePanel(craftingPanel);
+            else
+                craftingPanel.SetActive(false);
+        }
         
         // Cancel any active crafting
         if (craftingService != null && craftingService.IsCrafting())
         {
             craftingService.CancelCrafting();
+        }
+    }
+    
+    /// <summary>
+    /// Toggle the crafting panel
+    /// </summary>
+    public void TogglePanel()
+    {
+        if (craftingPanel != null)
+        {
+            if (panelController != null)
+            {
+                panelController.TogglePanel(craftingPanel);
+                if (craftingPanel.activeSelf)
+                {
+                    selectedRecipe = null;
+                    RefreshRecipeList();
+                    UpdateRecipeDetails();
+                }
+            }
+            else
+            {
+                if (craftingPanel.activeSelf)
+                    ClosePanel();
+                else
+                    OpenPanel();
+            }
         }
     }
     

@@ -74,9 +74,7 @@ public class BankManager : MonoBehaviour, IBankService
         
         if (accountData.bankData.AddItem(item))
         {
-            // Item added successfully
-            // Since we passed a reference or copy, we need to make sure the source is handled by the caller
-            // But wait, AddItem modifies the bank state.
+
             
             // Publish event if we know the slot index (so inventory UI can update)
             if (slotIndex >= 0)

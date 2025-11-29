@@ -79,7 +79,7 @@ public class SaveData
     public string lastPlayedTime = "";
     public string lastSessionStart = "";
     
-    // Action Bar (4 skill slots)
+    // Action Bar (6 skill slots)
     public List<string> actionBarSkills = new List<string>(); // Skill asset names
     
     // Metadata

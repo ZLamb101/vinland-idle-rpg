@@ -14,6 +14,12 @@ public class ProfessionPanel : MonoBehaviour
     [Header("Panel")]
     public GameObject professionPanel;
     
+    [Header("Panel Controller")]
+    public UIPanelController panelController;
+    
+    [Header("Controls")]
+    public Button closeButton;
+    
     [Header("Prefab Setup")]
     [Tooltip("Parent container where profession entries will be spawned")]
     public Transform professionContainer;
@@ -29,6 +35,10 @@ public class ProfessionPanel : MonoBehaviour
     
     void Start()
     {
+        // Setup close button
+        if (closeButton != null)
+            closeButton.onClick.AddListener(HidePanel);
+        
         // Get profession service
         if (Services.TryGet<IProfessionService>(out professionService))
         {
@@ -198,13 +208,24 @@ public class ProfessionPanel : MonoBehaviour
     {
         if (professionPanel != null)
         {
-            bool isActive = professionPanel.activeSelf;
-            professionPanel.SetActive(!isActive);
-            
-            // Refresh display when opening
-            if (!isActive)
+            if (panelController != null)
             {
-                RefreshDisplay();
+                panelController.TogglePanel(professionPanel);
+                if (professionPanel.activeSelf)
+                {
+                    RefreshDisplay();
+                }
+            }
+            else
+            {
+                bool isActive = professionPanel.activeSelf;
+                professionPanel.SetActive(!isActive);
+                
+                // Refresh display when opening
+                if (!isActive)
+                {
+                    RefreshDisplay();
+                }
             }
         }
     }
@@ -216,7 +237,11 @@ public class ProfessionPanel : MonoBehaviour
     {
         if (professionPanel != null)
         {
-            professionPanel.SetActive(true);
+            if (panelController != null)
+                panelController.OpenPanel(professionPanel);
+            else
+                professionPanel.SetActive(true);
+            
             RefreshDisplay();
         }
     }
@@ -228,7 +253,10 @@ public class ProfessionPanel : MonoBehaviour
     {
         if (professionPanel != null)
         {
-            professionPanel.SetActive(false);
+            if (panelController != null)
+                panelController.ClosePanel(professionPanel);
+            else
+                professionPanel.SetActive(false);
         }
     }
 }

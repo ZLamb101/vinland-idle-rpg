@@ -12,6 +12,9 @@ public class CombatPanel : MonoBehaviour
     [Header("Panel References")]
     public GameObject combatPanel; // The main panel to show/hide
     public Image backgroundImage; // Background image to sync with zone
+    
+    [Header("Position")]
+    public Vector2 startPosition = new Vector2(0f, 0f);
 
     [Header("Player Display")]
     public Image playerSprite; // Optional
@@ -19,8 +22,8 @@ public class CombatPanel : MonoBehaviour
     public TextMeshProUGUI playerHealthText;
     public Slider playerAttackProgressBar;
     
-    [Header("Combat Info")]
-    public TextMeshProUGUI combatLogText;
+    [Header("Killstreak")]
+    public TextMeshProUGUI killstreakText;
     
     [Header("Buttons")]
     public Button retreatButton;
@@ -33,9 +36,18 @@ public class CombatPanel : MonoBehaviour
     // Note: Player damage display is now handled by CombatSceneController (floating text on hero visual)
     
     private ICombatService combatService; // Cached combat service reference
+    private RectTransform rectTransform;
+    private int currentKillstreak = 0;
     
     void Start()
     {
+        // Move to specified position on game start
+        rectTransform = GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            rectTransform.anchoredPosition = startPosition;
+        }
+        
         // Find mob count selector if not assigned
         if (mobCountSelector == null)
         {
@@ -51,6 +63,7 @@ public class CombatPanel : MonoBehaviour
         EventBus.Subscribe<PlayerHealthChangedEvent>(UpdatePlayerHealth);
         EventBus.Subscribe<PlayerAttackProgressEvent>(UpdatePlayerAttackProgress);
         EventBus.Subscribe<ZoneChangedEvent>(OnZoneChanged);
+        EventBus.Subscribe<MonsterDiedEvent>(OnMonsterDied);
         
         // Setup buttons
         if (retreatButton != null)
@@ -84,6 +97,7 @@ public class CombatPanel : MonoBehaviour
         EventBus.Unsubscribe<PlayerHealthChangedEvent>(UpdatePlayerHealth);
         EventBus.Unsubscribe<PlayerAttackProgressEvent>(UpdatePlayerAttackProgress);
         EventBus.Unsubscribe<ZoneChangedEvent>(OnZoneChanged);
+        EventBus.Unsubscribe<MonsterDiedEvent>(OnMonsterDied);
     }
     
     void OnZoneChanged(ZoneChangedEvent e)
@@ -110,16 +124,15 @@ public class CombatPanel : MonoBehaviour
                     retreatButton.gameObject.SetActive(true);
                 if (continueButton != null)
                     continueButton.gameObject.SetActive(false);
-                UpdateCombatLog("Battle started!");
                 break;
                 
             case CombatManager.CombatState.Defeat:
-                // Combat paused - show Continue button
+                // Hero died - reset killstreak
+                ResetKillstreak();
                 if (retreatButton != null)
                     retreatButton.gameObject.SetActive(false);
                 if (continueButton != null)
                     continueButton.gameObject.SetActive(true);
-                UpdateCombatLog("Defeat! You have been respawned. Click Continue to resume combat.");
                 break;
         }
     }
@@ -145,11 +158,24 @@ public class CombatPanel : MonoBehaviour
             playerAttackProgressBar.value = e.progress;
     }
     
-    
-    void UpdateCombatLog(string message)
+    void OnMonsterDied(MonsterDiedEvent e)
     {
-        if (combatLogText != null)
-            combatLogText.text = message;
+        currentKillstreak++;
+        UpdateKillstreakDisplay();
+    }
+    
+    void UpdateKillstreakDisplay()
+    {
+        if (killstreakText != null)
+        {
+            killstreakText.text = $"Current Streak: {currentKillstreak}";
+        }
+    }
+    
+    void ResetKillstreak()
+    {
+        currentKillstreak = 0;
+        UpdateKillstreakDisplay();
     }
     
     void ShowCombatPanel()

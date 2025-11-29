@@ -12,6 +12,9 @@ public class SpellbookPanel : MonoBehaviour
     [Header("Panel")]
     public GameObject spellbookPanel;
     
+    [Header("Panel Controller")]
+    public UIPanelController panelController;
+    
     [Header("Content")]
     public Transform skillListContent;
     public SpellbookSkillUI skillEntryPrefab;
@@ -24,6 +27,9 @@ public class SpellbookPanel : MonoBehaviour
     
     [Header("Search")]
     public TMP_InputField searchInput;
+    
+    [Header("Controls")]
+    public Button closeButton;
     
     [Header("Canvas")]
     public Canvas parentCanvas;
@@ -57,6 +63,10 @@ public class SpellbookPanel : MonoBehaviour
         {
             searchInput.onValueChanged.AddListener(OnSearchChanged);
         }
+        
+        // Setup close button
+        if (closeButton != null)
+            closeButton.onClick.AddListener(HidePanel);
         
         // Hide panel initially
         if (spellbookPanel != null)
@@ -165,12 +175,23 @@ public class SpellbookPanel : MonoBehaviour
     {
         if (spellbookPanel != null)
         {
-            bool newState = !spellbookPanel.activeSelf;
-            spellbookPanel.SetActive(newState);
-            
-            if (newState)
+            if (panelController != null)
             {
-                RefreshSkillList();
+                panelController.TogglePanel(spellbookPanel);
+                if (spellbookPanel.activeSelf)
+                {
+                    RefreshSkillList();
+                }
+            }
+            else
+            {
+                bool newState = !spellbookPanel.activeSelf;
+                spellbookPanel.SetActive(newState);
+                
+                if (newState)
+                {
+                    RefreshSkillList();
+                }
             }
         }
     }
@@ -182,7 +203,11 @@ public class SpellbookPanel : MonoBehaviour
     {
         if (spellbookPanel != null)
         {
-            spellbookPanel.SetActive(true);
+            if (panelController != null)
+                panelController.OpenPanel(spellbookPanel);
+            else
+                spellbookPanel.SetActive(true);
+            
             RefreshSkillList();
         }
     }
@@ -194,7 +219,10 @@ public class SpellbookPanel : MonoBehaviour
     {
         if (spellbookPanel != null)
         {
-            spellbookPanel.SetActive(false);
+            if (panelController != null)
+                panelController.ClosePanel(spellbookPanel);
+            else
+                spellbookPanel.SetActive(false);
         }
     }
 }

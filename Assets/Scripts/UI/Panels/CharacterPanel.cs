@@ -12,6 +12,17 @@ public class CharacterPanel : MonoBehaviour
     [Header("Panel")]
     public GameObject characterPanel;
     
+    [Header("Panel Controller")]
+    public UIPanelController panelController;
+    
+    [Header("Controls")]
+    public Button closeButton;
+    
+    // ===== CHARACTER INFO =====
+    [Header("Character Info")]
+    public TextMeshProUGUI nameText;
+    public TextMeshProUGUI levelClassText; // Shows "Level 7 Race Class"
+    
     // ===== EQUIPMENT SECTION =====
     [Header("Equipment Slot UI Elements (11 Total)")]
     public EquipmentSlotUI headSlot;
@@ -48,11 +59,16 @@ public class CharacterPanel : MonoBehaviour
     
     void Start()
     {
+        // Setup close button
+        if (closeButton != null)
+            closeButton.onClick.AddListener(HidePanel);
+        
         // Get services
         characterService = Services.Get<ICharacterService>();
         equipmentService = Services.Get<IEquipmentService>();
         
         // Subscribe to updates
+        EventBus.Subscribe<CharacterNameChangedEvent>(e => UpdateCharacterInfo());
         EventBus.Subscribe<CharacterLevelChangedEvent>(e => UpdateAllDisplays());
         EventBus.Subscribe<CharacterLevelUpEvent>(e => UpdateAllDisplays());
         EventBus.Subscribe<EquipmentChangedEvent>(OnEquipmentChanged);
@@ -76,6 +92,7 @@ public class CharacterPanel : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
+        EventBus.Unsubscribe<CharacterNameChangedEvent>(e => UpdateCharacterInfo());
         EventBus.Unsubscribe<CharacterLevelChangedEvent>(e => UpdateAllDisplays());
         EventBus.Unsubscribe<CharacterLevelUpEvent>(e => UpdateAllDisplays());
         EventBus.Unsubscribe<EquipmentChangedEvent>(OnEquipmentChanged);
@@ -88,8 +105,40 @@ public class CharacterPanel : MonoBehaviour
     /// </summary>
     void UpdateAllDisplays()
     {
+        UpdateCharacterInfo();
         UpdateStatsDisplay();
         RefreshEquipmentSlots();
+    }
+    
+    /// <summary>
+    /// Update character name and level/class display
+    /// </summary>
+    void UpdateCharacterInfo()
+    {
+        if (characterService == null) return;
+        
+        // Update name
+        if (nameText != null)
+        {
+            nameText.text = characterService.GetName();
+        }
+        
+        // Update level with race/class
+        if (levelClassText != null)
+        {
+            int level = characterService.GetLevel();
+            string race = characterService.GetRace();
+            string charClass = characterService.GetCharacterClass();
+            
+            if (!string.IsNullOrEmpty(race) && !string.IsNullOrEmpty(charClass))
+            {
+                levelClassText.text = $"Level {level} {race} {charClass}";
+            }
+            else
+            {
+                levelClassText.text = $"Level {level}";
+            }
+        }
     }
     
     // ===== STATS SECTION (Combined Attributes + Combat Stats) =====
@@ -370,14 +419,49 @@ public class CharacterPanel : MonoBehaviour
     {
         if (characterPanel != null)
         {
-            bool newState = !characterPanel.activeSelf;
-            characterPanel.SetActive(newState);
-            
-            // Update displays when opening
-            if (newState)
+            if (panelController != null)
             {
-                UpdateAllDisplays();
+                panelController.TogglePanel(characterPanel);
+                if (characterPanel.activeSelf)
+                {
+                    UpdateAllDisplays();
+                }
             }
+            else
+            {
+                bool newState = !characterPanel.activeSelf;
+                characterPanel.SetActive(newState);
+                
+                // Update displays when opening
+                if (newState)
+                {
+                    UpdateAllDisplays();
+                }
+            }
+        }
+    }
+    
+    public void ShowPanel()
+    {
+        if (characterPanel != null)
+        {
+            if (panelController != null)
+                panelController.OpenPanel(characterPanel);
+            else
+                characterPanel.SetActive(true);
+            
+            UpdateAllDisplays();
+        }
+    }
+    
+    public void HidePanel()
+    {
+        if (characterPanel != null)
+        {
+            if (panelController != null)
+                panelController.ClosePanel(characterPanel);
+            else
+                characterPanel.SetActive(false);
         }
     }
 }

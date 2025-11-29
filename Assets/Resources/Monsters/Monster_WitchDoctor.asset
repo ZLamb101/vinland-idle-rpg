@@ -15,14 +15,17 @@ MonoBehaviour:
   monsterName: Witch Doctor
   monsterSprite: {fileID: -8192757947983677235, guid: 8d21ef71558cf2c4fbc6839332e8ffcc, type: 3}
   flipSprite: 0
-  level: 13
-  health: 650
-  attackDamage: 65
-  attackSpeed: 2
-  attackRange: 800
-  xpReward: 260
-  goldReward: 130
+  minLevel: 11
+  maxLevel: 11
+  attackRangeType: 0
+  healthModifier: 1
+  damageModifier: 1
+  speedModifier: 1
+  armorModifier: 1
+  xpRewardModifier: 1
+  goldRewardModifier: 1
   dropTable:
   - item: {fileID: 11400000, guid: 936404dc20d8f364faa0d8c42a0b122e, type: 2}
     quantity: 1
     dropChance: 1
+  skills: []

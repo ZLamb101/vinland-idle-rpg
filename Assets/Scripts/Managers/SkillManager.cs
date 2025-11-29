@@ -12,7 +12,7 @@ public class SkillManager : MonoBehaviour, ISkillService
     public List<SkillData> availableSkills = new List<SkillData>();
     
     [Header("Action Bar")]
-    private SkillData[] actionBarSkills = new SkillData[4];
+    private SkillData[] actionBarSkills = new SkillData[6];
     
     [Header("Cooldowns")]
     private Dictionary<string, float> skillCooldowns = new Dictionary<string, float>();

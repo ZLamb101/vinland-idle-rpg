@@ -1,7 +1,8 @@
 using UnityEngine;
+using TMPro;
 
 /// <summary>
-/// Action bar panel showing 4 skill slots.
+/// Action bar panel showing 6 skill slots.
 /// Skills are auto-cast on cooldown during combat.
 /// </summary>
 public class ActionBarPanel : MonoBehaviour
@@ -10,25 +11,170 @@ public class ActionBarPanel : MonoBehaviour
     public GameObject actionBarPanel;
     
     [Header("Skill Slots")]
-    public SkillSlotUI[] skillSlots = new SkillSlotUI[4];
+    public SkillSlotUI[] skillSlots = new SkillSlotUI[6];
+    
+    [Header("Character Display")]
+    public TextMeshProUGUI levelText;
+    public TextMeshProUGUI healthText;
+    public TextMeshProUGUI manaText;
+    public TextMeshProUGUI xpText;
     
     // Services
     private ISkillService skillService;
+    private ICharacterService characterService;
     
     void Start()
     {
         skillService = Services.Get<ISkillService>();
+        characterService = Services.Get<ICharacterService>();
         
         // Subscribe to events
         EventBus.Subscribe<ActionBarChangedEvent>(OnActionBarChanged);
+        EventBus.Subscribe<CharacterLevelChangedEvent>(OnLevelChanged);
+        EventBus.Subscribe<CharacterLevelUpEvent>(e => UpdateLevelDisplay());
+        EventBus.Subscribe<CharacterHealthChangedEvent>(OnHealthChanged);
+        EventBus.Subscribe<CharacterManaChangedEvent>(OnManaChanged);
+        EventBus.Subscribe<CharacterXPChangedEvent>(OnXPChanged);
         
         // Initialize slots
         InitializeSlots();
+        
+        // Initialize displays
+        UpdateLevelDisplay();
+        UpdateHealthDisplay();
+        UpdateManaDisplay();
+        UpdateXPDisplay();
     }
     
     void OnDestroy()
     {
         EventBus.Unsubscribe<ActionBarChangedEvent>(OnActionBarChanged);
+        EventBus.Unsubscribe<CharacterLevelChangedEvent>(OnLevelChanged);
+        EventBus.Unsubscribe<CharacterLevelUpEvent>(e => UpdateLevelDisplay());
+        EventBus.Unsubscribe<CharacterHealthChangedEvent>(OnHealthChanged);
+        EventBus.Unsubscribe<CharacterManaChangedEvent>(OnManaChanged);
+        EventBus.Unsubscribe<CharacterXPChangedEvent>(OnXPChanged);
+    }
+    
+    void OnLevelChanged(CharacterLevelChangedEvent e)
+    {
+        UpdateLevelDisplay();
+    }
+    
+    void OnHealthChanged(CharacterHealthChangedEvent e)
+    {
+        UpdateHealthDisplay(e.currentHealth, e.maxHealth);
+    }
+    
+    void OnManaChanged(CharacterManaChangedEvent e)
+    {
+        UpdateManaDisplay(e.currentMana, e.maxMana);
+    }
+    
+    void OnXPChanged(CharacterXPChangedEvent e)
+    {
+        UpdateXPDisplay(e.newXP);
+    }
+    
+    void UpdateLevelDisplay()
+    {
+        if (levelText == null) return;
+        
+        if (characterService == null)
+            characterService = Services.Get<ICharacterService>();
+        
+        if (characterService != null)
+        {
+            int level = characterService.GetLevel();
+            levelText.text = level.ToString();
+        }
+    }
+    
+    void UpdateHealthDisplay()
+    {
+        if (healthText == null) return;
+        
+        if (characterService == null)
+            characterService = Services.Get<ICharacterService>();
+        
+        if (characterService != null)
+        {
+            float current = characterService.GetCurrentHealth();
+            float max = characterService.GetMaxHealth();
+            UpdateHealthDisplay(current, max);
+        }
+    }
+    
+    void UpdateHealthDisplay(float currentHealth, float maxHealth)
+    {
+        if (healthText != null)
+        {
+            float displayHealth = Mathf.Max(0f, currentHealth);
+            healthText.text = $"{displayHealth:F0} / {maxHealth:F0}";
+        }
+    }
+    
+    void UpdateManaDisplay()
+    {
+        if (manaText == null) return;
+        
+        if (characterService == null)
+            characterService = Services.Get<ICharacterService>();
+        
+        if (characterService != null)
+        {
+            CharacterData charData = characterService.GetCharacterData();
+            if (charData != null)
+            {
+                UpdateManaDisplay(charData.currentMana, charData.GetMaxMana());
+            }
+        }
+    }
+    
+    void UpdateManaDisplay(float currentMana, float maxMana)
+    {
+        if (manaText != null)
+        {
+            float displayMana = Mathf.Max(0f, currentMana);
+            manaText.text = $"{displayMana:F0} / {maxMana:F0}";
+        }
+    }
+    
+    void UpdateXPDisplay()
+    {
+        if (xpText == null) return;
+        
+        if (characterService == null)
+            characterService = Services.Get<ICharacterService>();
+        
+        if (characterService != null)
+        {
+            int currentXP = characterService.GetCurrentXP();
+            int xpRequired = characterService.GetXPRequiredForNextLevel();
+            UpdateXPDisplay(currentXP, xpRequired);
+        }
+    }
+    
+    void UpdateXPDisplay(int currentXP)
+    {
+        if (xpText == null) return;
+        
+        if (characterService == null)
+            characterService = Services.Get<ICharacterService>();
+        
+        if (characterService != null)
+        {
+            int xpRequired = characterService.GetXPRequiredForNextLevel();
+            UpdateXPDisplay(currentXP, xpRequired);
+        }
+    }
+    
+    void UpdateXPDisplay(int currentXP, int xpRequired)
+    {
+        if (xpText != null)
+        {
+            xpText.text = $"{currentXP} / {xpRequired}";
+        }
     }
     
     void InitializeSlots()
