@@ -17,6 +17,9 @@ public class AccountSaveData
     // Shared Crafting (account-wide - all characters share unlocked recipes)
     public CraftingData craftingData = new CraftingData();
     
+    // Settings (account-wide - same settings for all characters)
+    public SettingsData settingsData = new SettingsData();
+    
     // Metadata
     public string saveTime = "";
     

@@ -51,9 +51,10 @@ public class GameBootstrap : MonoBehaviour
         
         // UI and utilities
         CreateManager<DialogueManager>();
+        CreateManager<KeybindManager>();
         
         Log("═══════════════════════════════════════");
-        Log($"All {15} managers created successfully!");
+        Log($"All {16} managers created successfully!");
         Log($"Loading first scene: {firstSceneName}");
         Log("═══════════════════════════════════════");
         
