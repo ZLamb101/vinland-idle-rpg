@@ -12,8 +12,6 @@ public class SpellbookSkillUI : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     [Header("UI References")]
     public Image skillIcon;
     public TextMeshProUGUI skillNameText;
-    public TextMeshProUGUI manaCostText;
-    public TextMeshProUGUI cooldownText;
     public Image backgroundImage;
     
     [Header("Drag Settings")]
@@ -56,25 +54,6 @@ public class SpellbookSkillUI : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         if (skillNameText != null)
         {
             skillNameText.text = skill.skillName;
-        }
-        
-        // Set mana cost
-        if (manaCostText != null)
-        {
-            if (skill.manaCost > 0)
-            {
-                manaCostText.text = $"{skill.manaCost:F0} Mana";
-            }
-            else
-            {
-                manaCostText.text = "Free";
-            }
-        }
-        
-        // Set cooldown
-        if (cooldownText != null)
-        {
-            cooldownText.text = $"{skill.cooldown:F1}s CD";
         }
         
         // Set background color

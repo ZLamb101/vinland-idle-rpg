@@ -275,9 +275,14 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
         {
             Debug.Log($"[EquipmentManager] Attempting to load equipment for slot {kvp.Key} with asset name: {kvp.Value}");
             
-            // Load equipment from Resources or AssetDatabase
-            // This requires equipment to be in Resources folder
-            EquipmentData equipment = Resources.Load<EquipmentData>(kvp.Value);
+            // Load equipment from Resources - try Equipment subfolder first, then root
+            EquipmentData equipment = Resources.Load<EquipmentData>("Equipment/" + kvp.Value);
+            
+            // If not found in Equipment subfolder, try root Resources folder
+            if (equipment == null)
+            {
+                equipment = Resources.Load<EquipmentData>(kvp.Value);
+            }
             
             if (equipment != null)
             {
@@ -288,7 +293,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
             }
             else
             {
-                Debug.LogWarning($"[EquipmentManager] Failed to load equipment asset: {kvp.Value} (make sure it's in a Resources folder)");
+                Debug.LogWarning($"[EquipmentManager] Failed to load equipment asset: {kvp.Value} (make sure it's in Resources/Equipment/ folder)");
             }
         }
         

@@ -818,7 +818,7 @@ GameObject:
   - component: {fileID: 3512500725036399166}
   - component: {fileID: 3058830466609281942}
   m_Layer: 5
-  m_Name: Name
+  m_Name: Level
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -840,7 +840,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -44.095, y: 107.3}
+  m_AnchoredPosition: {x: -42.9133, y: 73.89998}
   m_SizeDelta: {x: 75.7133, y: 18.145}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3512500725036399166
@@ -871,7 +871,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: bob
+  m_text: 'Level 13
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

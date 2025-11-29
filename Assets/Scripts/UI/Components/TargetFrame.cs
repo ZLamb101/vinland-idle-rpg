@@ -24,11 +24,9 @@ public class TargetFrame : MonoBehaviour
         // Get combat service (doesn't log errors during scene transitions)
         if (Services.TryGet<ICombatService>(out combatService))
         {
-            EventBus.Subscribe<TargetChangedEvent>(OnTargetChanged);
-            EventBus.Subscribe<MonsterHealthChangedEvent>(OnMonsterHealthChanged);
-            EventBus.Subscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
-            EventBus.Subscribe<MonstersChangedEvent>(OnMonstersChanged);
-            EventBus.Subscribe<CombatStateChangedEvent>(OnCombatStateChanged);
+            SubscribeToEvents();
+            // Check if combat is already active and update immediately
+            CheckCurrentCombatState();
         }
         else
         {
@@ -36,10 +34,36 @@ public class TargetFrame : MonoBehaviour
             StartCoroutine(RetryGetCombatService());
         }
         
-        // Hide initially
-        if (targetFramePanel != null)
+        // Hide initially (will be shown by CheckCurrentCombatState if combat is active)
+        if (targetFramePanel != null && (combatService == null || combatService.GetCombatState() != CombatManager.CombatState.Fighting))
         {
             targetFramePanel.SetActive(false);
+        }
+    }
+    
+    void SubscribeToEvents()
+    {
+        EventBus.Subscribe<TargetChangedEvent>(OnTargetChanged);
+        EventBus.Subscribe<MonsterHealthChangedEvent>(OnMonsterHealthChanged);
+        EventBus.Subscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
+        EventBus.Subscribe<MonstersChangedEvent>(OnMonstersChanged);
+        EventBus.Subscribe<CombatStateChangedEvent>(OnCombatStateChanged);
+    }
+    
+    /// <summary>
+    /// Check if combat is already active and update the target frame accordingly.
+    /// This handles the case where combat started before we subscribed to events.
+    /// </summary>
+    void CheckCurrentCombatState()
+    {
+        if (combatService == null)
+            return;
+        
+        // If already in combat, show the target frame with current target
+        if (combatService.GetCombatState() == CombatManager.CombatState.Fighting)
+        {
+            currentTargetIndex = combatService.GetCurrentTargetIndex();
+            UpdateTargetFrame();
         }
     }
     
@@ -49,11 +73,9 @@ public class TargetFrame : MonoBehaviour
         
         if (Services.TryGet<ICombatService>(out combatService))
         {
-            EventBus.Subscribe<TargetChangedEvent>(OnTargetChanged);
-            EventBus.Subscribe<MonsterHealthChangedEvent>(OnMonsterHealthChanged);
-            EventBus.Subscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
-            EventBus.Subscribe<MonstersChangedEvent>(OnMonstersChanged);
-            EventBus.Subscribe<CombatStateChangedEvent>(OnCombatStateChanged);
+            SubscribeToEvents();
+            // Check if combat is already active (we might have missed the initial events)
+            CheckCurrentCombatState();
         }
     }
     
