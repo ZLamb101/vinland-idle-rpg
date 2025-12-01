@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
+  m_Name: Item_TomeofForbiddenKnowledge
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: Tome of Forbidden Knowledge
+  description: 'A dangerous tome of dark secrets.
+
+
+    +105 Attack Damage
+
+    +42
+    Spell Damage
+
+    +28 Spell Healing
+
+    +14 Fire Damage
+
+    +14 Frost Damage
+
+    +14
+    Shadow Damage
+
+    +15 Max Health
+
+    +100 Armor
+
+    +2% Critical Chance
+
+    +2%
+    XP Gain
+
+    +2% Gold Gain
+
+    +1% AFK Gains
+
+'
+  icon: {fileID: 21300000, guid: 67f3b1e0089a3ed40879595bc3810ad9, type: 3}
+  itemType: 1
+  maxStackSize: 1
+  baseValue: 400
+  equipmentData: {fileID: 11400000, guid: ce04d2f576df955458e454a10a1fd7b3, type: 2}
+  recipeData: {fileID: 0}
+  canBeQuestReward: 1
+  questRewardQuantity: 1

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6e375372a8cf6c44842e1da029cf9d3, type: 3}
+  m_Name: Recipe_TatteredTrousers
+  m_EditorClassIdentifier: Assembly-CSharp::RecipeData
+  recipeName: Tattered Trousers
+  recipeIcon: {fileID: 21300000, guid: cc00f0ff14b00b6458282a86f4a953bf, type: 3}
+  description: Craft Tattered Trousers
+  profession: 7
+  levelRequired: 10
+  materials: []
+  outputItem: {fileID: 11400000, guid: 3fa224bb55ebe5549a48c55aad5e2fda, type: 2}
+  outputQuantity: 1
+  experienceGained: 22
+  craftTime: 4.5

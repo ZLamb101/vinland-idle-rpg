@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
+  m_Name: Item_ForgedLeatherLeggings
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: Forged Leather Leggings
+  description: 'Flexible yet tough leg armor.
+
+
+    +75 Attack Damage
+
+    +8 Nature
+    Damage
+
+    +6 Bleed Damage
+
+    +90 Max Health
+
+    +400 Armor
+
+    +2% Dodge
+    Chance
+
+    +1% Critical Chance
+
+'
+  icon: {fileID: 21300000, guid: 29b8b51a01ce41d44be5569d988a7ba0, type: 3}
+  itemType: 1
+  maxStackSize: 1
+  baseValue: 400
+  equipmentData: {fileID: 11400000, guid: 85010d55895a56643a7ee5195c1fb1ea, type: 2}
+  recipeData: {fileID: 0}
+  canBeQuestReward: 1
+  questRewardQuantity: 1

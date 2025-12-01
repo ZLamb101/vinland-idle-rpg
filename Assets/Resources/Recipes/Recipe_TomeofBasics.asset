@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6e375372a8cf6c44842e1da029cf9d3, type: 3}
+  m_Name: Recipe_TomeofBasics
+  m_EditorClassIdentifier: Assembly-CSharp::RecipeData
+  recipeName: Tome of Basics
+  recipeIcon: {fileID: 21300000, guid: ba5bfb386c6fa6c418a35df0bc6643a0, type: 3}
+  description: Craft Tome of Basics
+  profession: 7
+  levelRequired: 10
+  materials: []
+  outputItem: {fileID: 11400000, guid: 002727ac1e8f0fd4d9bd6404b65e770e, type: 2}
+  outputQuantity: 1
+  experienceGained: 28
+  craftTime: 5.5

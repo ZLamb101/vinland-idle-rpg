@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
+  m_Name: Item_StalkersQuiver
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: Stalkers Quiver
+  description: 'A quiver of enchanted arrows that seek their mark.
+
+
+    +55 Attack
+    Damage
+
+    +8 Nature Damage
+
+    +8 Bleed Damage
+
+    +45 Max Health
+
+    +350
+    Armor
+
+    +2% Dodge Chance
+
+    +2% Critical Chance
+
+    +1% Lifesteal
+
+'
+  icon: {fileID: 21300000, guid: 3b8103fd58818484fadb2c1937344500, type: 3}
+  itemType: 1
+  maxStackSize: 1
+  baseValue: 400
+  equipmentData: {fileID: 11400000, guid: f57a57c9d5932a341a33f9bdd9cdd745, type: 2}
+  recipeData: {fileID: 0}
+  canBeQuestReward: 1
+  questRewardQuantity: 1

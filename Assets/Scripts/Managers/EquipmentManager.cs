@@ -157,17 +157,66 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
             EquipmentData equipment = kvp.Value;
             if (equipment == null) continue;
             
+            // Physical combat stats
             totalStats.attackDamage += equipment.attackDamage;
+            totalStats.attackDamagePercent += equipment.attackDamagePercent;
             totalStats.attackSpeed += equipment.attackSpeed;
+            totalStats.hitRating += equipment.hitRating;
+            
+            // Spell stats
+            totalStats.spellDamage += equipment.spellDamage;
+            totalStats.spellDamagePercent += equipment.spellDamagePercent;
+            totalStats.spellHealing += equipment.spellHealing;
+            totalStats.spellHealingPercent += equipment.spellHealingPercent;
+            
+            // Elemental damage - Fire
+            totalStats.fireDamage += equipment.fireDamage;
+            totalStats.fireDamagePercent += equipment.fireDamagePercent;
+            
+            // Elemental damage - Frost
+            totalStats.frostDamage += equipment.frostDamage;
+            totalStats.frostDamagePercent += equipment.frostDamagePercent;
+            
+            // Elemental damage - Nature
+            totalStats.natureDamage += equipment.natureDamage;
+            totalStats.natureDamagePercent += equipment.natureDamagePercent;
+            
+            // Elemental damage - Shadow
+            totalStats.shadowDamage += equipment.shadowDamage;
+            totalStats.shadowDamagePercent += equipment.shadowDamagePercent;
+            
+            // Elemental damage - Holy
+            totalStats.holyDamage += equipment.holyDamage;
+            totalStats.holyDamagePercent += equipment.holyDamagePercent;
+            
+            // DoT damage - Bleed
+            totalStats.bleedDamage += equipment.bleedDamage;
+            totalStats.bleedDamagePercent += equipment.bleedDamagePercent;
+            
+            // DoT damage - Poison
+            totalStats.poisonDamage += equipment.poisonDamage;
+            totalStats.poisonDamagePercent += equipment.poisonDamagePercent;
+            
+            // Health stats
             totalStats.maxHealth += equipment.maxHealth;
             totalStats.healthRegen += equipment.healthRegen;
+            
+            // Defensive stats
             totalStats.armor += equipment.armor;
             totalStats.dodge += equipment.dodge;
+            
+            // Special combat stats
             totalStats.criticalChance += equipment.criticalChance;
             totalStats.lifesteal += equipment.lifesteal;
+            
+            // Utility stats
             totalStats.xpBonus += equipment.xpBonus;
             totalStats.goldBonus += equipment.goldBonus;
-            totalStats.afkGainsPercent += equipment.afkGainsPercent; // Add AFK gains from equipment
+            totalStats.afkGainsPercent += equipment.afkGainsPercent;
+            
+            // Profession stats
+            totalStats.professionXPPercent += equipment.professionXPPercent;
+            totalStats.professionPowerPercent += equipment.professionPowerPercent;
         }
         
         EventBus.Publish(new StatsRecalculatedEvent { equipmentStats = totalStats });
@@ -330,24 +379,69 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
 
 /// <summary>
 /// Container for total equipment stats
+/// Includes all stat types: physical, spell, elemental, DoT, defensive, utility, and profession
 /// </summary>
 [System.Serializable]
 public class EquipmentStats
 {
+    // Physical combat stats
     public float attackDamage = 0f;
+    public float attackDamagePercent = 0f;
     public float attackSpeed = 0f;
+    public float hitRating = 0f;
+    
+    // Spell stats
+    public float spellDamage = 0f;
+    public float spellDamagePercent = 0f;
+    public float spellHealing = 0f;
+    public float spellHealingPercent = 0f;
+    
+    // Elemental damage - Fire
+    public float fireDamage = 0f;
+    public float fireDamagePercent = 0f;
+    
+    // Elemental damage - Frost
+    public float frostDamage = 0f;
+    public float frostDamagePercent = 0f;
+    
+    // Elemental damage - Nature
+    public float natureDamage = 0f;
+    public float natureDamagePercent = 0f;
+    
+    // Elemental damage - Shadow
+    public float shadowDamage = 0f;
+    public float shadowDamagePercent = 0f;
+    
+    // Elemental damage - Holy
+    public float holyDamage = 0f;
+    public float holyDamagePercent = 0f;
+    
+    // DoT damage - Bleed
+    public float bleedDamage = 0f;
+    public float bleedDamagePercent = 0f;
+    
+    // DoT damage - Poison
+    public float poisonDamage = 0f;
+    public float poisonDamagePercent = 0f;
+    
+    // Health stats
     public float maxHealth = 0f;
     public float healthRegen = 0f;
+    
+    // Defensive stats
     public float armor = 0f;
     public float dodge = 0f;
+    
+    // Special combat stats
     public float criticalChance = 0f;
     public float lifesteal = 0f;
+    
+    // Utility stats
     public float xpBonus = 0f;
     public float goldBonus = 0f;
-    public float afkGainsPercent = 0f; // AFK gains bonus from equipment
+    public float afkGainsPercent = 0f;
+    
+    // Profession stats
+    public float professionXPPercent = 0f;
+    public float professionPowerPercent = 0f;
 }
-
-
-
-
-

@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e36e3b5dad6839419258b44223ecb12, type: 3}
+  m_Name: Item_TatteredWraps
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: Tattered Wraps
+  description: 'Enchanted hand wrappings for casting.
+
+
+    +30 Attack Damage
+
+    -0.05s
+    Attack Speed
+
+    +13 Spell Damage
+
+    +8 Spell Healing
+
+    +4 Fire Damage
+
+    +4
+    Frost Damage
+
+    +4 Shadow Damage
+
+    +10 Max Health
+
+    +60 Armor
+
+    +1%
+    Dodge Chance
+
+    +1% Critical Chance
+
+'
+  icon: {fileID: 21300000, guid: 081e93b4e094ae744931ac903cdd1123, type: 3}
+  itemType: 1
+  maxStackSize: 1
+  baseValue: 100
+  equipmentData: {fileID: 11400000, guid: 0611cc55e961e694f8856ba39e323743, type: 2}
+  recipeData: {fileID: 0}
+  canBeQuestReward: 1
+  questRewardQuantity: 1

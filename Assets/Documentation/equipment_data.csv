@@ -1,0 +1,78 @@
+name,slot,tier,levelRequired,attackDamage,attackDamagePercent,attackSpeed,maxHealth,healthRegen,armor,dodge,criticalChance,lifesteal,hitRating,spellDamage,spellDamagePercent,spellHealing,spellHealingPercent,fireDamage,fireDamagePercent,frostDamage,frostDamagePercent,natureDamage,natureDamagePercent,shadowDamage,shadowDamagePercent,holyDamage,holyDamagePercent,bleedDamage,bleedDamagePercent,poisonDamage,poisonDamagePercent,xpBonus,goldBonus,afkGainsPercent,professionXPPercent,professionPowerPercent,description
+# ============================================
+# LEVEL 1 - STARTER GEAR (6 Common)
+# Universal starter items craftable by all professions
+# Target full set: ~115 HP, ~800 armor, ~1% crit, 29 damage
+# ============================================
+Worn Chest Armor,Chest,Common,1,5,0,0,30,1,200,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,A worn but serviceable piece of armor.
+Worn Leg Guards,Legs,Common,1,3,0,0,25,0.5,150,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Patched leg armor that still provides protection.
+Worn Gloves,Hands,Common,1,4,0,0,15,0,100,0,0.005,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Sturdy gloves with reinforced knuckles.
+Worn Boots,Feet,Common,1,2,0,0,20,0,100,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Simple boots with basic protection.
+Old Blade,MainHand,Common,1,15,0,0,0,0,0,0,0.005,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,A basic blade showing signs of use.
+Old Buckler,OffHand,Common,1,0,0,0,25,0,250,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,A sturdy buckler with iron rim.
+# ============================================
+# LEVEL 10 - PLATE COMMON (6 items)
+# First real armor upgrade - tank path
+# Target full set: ~280 HP, ~2000 armor, ~2% crit, 76 damage
+# ============================================
+Sturdy Breastplate,Chest,Common,10,12,0,0,70,2.5,500,0,0,0,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Well-maintained armor with solid protection.
+Sturdy Legplates,Legs,Common,10,8,0,0,55,1,400,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Reliable leg armor for frontline combat.
+Sturdy Gauntlets,Hands,Common,10,10,0,0,35,0,250,0,0.007,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Reinforced gloves that pack a punch.
+Sturdy Sabatons,Feet,Common,10,6,0,0,45,0,250,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Heavy boots built for endurance.
+Iron Mace,MainHand,Common,10,40,0,0,10,0,0,0,0.008,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,A heavy weapon that crushes through armor.
+Iron Tower Shield,OffHand,Common,10,0,0,0,65,0,600,0,0.005,0,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,A large shield for blocking heavy blows.
+# ============================================
+# LEVEL 10 - LEATHER COMMON (6 items)
+# Physical DPS path - agility focused
+# Target full set: ~160 HP, ~900 armor, ~5% dodge, ~5% crit, 150 damage
+# ============================================
+Hide Jerkin,Chest,Common,10,28,0,0,40,1,200,0.01,0.01,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,3,0,0,0,0,0,0,0,0,Thick hide armor with good flexibility.
+Hide Leggings,Legs,Common,10,22,0,0,32,0,180,0.008,0.008,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,2,0,0,0,0,0,0,0,0,Sturdy leg armor made from animal hide.
+Hide Grips,Hands,Common,10,25,0,-0.08,22,0,130,0.008,0.01,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,2,0,2,0,0,0,0,0,0,Reinforced gloves for precise strikes.
+Hide Treads,Feet,Common,10,18,0,0,26,0,130,0.012,0.008,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,2,0,0,0,0,0,0,Soft-soled boots for silent movement.
+Hunting Bow,MainHand,Common,10,48,0,0.05,0,0,0,0.01,0.015,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,4,0,0,0,0,0,0,0,0,A reliable bow for tracking prey.
+Leather Quiver,OffHand,Common,10,15,0,0,30,0,150,0.012,0.01,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,3,0,0,0,0,0,0,0,0,A quiver filled with balanced arrows.
+# ============================================
+# LEVEL 10 - CLOTH COMMON (6 items)
+# Caster/glass cannon path - spell damage focused
+# Target full set: ~80 HP, ~400 armor, ~3% dodge, ~7% crit, 200 damage, spell damage
+# ============================================
+Tattered Robe,Chest,Common,10,35,0,0,18,0,90,0.006,0.014,0,0,15,0,10,0,5,0,5,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,Worn robes that channel arcane power.
+Tattered Trousers,Legs,Common,10,28,0,0,14,0,70,0.006,0.011,0,0,12,0,8,0,4,0,4,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,Simple cloth pants offering little protection.
+Tattered Wraps,Hands,Common,10,30,0,-0.05,10,0,60,0.005,0.012,0,0,13,0,8,0,4,0,4,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,Enchanted hand wrappings for casting.
+Tattered Sandals,Feet,Common,10,24,0,0,12,0,60,0.008,0.011,0,0,10,0,6,0,3,0,3,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,Light footwear for spellcasters.
+Gnarled Staff,MainHand,Common,10,50,0,0,10,0,0,0.005,0.013,0,0,18,0,0,0,6,0,6,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,A twisted wooden staff crackling with energy.
+Tome of Basics,OffHand,Common,10,33,0,0,16,0,40,0,0.009,0,0,14,0,12,0,5,0,5,0,0,0,5,0,0,0,0,0,0,0,0.008,0.008,0,0,0,A book containing fundamental spell knowledge.
+# ============================================
+# LEVEL 20 - PLATE UNCOMMON (6 items)
+# Zone 1 endgame tank gear
+# Target full set: ~900 HP, ~6000 armor, ~3% crit, ~2% lifesteal, 262 damage
+# ============================================
+Jarls Breastplate,Chest,Uncommon,20,38,0,0,225,7.5,1600,0,0,0.003,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Armor fit for a Nordic chieftain.
+Jarls Legplates,Legs,Uncommon,20,28,0,0,188,4,1200,0,0,0.003,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Massive leg armor of exceptional quality.
+Jarls Gauntlets,Hands,Uncommon,20,30,0,0,113,2,800,0,0.008,0.003,22,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Heavy gauntlets that crush foes.
+Jarls Sabatons,Feet,Uncommon,20,23,0,0,150,2,800,0,0,0.003,22,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Imposing boots of Nordic steel.
+Jarls Warhammer,MainHand,Uncommon,20,113,0,0.15,40,0,200,0,0.015,0.007,40,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,A legendary hammer that shatters shields.
+Jarls Bulwark,OffHand,Uncommon,20,10,0,0,188,2,2200,0,0.007,0,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,An indestructible shield of Nordic legend.
+# ============================================
+# LEVEL 20 - LEATHER UNCOMMON (6 items)
+# Zone 1 endgame physical DPS gear
+# Target full set: ~400 HP, ~2000 armor, ~9% dodge, ~9% crit, ~2% lifesteal, 482 damage
+# ============================================
+Forged Leather Vest,Chest,Uncommon,20,90,0,0,113,3.8,500,0.017,0.017,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,7,0,0,0,0,0,0,0,0,Leather hardened through ancient forging.
+Forged Leather Leggings,Legs,Uncommon,20,75,0,0,90,0,400,0.015,0.013,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,6,0,0,0,0,0,0,0,0,Flexible yet tough leg armor.
+Forged Leather Gloves,Hands,Uncommon,20,80,0,-0.12,68,0,300,0.013,0.017,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,6,0,5,0,0,0,0,0,0,Gloves that enhance striking precision.
+Forged Leather Boots,Feet,Uncommon,20,60,0,0,75,0,300,0.018,0.013,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,5,0,0,0,0,0,0,Swift boots of exceptional make.
+Stalkers Longbow,MainHand,Uncommon,20,130,0,0.08,0,0,0,0.015,0.02,0.01,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,10,0,0,0,0,0,0,0,0,A mastercraft bow of deadly precision.
+Stalkers Quiver,OffHand,Uncommon,20,55,0,0,45,0,350,0.018,0.015,0.01,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,8,0,0,0,0,0,0,0,0,A quiver of enchanted arrows that seek their mark.
+# ============================================
+# LEVEL 20 - CLOTH UNCOMMON (6 items)
+# Zone 1 endgame caster gear
+# Target full set: ~160 HP, ~800 armor, ~6% dodge, ~12% crit, 616 damage, ~9% XP/gold, ~3% AFK
+# ============================================
+Archmages Robe,Chest,Uncommon,20,113,0,0,38,0,200,0.012,0.023,0,0,40,0,25,0,12,0,12,0,0,0,12,0,0,0,0,0,0,0,0.018,0.018,0.006,0,0,Robes worn by masters of the arcane.
+Archmages Trousers,Legs,Uncommon,20,90,0,0,30,0,160,0.012,0.018,0,0,32,0,20,0,10,0,10,0,0,0,10,0,0,0,0,0,0,0,0.014,0.014,0.005,0,0,Enchanted trousers of power.
+Archmages Gloves,Hands,Uncommon,20,98,0,-0.10,23,0,120,0.008,0.023,0,0,35,0,21,0,11,0,11,0,0,0,11,0,0,0,0,0,0,0,0.014,0.014,0.005,0,0,Gloves that amplify magical energy.
+Archmages Sandals,Feet,Uncommon,20,75,0,0,30,0,120,0.015,0.018,0,0,28,0,18,0,9,0,9,0,0,0,9,0,0,0,0,0,0,0,0.014,0.014,0.005,0,0,Light footwear humming with power.
+Staff of the Seer,MainHand,Uncommon,20,135,0,0,25,0,0,0.008,0.023,0,0,50,0,0,0,15,0,15,0,0,0,15,0,0,0,0,0,0,0,0.018,0.018,0.006,0,0,A legendary staff of foresight.
+Tome of Forbidden Knowledge,OffHand,Uncommon,20,105,0,0,15,0,100,0,0.018,0,0,42,0,28,0,14,0,14,0,0,0,14,0,0,0,0,0,0,0,0.022,0.022,0.008,0,0,A dangerous tome of dark secrets.

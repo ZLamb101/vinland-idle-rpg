@@ -2011,7 +2011,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.00075324083}
+  m_AnchoredPosition: {x: 0, y: 0.00015245407}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &94659682
@@ -2607,7 +2607,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.00072272326}
+  m_AnchoredPosition: {x: 0, y: 0.000121936486}
   m_SizeDelta: {x: 12.5949, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &137256015
@@ -6504,7 +6504,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0.0050049, y: 0.013366699}
+  m_AnchoredPosition: {x: 0.0050049, y: 0.013427734}
   m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &495007037
@@ -8351,7 +8351,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.00024414062, y: 0.0029907227}
+  m_AnchoredPosition: {x: 0.00024414062, y: 0.0029296875}
   m_SizeDelta: {x: 0, y: -0.0039063}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &565838773
@@ -11657,7 +11657,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 13.299988, y: 56.002808}
+  m_AnchoredPosition: {x: 13.300049, y: 56.002808}
   m_SizeDelta: {x: -210.619, y: -319.76}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &829438878
@@ -15970,7 +15970,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.012084961, y: -0.47369957}
+  m_AnchoredPosition: {x: 0.011962891, y: -0.47369957}
   m_SizeDelta: {x: 6.1566, y: -11.6359}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1160434810
@@ -17163,7 +17163,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1217302542}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99981356
+  m_Size: 0.097944304
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -28725,7 +28725,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 850809980}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99985313
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eeb0d3b627b76544d9807389ea7bed22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EquipmentData
+  equipmentName: Tome of Forbidden Knowledge
+  description: A dangerous tome of dark secrets.
+  icon: {fileID: 21300000, guid: 67f3b1e0089a3ed40879595bc3810ad9, type: 3}
+  slot: 10
+  tier: 1
+  levelRequired: 20
+  attackDamage: 105
+  attackDamagePercent: 0
+  attackSpeed: 0
+  hitRating: 0
+  spellDamage: 42
+  spellDamagePercent: 0
+  spellHealing: 28
+  spellHealingPercent: 0
+  fireDamage: 14
+  fireDamagePercent: 0
+  frostDamage: 14
+  frostDamagePercent: 0
+  natureDamage: 0
+  natureDamagePercent: 0
+  shadowDamage: 14
+  shadowDamagePercent: 0
+  holyDamage: 0
+  holyDamagePercent: 0
+  bleedDamage: 0
+  bleedDamagePercent: 0
+  poisonDamage: 0
+  poisonDamagePercent: 0
+  maxHealth: 15
+  healthRegen: 0
+  armor: 100
+  dodge: 0
+  criticalChance: 0.018
+  lifesteal: 0
+  xpBonus: 0.022
+  goldBonus: 0.022
+  afkGainsPercent: 0.008
+  professionXPPercent: 0
+  professionPowerPercent: 0
+  rarityColor: {r: 0.12, g: 1, b: 0, a: 1}

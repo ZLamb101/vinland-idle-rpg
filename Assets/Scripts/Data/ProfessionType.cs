@@ -5,11 +5,17 @@ using UnityEngine;
 /// </summary>
 public enum ProfessionType
 {
-    Mining,     // Ore resources
-    Herbalism,  // Herb resources
-    Fishing,    // Fish resources
-    Woodcutting, // Wood resources (future)
-    Cooking     // Cooking profession
+    // Gathering Professions
+    Mining,         // Ore resources
+    Herbalism,      // Herb resources
+    Fishing,        // Fish resources
+    Woodcutting,    // Wood resources (future)
+    
+    // Crafting Professions
+    Cooking,        // Food and consumables
+    Blacksmithing,  // Plate armor and weapons
+    Leatherworking, // Leather armor
+    Tailoring       // Cloth armor
 }
 
 /// <summary>
@@ -54,6 +60,12 @@ public static class ProfessionTypeExtensions
                 return "Woodcutting";
             case ProfessionType.Cooking:
                 return "Cooking";
+            case ProfessionType.Blacksmithing:
+                return "Blacksmithing";
+            case ProfessionType.Leatherworking:
+                return "Leatherworking";
+            case ProfessionType.Tailoring:
+                return "Tailoring";
             default:
                 return profession.ToString();
         }

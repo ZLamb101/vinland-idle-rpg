@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6e375372a8cf6c44842e1da029cf9d3, type: 3}
+  m_Name: Recipe_SturdyGauntlets
+  m_EditorClassIdentifier: Assembly-CSharp::RecipeData
+  recipeName: Sturdy Gauntlets
+  recipeIcon: {fileID: 21300000, guid: 580e9433df0fbcd42b4d7ade486c0cfd, type: 3}
+  description: Craft Sturdy Gauntlets
+  profession: 5
+  levelRequired: 10
+  materials: []
+  outputItem: {fileID: 11400000, guid: c2f5a309202997e4caf4cd12f93dbbbf, type: 2}
+  outputQuantity: 1
+  experienceGained: 18
+  craftTime: 4

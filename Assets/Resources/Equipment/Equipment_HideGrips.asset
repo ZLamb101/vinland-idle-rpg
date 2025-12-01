@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eeb0d3b627b76544d9807389ea7bed22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EquipmentData
+  equipmentName: Hide Grips
+  description: Reinforced gloves for precise strikes.
+  icon: {fileID: 21300000, guid: ec743c0cb2451e944aa5714876287435, type: 3}
+  slot: 4
+  tier: 0
+  levelRequired: 10
+  attackDamage: 25
+  attackDamagePercent: 0
+  attackSpeed: -0.08
+  hitRating: 0
+  spellDamage: 0
+  spellDamagePercent: 0
+  spellHealing: 0
+  spellHealingPercent: 0
+  fireDamage: 0
+  fireDamagePercent: 0
+  frostDamage: 0
+  frostDamagePercent: 0
+  natureDamage: 3
+  natureDamagePercent: 0
+  shadowDamage: 0
+  shadowDamagePercent: 0
+  holyDamage: 0
+  holyDamagePercent: 0
+  bleedDamage: 2
+  bleedDamagePercent: 0
+  poisonDamage: 2
+  poisonDamagePercent: 0
+  maxHealth: 22
+  healthRegen: 0
+  armor: 130
+  dodge: 0.008
+  criticalChance: 0.01
+  lifesteal: 0
+  xpBonus: 0
+  goldBonus: 0
+  afkGainsPercent: 0
+  professionXPPercent: 0
+  professionPowerPercent: 0
+  rarityColor: {r: 1, g: 1, b: 1, a: 1}

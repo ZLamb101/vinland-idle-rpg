@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6e375372a8cf6c44842e1da029cf9d3, type: 3}
+  m_Name: Recipe_SturdySabatons
+  m_EditorClassIdentifier: Assembly-CSharp::RecipeData
+  recipeName: Sturdy Sabatons
+  recipeIcon: {fileID: 21300000, guid: 858d61828515aa84ea8f14c5056eeea9, type: 3}
+  description: Craft Sturdy Sabatons
+  profession: 5
+  levelRequired: 10
+  materials: []
+  outputItem: {fileID: 11400000, guid: f5422b22c65194c4ea75946fed979a60, type: 2}
+  outputQuantity: 1
+  experienceGained: 18
+  craftTime: 4
