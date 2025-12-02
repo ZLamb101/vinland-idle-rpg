@@ -57,6 +57,10 @@ public class RecipeData : ScriptableObject
     [Tooltip("How long it takes to craft this recipe (in seconds)")]
     public float craftTime = 2.5f;
     
+    [Header("Unlocking")]
+    [Tooltip("If true, this recipe is unlocked by default. If false, requires a recipe item to learn.")]
+    public bool isDefaultUnlocked = true;
+    
     /// <summary>
     /// Check if the player has all required materials in their inventory
     /// </summary>

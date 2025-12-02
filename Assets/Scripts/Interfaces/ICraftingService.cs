@@ -20,9 +20,9 @@ public interface ICraftingService
     RecipeData[] GetUnlockedRecipes();
     
     /// <summary>
-    /// Get all cooking recipes (both locked and unlocked)
+    /// Get all recipes for a specific profession (both locked and unlocked)
     /// </summary>
-    RecipeData[] GetAllCookingRecipes();
+    RecipeData[] GetRecipesForProfession(ProfessionType profession);
     
     // Crafting validation
     /// <summary>

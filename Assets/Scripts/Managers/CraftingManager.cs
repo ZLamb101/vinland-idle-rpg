@@ -49,6 +49,9 @@ public class CraftingManager : MonoBehaviour, ICraftingService
         // Load account data (contains crafting recipes)
         LoadAccountData();
         
+        // Auto-unlock all default recipes
+        AutoUnlockDefaultRecipes();
+        
         Debug.Log("[CraftingManager] Service registered and ready");
     }
     
@@ -87,6 +90,31 @@ public class CraftingManager : MonoBehaviour, ICraftingService
         }
         
         Debug.Log($"[CraftingManager] Loaded account data with {accountData.craftingData.unlockedRecipeNames.Count} unlocked recipes");
+    }
+    
+    /// <summary>
+    /// Auto-unlock all recipes marked as isDefaultUnlocked = true
+    /// </summary>
+    private void AutoUnlockDefaultRecipes()
+    {
+        if (allRecipes == null || accountData?.craftingData == null) return;
+        
+        int unlockedCount = 0;
+        foreach (RecipeData recipe in allRecipes)
+        {
+            if (recipe != null && recipe.isDefaultUnlocked && !IsRecipeUnlocked(recipe))
+            {
+                // Directly add to unlocked list without publishing events
+                accountData.craftingData.UnlockRecipe(recipe.name);
+                unlockedCount++;
+            }
+        }
+        
+        if (unlockedCount > 0)
+        {
+            SaveAccountData();
+            Debug.Log($"[CraftingManager] Auto-unlocked {unlockedCount} default recipes");
+        }
     }
     
     private void SaveAccountData()
@@ -144,12 +172,12 @@ public class CraftingManager : MonoBehaviour, ICraftingService
         return unlocked.ToArray();
     }
     
-    public RecipeData[] GetAllCookingRecipes()
+    public RecipeData[] GetRecipesForProfession(ProfessionType profession)
     {
         if (allRecipes == null) return new RecipeData[0];
         
-        // Filter to only cooking recipes
-        return allRecipes.Where(r => r != null && r.profession == ProfessionType.Cooking).ToArray();
+        // Filter to only recipes for the specified profession
+        return allRecipes.Where(r => r != null && r.profession == profession).ToArray();
     }
     
     // ==================== Crafting Validation ====================

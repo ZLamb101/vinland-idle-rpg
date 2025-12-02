@@ -65,11 +65,19 @@ public class RecipeSlot : MonoBehaviour, IPointerClickHandler
             recipeNameText.color = (isUnlocked && isLevelMet) ? Color.white : lockedColor;
         }
         
-        // Set level requirement
+        // Set level requirement - only show if player level is too low
         if (levelRequiredText != null)
         {
-            levelRequiredText.text = $"Level {recipe.levelRequired}";
-            levelRequiredText.color = isLevelMet ? Color.green : Color.red;
+            if (!isLevelMet)
+            {
+                levelRequiredText.text = $"Lvl {recipe.levelRequired}";
+                levelRequiredText.color = Color.red;
+                levelRequiredText.gameObject.SetActive(true);
+            }
+            else
+            {
+                levelRequiredText.gameObject.SetActive(false);
+            }
         }
         
         // Show/hide locked overlay

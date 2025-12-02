@@ -20,4 +20,5 @@ MonoBehaviour:
   - text: Hello Mon
   availableQuests:
   - {fileID: 11400000, guid: c6c6072e0daa6be4788323caec51a7ce, type: 2}
+  - {fileID: 11400000, guid: d0078617fa747e34ca16c078c8d21d8e, type: 2}
   shopData: {fileID: 0}

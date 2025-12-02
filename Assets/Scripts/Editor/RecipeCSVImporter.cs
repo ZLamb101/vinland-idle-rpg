@@ -97,6 +97,7 @@ public class RecipeCSVImporter : EditorWindow
                 string outputItemName = values[3];
                 int xpGained = ParseInt(values[4]);
                 float craftTime = ParseFloat(values[5]);
+                bool isDefaultUnlocked = values.Length > 6 ? ParseBool(values[6]) : true;
                 
                 // Find the output item
                 ItemData outputItem = FindItem(itemLookup, outputItemName);
@@ -120,6 +121,7 @@ public class RecipeCSVImporter : EditorWindow
                 recipe.outputQuantity = 1;
                 recipe.experienceGained = xpGained;
                 recipe.craftTime = craftTime;
+                recipe.isDefaultUnlocked = isDefaultUnlocked;
                 recipe.description = $"Craft {outputItemName}";
                 recipe.materials = new RecipeMaterial[0]; // Empty - user will add later
                 
@@ -293,5 +295,13 @@ public class RecipeCSVImporter : EditorWindow
         int.TryParse(value, out int result);
         return result;
     }
+    
+    bool ParseBool(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return true; // Default to unlocked
+        string lower = value.Trim().ToLower();
+        return lower == "true" || lower == "1" || lower == "yes";
+    }
 }
+
 

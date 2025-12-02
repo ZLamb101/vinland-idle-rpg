@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// Main UI panel for the crafting interface (Cooking, Alchemy, Blacksmithing, etc.).
@@ -30,8 +31,13 @@ public class CraftingPanel : MonoBehaviour
     [Header("Crafting Controls")]
     public TMP_InputField craftQuantityInput;
     public Button craftButton;
+    public TextMeshProUGUI craftButtonText;
     public Button craftAllButton;
     public Button closeButton;
+    
+    [Header("Scroll Settings")]
+    [Tooltip("The ScrollRect for the recipe list - will be configured for proper scrolling")]
+    public ScrollRect recipeScrollRect;
     
     [Header("Progress")]
     public GameObject progressSection;
@@ -45,6 +51,7 @@ public class CraftingPanel : MonoBehaviour
     private IProfessionService professionService;
     
     private RecipeData selectedRecipe = null;
+    private ProfessionType currentProfession = ProfessionType.Cooking;
     private List<GameObject> recipeSlots = new List<GameObject>();
     private List<GameObject> materialEntries = new List<GameObject>();
     
@@ -79,6 +86,9 @@ public class CraftingPanel : MonoBehaviour
         // Hide progress section initially
         if (progressSection != null)
             progressSection.SetActive(false);
+        
+        // Configure scroll rect for proper scrolling
+        ConfigureScrollRect();
     }
     
     void OnDestroy()
@@ -97,10 +107,20 @@ public class CraftingPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// Open the crafting panel
+    /// Open the crafting panel (defaults to current profession)
     /// </summary>
     public void OpenPanel()
     {
+        OpenPanel(currentProfession);
+    }
+    
+    /// <summary>
+    /// Open the crafting panel for a specific profession
+    /// </summary>
+    public void OpenPanel(ProfessionType profession)
+    {
+        currentProfession = profession;
+        
         if (craftingPanel != null)
         {
             if (panelController != null)
@@ -141,26 +161,12 @@ public class CraftingPanel : MonoBehaviour
     /// </summary>
     public void TogglePanel()
     {
-        if (craftingPanel != null)
-        {
-            if (panelController != null)
-            {
-                panelController.TogglePanel(craftingPanel);
-                if (craftingPanel.activeSelf)
-                {
-                    selectedRecipe = null;
-                    RefreshRecipeList();
-                    UpdateRecipeDetails();
-                }
-            }
-            else
-            {
-                if (craftingPanel.activeSelf)
-                    ClosePanel();
-                else
-                    OpenPanel();
-            }
-        }
+        if (craftingPanel == null) return;
+        
+        if (craftingPanel.activeSelf)
+            ClosePanel();
+        else
+            OpenPanel();
     }
     
     /// <summary>
@@ -177,9 +183,12 @@ public class CraftingPanel : MonoBehaviour
         }
         recipeSlots.Clear();
         
-        // Get all recipes for this profession (currently hardcoded to Cooking)
-        RecipeData[] allRecipes = craftingService.GetAllCookingRecipes();
-        int cookingLevel = professionService != null ? professionService.GetProfessionLevel(ProfessionType.Cooking) : 1;
+        // Get all recipes for the current profession, sorted by level required (lowest first)
+        RecipeData[] allRecipes = craftingService.GetRecipesForProfession(currentProfession)
+            .OrderBy(r => r.levelRequired)
+            .ThenBy(r => r.recipeName)
+            .ToArray();
+        int professionLevel = professionService != null ? professionService.GetProfessionLevel(currentProfession) : 1;
         
         // Create slots for each recipe
         foreach (RecipeData recipe in allRecipes)
@@ -192,7 +201,7 @@ public class CraftingPanel : MonoBehaviour
             if (slot != null)
             {
                 bool isUnlocked = craftingService.IsRecipeUnlocked(recipe);
-                bool isLevelMet = cookingLevel >= recipe.levelRequired;
+                bool isLevelMet = professionLevel >= recipe.levelRequired;
                 
                 slot.Initialize(recipe, this, isUnlocked, isLevelMet);
                 recipeSlots.Add(slotObj);
@@ -202,6 +211,9 @@ public class CraftingPanel : MonoBehaviour
                 Destroy(slotObj);
             }
         }
+        
+        // Refresh scroll rect after adding recipes
+        RefreshScrollRect();
     }
     
     /// <summary>
@@ -320,6 +332,35 @@ public class CraftingPanel : MonoBehaviour
     /// </summary>
     private void UpdateCraftingControls()
     {
+        bool isCrafting = craftingService != null && craftingService.IsCrafting();
+        
+        // Update craft button text based on state
+        if (craftButtonText != null)
+        {
+            craftButtonText.text = isCrafting ? "Cancel" : "Craft";
+        }
+        
+        // During crafting: craft button becomes cancel (always interactable), hide other controls
+        if (isCrafting)
+        {
+            if (craftButton != null)
+                craftButton.interactable = true;
+            
+            // Hide craft all button and quantity input during crafting
+            if (craftAllButton != null)
+                craftAllButton.gameObject.SetActive(false);
+            if (craftQuantityInput != null)
+                craftQuantityInput.gameObject.SetActive(false);
+            
+            return;
+        }
+        
+        // Not crafting - show normal controls
+        if (craftAllButton != null)
+            craftAllButton.gameObject.SetActive(true);
+        if (craftQuantityInput != null)
+            craftQuantityInput.gameObject.SetActive(true);
+        
         if (selectedRecipe == null || craftingService == null)
         {
             if (craftButton != null) craftButton.interactable = false;
@@ -332,11 +373,11 @@ public class CraftingPanel : MonoBehaviour
         
         // Update craft button
         if (craftButton != null)
-            craftButton.interactable = canCraft && !craftingService.IsCrafting();
+            craftButton.interactable = canCraft;
         
         // Update craft all button
         if (craftAllButton != null)
-            craftAllButton.interactable = canCraft && maxCraftable > 0 && !craftingService.IsCrafting();
+            craftAllButton.interactable = canCraft && maxCraftable > 0;
         
         // Set default quantity
         if (craftQuantityInput != null && string.IsNullOrEmpty(craftQuantityInput.text))
@@ -344,11 +385,20 @@ public class CraftingPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// Handle craft button click
+    /// Handle craft button click - toggles between crafting and canceling
     /// </summary>
     private void OnCraftClicked()
     {
-        if (selectedRecipe == null || craftingService == null) return;
+        if (craftingService == null) return;
+        
+        // If currently crafting, cancel instead (OnCraftingCancelled event handles UI update)
+        if (craftingService.IsCrafting())
+        {
+            craftingService.CancelCrafting();
+            return;
+        }
+        
+        if (selectedRecipe == null) return;
         
         // Parse quantity from input field
         int quantity = 1;
@@ -435,5 +485,58 @@ public class CraftingPanel : MonoBehaviour
             progressSection.SetActive(false);
         
         UpdateCraftingControls();
+        UpdateMaterialsList();
+    }
+    
+    /// <summary>
+    /// Configure the scroll rect for proper scrolling behavior
+    /// </summary>
+    private void ConfigureScrollRect()
+    {
+        // Try to find ScrollRect if not assigned
+        if (recipeScrollRect == null && recipeListContainer != null)
+        {
+            // Look for ScrollRect in parent hierarchy
+            recipeScrollRect = recipeListContainer.GetComponentInParent<ScrollRect>();
+        }
+        
+        if (recipeScrollRect == null)
+        {
+            Debug.LogWarning("[CraftingPanel] No ScrollRect found! Assign recipeScrollRect in Inspector or ensure recipeListContainer is inside a ScrollRect.");
+            return;
+        }
+        
+        // Configure for smooth, non-elastic scrolling
+        recipeScrollRect.movementType = ScrollRect.MovementType.Clamped;
+        recipeScrollRect.scrollSensitivity = 30f;
+        recipeScrollRect.vertical = true;
+        recipeScrollRect.horizontal = false;
+        
+        // Force vertical scrollbar to always show
+        if (recipeScrollRect.verticalScrollbar != null)
+        {
+            recipeScrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+        }
+        
+        // Ensure content is assigned
+        if (recipeScrollRect.content == null && recipeListContainer != null)
+        {
+            recipeScrollRect.content = recipeListContainer as RectTransform;
+        }
+    }
+    
+    /// <summary>
+    /// Force scroll rect to recalculate after recipes are added
+    /// </summary>
+    private void RefreshScrollRect()
+    {
+        if (recipeScrollRect != null)
+        {
+            // Force layout rebuild
+            Canvas.ForceUpdateCanvases();
+            
+            // Reset scroll position to top
+            recipeScrollRect.verticalNormalizedPosition = 1f;
+        }
     }
 }

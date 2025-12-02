@@ -1,81 +1,80 @@
-recipeName,profession,levelRequired,outputItemName,xpGained,craftTime
+recipeName,profession,levelRequired,outputItemName,xpGained,craftTime,isDefaultUnlocked
 # ============================================
 # LEVEL 1 - STARTER GEAR (Craftable by all 3 professions)
 # 6 items x 3 professions = 18 recipes
 # ============================================
 # Blacksmithing versions
-Worn Chest Armor,Blacksmithing,1,Worn Chest Armor,10,3
-Worn Leg Guards,Blacksmithing,1,Worn Leg Guards,10,3
-Worn Gloves,Blacksmithing,1,Worn Gloves,8,2.5
-Worn Boots,Blacksmithing,1,Worn Boots,8,2.5
-Old Blade,Blacksmithing,1,Old Blade,12,4
-Old Buckler,Blacksmithing,1,Old Buckler,10,3
+Worn Chest Armor,Blacksmithing,1,Worn Chest Armor,10,3,true
+Worn Leg Guards,Blacksmithing,1,Worn Leg Guards,10,3,true
+Worn Gloves,Blacksmithing,1,Worn Gloves,8,2.5,true
+Worn Boots,Blacksmithing,1,Worn Boots,8,2.5,true
+Old Blade,Blacksmithing,1,Old Blade,12,4,true
+Old Buckler,Blacksmithing,1,Old Buckler,10,3,true
 # Leatherworking versions
-Worn Chest Armor,Leatherworking,1,Worn Chest Armor,10,3
-Worn Leg Guards,Leatherworking,1,Worn Leg Guards,10,3
-Worn Gloves,Leatherworking,1,Worn Gloves,8,2.5
-Worn Boots,Leatherworking,1,Worn Boots,8,2.5
-Old Blade,Leatherworking,1,Old Blade,12,4
-Old Buckler,Leatherworking,1,Old Buckler,10,3
+Worn Chest Armor,Leatherworking,1,Worn Chest Armor,10,3,true
+Worn Leg Guards,Leatherworking,1,Worn Leg Guards,10,3,true
+Worn Gloves,Leatherworking,1,Worn Gloves,8,2.5,true
+Worn Boots,Leatherworking,1,Worn Boots,8,2.5,true
+Old Blade,Leatherworking,1,Old Blade,12,4,true
+Old Buckler,Leatherworking,1,Old Buckler,10,3,true
 # Tailoring versions
-Worn Chest Armor,Tailoring,1,Worn Chest Armor,10,3
-Worn Leg Guards,Tailoring,1,Worn Leg Guards,10,3
-Worn Gloves,Tailoring,1,Worn Gloves,8,2.5
-Worn Boots,Tailoring,1,Worn Boots,8,2.5
-Old Blade,Tailoring,1,Old Blade,12,4
-Old Buckler,Tailoring,1,Old Buckler,10,3
+Worn Chest Armor,Tailoring,1,Worn Chest Armor,10,3,true
+Worn Leg Guards,Tailoring,1,Worn Leg Guards,10,3,true
+Worn Gloves,Tailoring,1,Worn Gloves,8,2.5,true
+Worn Boots,Tailoring,1,Worn Boots,8,2.5,true
+Old Blade,Tailoring,1,Old Blade,12,4,true
+Old Buckler,Tailoring,1,Old Buckler,10,3,true
 # ============================================
 # LEVEL 10 - PLATE (Blacksmithing)
 # ============================================
-Sturdy Breastplate,Blacksmithing,10,Sturdy Breastplate,25,5
-Sturdy Legplates,Blacksmithing,10,Sturdy Legplates,22,4.5
-Sturdy Gauntlets,Blacksmithing,10,Sturdy Gauntlets,18,4
-Sturdy Sabatons,Blacksmithing,10,Sturdy Sabatons,18,4
-Iron Mace,Blacksmithing,10,Iron Mace,30,6
-Iron Tower Shield,Blacksmithing,10,Iron Tower Shield,28,5.5
+Sturdy Breastplate,Blacksmithing,10,Sturdy Breastplate,25,5,true
+Sturdy Legplates,Blacksmithing,10,Sturdy Legplates,22,4.5,true
+Sturdy Gauntlets,Blacksmithing,10,Sturdy Gauntlets,18,4,true
+Sturdy Sabatons,Blacksmithing,10,Sturdy Sabatons,18,4,true
+Iron Mace,Blacksmithing,10,Iron Mace,30,6,true
+Iron Tower Shield,Blacksmithing,10,Iron Tower Shield,28,5.5,true
 # ============================================
 # LEVEL 10 - LEATHER (Leatherworking)
 # ============================================
-Hide Jerkin,Leatherworking,10,Hide Jerkin,25,5
-Hide Leggings,Leatherworking,10,Hide Leggings,22,4.5
-Hide Grips,Leatherworking,10,Hide Grips,18,4
-Hide Treads,Leatherworking,10,Hide Treads,18,4
-Hunting Bow,Leatherworking,10,Hunting Bow,30,6
-Leather Quiver,Leatherworking,10,Leather Quiver,20,4
+Hide Jerkin,Leatherworking,10,Hide Jerkin,25,5,true
+Hide Leggings,Leatherworking,10,Hide Leggings,22,4.5,true
+Hide Grips,Leatherworking,10,Hide Grips,18,4,true
+Hide Treads,Leatherworking,10,Hide Treads,18,4,true
+Hunting Bow,Leatherworking,10,Hunting Bow,30,6,true
+Leather Quiver,Leatherworking,10,Leather Quiver,20,4,true
 # ============================================
 # LEVEL 10 - CLOTH (Tailoring)
 # ============================================
-Tattered Robe,Tailoring,10,Tattered Robe,25,5
-Tattered Trousers,Tailoring,10,Tattered Trousers,22,4.5
-Tattered Wraps,Tailoring,10,Tattered Wraps,18,4
-Tattered Sandals,Tailoring,10,Tattered Sandals,18,4
-Gnarled Staff,Tailoring,10,Gnarled Staff,30,6
-Tome of Basics,Tailoring,10,Tome of Basics,28,5.5
+Tattered Robe,Tailoring,10,Tattered Robe,25,5,true
+Tattered Trousers,Tailoring,10,Tattered Trousers,22,4.5,true
+Tattered Wraps,Tailoring,10,Tattered Wraps,18,4,true
+Tattered Sandals,Tailoring,10,Tattered Sandals,18,4,true
+Gnarled Staff,Tailoring,10,Gnarled Staff,30,6,true
+Tome of Basics,Tailoring,10,Tome of Basics,28,5.5,true
 # ============================================
 # LEVEL 20 - PLATE UNCOMMON (Blacksmithing)
 # ============================================
-Jarls Breastplate,Blacksmithing,20,Jarls Breastplate,50,8
-Jarls Legplates,Blacksmithing,20,Jarls Legplates,45,7
-Jarls Gauntlets,Blacksmithing,20,Jarls Gauntlets,40,6.5
-Jarls Sabatons,Blacksmithing,20,Jarls Sabatons,40,6.5
-Jarls Warhammer,Blacksmithing,20,Jarls Warhammer,60,10
-Jarls Bulwark,Blacksmithing,20,Jarls Bulwark,55,9
+Jarls Breastplate,Blacksmithing,20,Jarls Breastplate,50,8,true
+Jarls Legplates,Blacksmithing,20,Jarls Legplates,45,7,true
+Jarls Gauntlets,Blacksmithing,20,Jarls Gauntlets,40,6.5,true
+Jarls Sabatons,Blacksmithing,20,Jarls Sabatons,40,6.5,true
+Jarls Warhammer,Blacksmithing,20,Jarls Warhammer,60,10,true
+Jarls Bulwark,Blacksmithing,20,Jarls Bulwark,55,9,true
 # ============================================
 # LEVEL 20 - LEATHER UNCOMMON (Leatherworking)
 # ============================================
-Forged Leather Vest,Leatherworking,20,Forged Leather Vest,50,8
-Forged Leather Leggings,Leatherworking,20,Forged Leather Leggings,45,7
-Forged Leather Gloves,Leatherworking,20,Forged Leather Gloves,40,6.5
-Forged Leather Boots,Leatherworking,20,Forged Leather Boots,40,6.5
-Stalkers Longbow,Leatherworking,20,Stalkers Longbow,60,10
-Stalkers Quiver,Leatherworking,20,Stalkers Quiver,45,7
+Forged Leather Vest,Leatherworking,20,Forged Leather Vest,50,8,true
+Forged Leather Leggings,Leatherworking,20,Forged Leather Leggings,45,7,true
+Forged Leather Gloves,Leatherworking,20,Forged Leather Gloves,40,6.5,true
+Forged Leather Boots,Leatherworking,20,Forged Leather Boots,40,6.5,true
+Stalkers Longbow,Leatherworking,20,Stalkers Longbow,60,10,true
+Stalkers Quiver,Leatherworking,20,Stalkers Quiver,45,7,true
 # ============================================
 # LEVEL 20 - CLOTH UNCOMMON (Tailoring)
 # ============================================
-Archmages Robe,Tailoring,20,Archmages Robe,50,8
-Archmages Trousers,Tailoring,20,Archmages Trousers,45,7
-Archmages Gloves,Tailoring,20,Archmages Gloves,40,6.5
-Archmages Sandals,Tailoring,20,Archmages Sandals,40,6.5
-Staff of the Seer,Tailoring,20,Staff of the Seer,60,10
-Tome of Forbidden Knowledge,Tailoring,20,Tome of Forbidden Knowledge,55,9
-
+Archmages Robe,Tailoring,20,Archmages Robe,50,8,true
+Archmages Trousers,Tailoring,20,Archmages Trousers,45,7,true
+Archmages Gloves,Tailoring,20,Archmages Gloves,40,6.5,true
+Archmages Sandals,Tailoring,20,Archmages Sandals,40,6.5,true
+Staff of the Seer,Tailoring,20,Staff of the Seer,60,10,true
+Tome of Forbidden Knowledge,Tailoring,20,Tome of Forbidden Knowledge,55,9,true

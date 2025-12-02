@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShopData
   shopName: General Store
   shopItems:
-  - item: {fileID: 11400000, guid: 0f94664e50b48c849aeb8cc3c09e1264, type: 2}
+  - item: {fileID: 11400000, guid: fe7555d0d21b83141910e7b5495ca172, type: 2}
     price: 10
     maxStock: 5
   - item: {fileID: 11400000, guid: fd63b04a6abe3bf42b95bdcf08f48b65, type: 2}

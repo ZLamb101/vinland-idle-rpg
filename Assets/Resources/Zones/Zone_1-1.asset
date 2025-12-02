@@ -31,7 +31,7 @@ MonoBehaviour:
   isUnlocked: 0
   backgroundImage: {fileID: -626569156867048193, guid: 808106ee90920d244a2a5f0db27bf40f, type: 3}
   craftingStations:
-  - professionType: 4
+  - professionType: 6
     stationName: Cooking Pot
     position: {x: -323, y: -170}
     stationIcon: {fileID: -8348536425000926015, guid: 8919b8af02a0ee54695b30eba6e08462, type: 3}

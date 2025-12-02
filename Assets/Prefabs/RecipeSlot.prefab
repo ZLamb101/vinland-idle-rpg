@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7988793915075776481}
   - component: {fileID: 512435958597363507}
   m_Layer: 5
-  m_Name: RecipeLevelReq
+  m_Name: levelRequiredText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 118.71, y: 0.00010204}
-  m_SizeDelta: {x: 144.42, y: 35}
+  m_AnchoredPosition: {x: 118.49192, y: 0}
+  m_SizeDelta: {x: 83.016, y: 35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7988793915075776481
 CanvasRenderer:
@@ -173,7 +173,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 381.8342, y: 35}
+  m_SizeDelta: {x: 320, y: 35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4805009623429108909
 MonoBehaviour:
@@ -228,7 +228,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -54.5, y: 0.00010419}
+  m_AnchoredPosition: {x: -24.018272, y: 0}
   m_SizeDelta: {x: 202.0042, y: 35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &960884248009910619
@@ -364,7 +364,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -174.7, y: 0}
+  m_AnchoredPosition: {x: -143.5, y: 0}
   m_SizeDelta: {x: 33, y: 33}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6497617520015114302

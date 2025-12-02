@@ -10,15 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5, type: 3}
-  m_Name: Quest_RabbitSlayer
+  m_Name: Quest_ScorpokSlayer
   m_EditorClassIdentifier: Assembly-CSharp::QuestData
-  questName: Rabbit Slayer
-  description: 3 Seconds
-  levelRequired: 3
-  duration: 3
+  id: d3e04a55-48c4-4e49-9c86-2816ba98b576
+  questName: Scorpok Slayer
+  description: Yah Yeet
+  dialoguePages: []
+  levelRequired: 1
+  prerequisiteQuest: {fileID: 11400000, guid: c6c6072e0daa6be4788323caec51a7ce, type: 2}
+  objectives:
+  - type: 0
+    targetID: Scorpion
+    amount: 20
+    description: Kill 20 Scorpions
+  turnInNPC: {fileID: 11400000, guid: d621a9889936ab7419bed89b4695c249, type: 2}
   xpReward: 100
   goldReward: 3
   itemReward: {fileID: 11400000, guid: f573099df85a12d40ac0bc6a68dade01, type: 2}
   itemRewardQuantity: 2
-  questIcon: {fileID: 0}
-  questColor: {r: 1, g: 1, b: 1, a: 1}

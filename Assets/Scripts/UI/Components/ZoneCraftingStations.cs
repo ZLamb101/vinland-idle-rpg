@@ -169,27 +169,14 @@ public class ZoneCraftingStations : MonoBehaviour
     {
         Debug.Log($"Crafting station clicked: {professionType}");
         
-        switch (professionType)
-        {
-            case ProfessionType.Cooking:
-                OpenCraftingPanel();
-                break;
-                
-            // Add more cases as you implement other professions
-            // case ProfessionType.Alchemy:
-            //     OpenAlchemyPanel();
-            //     break;
-            
-            default:
-                Debug.LogWarning($"No panel implemented for profession: {professionType}");
-                break;
-        }
+        // Open the crafting panel for this profession
+        OpenCraftingPanel(professionType);
     }
     
     /// <summary>
-    /// Open the crafting panel
+    /// Open the crafting panel for a specific profession
     /// </summary>
-    private void OpenCraftingPanel()
+    private void OpenCraftingPanel(ProfessionType profession)
     {
         // Use cached reference if available
         if (cachedCraftingPanel == null)
@@ -200,7 +187,7 @@ public class ZoneCraftingStations : MonoBehaviour
         
         if (cachedCraftingPanel != null)
         {
-            cachedCraftingPanel.OpenPanel();
+            cachedCraftingPanel.OpenPanel(profession);
         }
         else
         {

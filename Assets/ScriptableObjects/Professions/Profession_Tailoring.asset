@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28d1fe5deeaeb3345b0777a20543c68b, type: 3}
-  m_Name: Profession_Blacksmithing
+  m_Name: Profession_Tailoring
   m_EditorClassIdentifier: Assembly-CSharp::ProfessionDefinitionData
-  professionType: 5
-  displayName: Blacksmithing
+  professionType: 7
+  displayName: Tailoring
   description: Cook some good food
   icon: {fileID: -8059778392931419267, guid: 69440d243f28f134481b42449f222193, type: 3}
-  themeColor: {r: 0.3301887, g: 0.32877025, b: 0.3037113, a: 1}
+  themeColor: {r: 0.49056602, g: 0.1966892, b: 0.4081116, a: 1}
