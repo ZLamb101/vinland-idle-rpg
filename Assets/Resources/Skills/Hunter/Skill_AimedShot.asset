@@ -10,29 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4680f0b7505badf4ca65e14636779f95, type: 3}
-  m_Name: Skill_Battleshout
+  m_Name: Skill_AimedShot
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
-  skillName: Battleshout
-  description: Increases attackpower
-  icon: {fileID: 3437787994610807008, guid: 8630b578fec389b42bbeef70d96338f3, type: 3}
-  skillType: 1
+  skillName: Aimed Shot
+  description: A powerful ability
+  icon: {fileID: 21300000, guid: 52c7d62f495ea57448c1f91cdcf2f5a3, type: 3}
+  allowedClasses: 2
+  levelRequired: 1
+  skillType: 0
   skillRange: 1
-  manaCost: 5
-  cooldown: 12
+  manaCost: 10
+  cooldown: 8
   castTime: 0
-  baseDamage: 0
+  baseDamage: 45
   attackPowerScaling: 0
-  canCrit: 0
-  dotDamagePerSecond: 0
-  appliedAura: {fileID: 11400000, guid: 6a473c33820336d429168528ab222016, type: 2}
+  canCrit: 1
+  appliedAura: {fileID: 0}
   isAoE: 0
   aoeTargetCount: 0
-  visualType: 2
-  projectilePrefab: {fileID: 0}
-  projectileSprite: {fileID: 0}
+  visualType: 1
+  projectilePrefab: {fileID: 7906434088891702605, guid: 03dfe92badb3f294095c38fb1187a63b, type: 3}
+  projectileSprite: {fileID: 1800556822716040559, guid: 810be62e2eb433f45900437ce4aaa483, type: 3}
   projectileColor: {r: 0.8113208, g: 0.42907384, b: 0.13394445, a: 1}
-  projectileSpeedMultiplier: 0
-  animationTrigger: 
-  castEffectPrefab: {fileID: 0}
+  projectileSpeedMultiplier: 1
   hitEffectPrefab: {fileID: 0}
   hitEffectDuration: 0

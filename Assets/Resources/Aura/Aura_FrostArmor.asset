@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ad03cad4fe2bf443a1c8e210fd13020, type: 3}
-  m_Name: Aura_BattleShout
+  m_Name: Aura_FrostArmor
   m_EditorClassIdentifier: Assembly-CSharp::AuraData
-  auraName: Battleshout
-  description: Gain attackpower
-  icon: {fileID: 21300000, guid: 40b25827bb1d0dd4cb2c5718f59d51cb, type: 3}
+  auraName: Frost Armor
+  description: Gain Intellect
+  icon: {fileID: 21300000, guid: 4cf2c228721b03244af141433a43f235, type: 3}
   auraType: 0
   duration: 10
   canStack: 0

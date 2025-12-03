@@ -107,6 +107,16 @@ public class SkillManager : MonoBehaviour, ISkillService
         SetActionBarSkill(slotIndex, null);
     }
     
+    public void ClearAllActionBarSlots()
+    {
+        for (int i = 0; i < actionBarSkills.Length; i++)
+        {
+            actionBarSkills[i] = null;
+            EventBus.Publish(new ActionBarChangedEvent { slotIndex = i, skill = null });
+        }
+        Debug.Log("[SkillManager] Cleared all action bar slots");
+    }
+    
     public SkillData[] GetAllActionBarSkills()
     {
         return (SkillData[])actionBarSkills.Clone();
@@ -748,7 +758,40 @@ public class SkillManager : MonoBehaviour, ISkillService
     
     public List<SkillData> GetAllAvailableSkills()
     {
-        return new List<SkillData>(availableSkills);
+        // Get the player's class and level
+        string playerClassString = "";
+        int playerLevel = 1;
+        
+        if (characterService != null)
+        {
+            playerClassString = characterService.GetCharacterClass();
+            playerLevel = characterService.GetLevel();
+        }
+        else
+        {
+            characterService = Services.Get<ICharacterService>();
+            if (characterService != null)
+            {
+                playerClassString = characterService.GetCharacterClass();
+                playerLevel = characterService.GetLevel();
+            }
+        }
+        
+        CharacterClass playerClass = CharacterClassHelper.ParseFromString(playerClassString);
+        
+        // Filter skills by class and level
+        List<SkillData> filteredSkills = new List<SkillData>();
+        foreach (SkillData skill in availableSkills)
+        {
+            if (skill != null && 
+                skill.CanBeUsedBy(playerClass) && 
+                playerLevel >= skill.levelRequired)
+            {
+                filteredSkills.Add(skill);
+            }
+        }
+        
+        return filteredSkills;
     }
     
     public void ClearAllEffects()

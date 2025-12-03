@@ -24,6 +24,11 @@ public interface ISkillService
     void ClearActionBarSlot(int slotIndex);
     
     /// <summary>
+    /// Clear all action bar slots
+    /// </summary>
+    void ClearAllActionBarSlots();
+    
+    /// <summary>
     /// Get all action bar skills
     /// </summary>
     SkillData[] GetAllActionBarSkills();

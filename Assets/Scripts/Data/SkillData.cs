@@ -42,6 +42,13 @@ public class SkillData : ScriptableObject
     public string description = "A powerful ability";
     public Sprite icon;
     
+    [Header("Class Restriction")]
+    [Tooltip("Which classes can use this skill. Use 'All' for universal skills.")]
+    public CharacterClass allowedClasses = CharacterClass.All;
+    
+    [Tooltip("Minimum character level required to use this skill (0 = no requirement)")]
+    public int levelRequired = 1;
+    
     [Header("Skill Type")]
     public SkillType skillType = SkillType.Direct;
     public SkillRange skillRange = SkillRange.Melee;
@@ -141,6 +148,23 @@ public class SkillData : ScriptableObject
         if (appliedAura != null)
             return appliedAura.duration;
         return 0f;
+    }
+    
+    /// <summary>
+    /// Check if a player class can use this skill
+    /// </summary>
+    public bool CanBeUsedBy(CharacterClass playerClass)
+    {
+        return CharacterClassHelper.IsClassAllowed(allowedClasses, playerClass);
+    }
+    
+    /// <summary>
+    /// Check if a player class (from string) can use this skill
+    /// </summary>
+    public bool CanBeUsedBy(string className)
+    {
+        CharacterClass playerClass = CharacterClassHelper.ParseFromString(className);
+        return CanBeUsedBy(playerClass);
     }
     
     /// <summary>

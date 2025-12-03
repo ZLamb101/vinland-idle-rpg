@@ -454,6 +454,12 @@ public class CharacterSessionManager : MonoBehaviour, ICharacterSessionService
             talentService.ClearAllTalents();
         }
         
+        // Clear action bar (will be loaded fresh for next character)
+        if (Services.TryGet<ISkillService>(out var skillService))
+        {
+            skillService.ClearAllActionBarSlots();
+        }
+        
         Debug.Log("[CharacterSessionManager] ✓ State reset complete - managers remain active for next character");
     }
     

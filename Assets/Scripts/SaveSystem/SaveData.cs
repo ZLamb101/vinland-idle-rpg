@@ -421,13 +421,20 @@ public class SaveData
             zoneService.LoadCurrentZone();
         }
         
-        // Action Bar Skills
+        // Action Bar Skills - Always clear first, then load saved data if any
         if (Services.TryGet<ISkillService>(out var skillService))
         {
+            // Clear existing action bar (important when switching characters or loading new character)
+            skillService.ClearAllActionBarSlots();
+            
             if (actionBarSkills != null && actionBarSkills.Count > 0)
             {
                 skillService.LoadActionBarData(actionBarSkills.ToArray());
                 Debug.Log($"[SaveData] Loaded {actionBarSkills.Count} action bar skills");
+            }
+            else
+            {
+                Debug.Log("[SaveData] No saved action bar skills - starting with empty action bar");
             }
         }
     }
