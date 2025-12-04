@@ -16,6 +16,7 @@ public class SkillManager : MonoBehaviour, ISkillService
     
     [Header("Cooldowns")]
     private Dictionary<string, float> skillCooldowns = new Dictionary<string, float>();
+    private float globalCooldownTimer = 0f;
     
     [Header("Active Effects")]
     private List<ActiveEffect> playerBuffs = new List<ActiveEffect>();
@@ -126,7 +127,17 @@ public class SkillManager : MonoBehaviour, ISkillService
     
     void UpdateCooldowns()
     {
-        // Update all cooldowns
+        // Update global cooldown
+        if (globalCooldownTimer > 0f)
+        {
+            globalCooldownTimer -= Time.deltaTime;
+            if (globalCooldownTimer < 0f)
+            {
+                globalCooldownTimer = 0f;
+            }
+        }
+        
+        // Update all skill cooldowns
         List<string> expiredCooldowns = new List<string>();
         List<string> keys = new List<string>(skillCooldowns.Keys);
         
@@ -144,6 +155,21 @@ public class SkillManager : MonoBehaviour, ISkillService
         {
             skillCooldowns.Remove(skillName);
         }
+    }
+    
+    public bool IsOnGlobalCooldown()
+    {
+        return globalCooldownTimer > 0f;
+    }
+    
+    public float GetGlobalCooldownRemaining()
+    {
+        return Mathf.Max(0f, globalCooldownTimer);
+    }
+    
+    void TriggerGlobalCooldown()
+    {
+        globalCooldownTimer = GameBalance.Combat.skillGlobalCooldown;
     }
     
     public bool IsOnCooldown(SkillData skill)
@@ -225,7 +251,11 @@ public class SkillManager : MonoBehaviour, ISkillService
     {
         if (skill == null) return false;
         
-        // Check cooldown
+        // Check global cooldown
+        if (IsOnGlobalCooldown())
+            return false;
+        
+        // Check skill-specific cooldown
         if (IsOnCooldown(skill))
             return false;
         
@@ -262,6 +292,10 @@ public class SkillManager : MonoBehaviour, ISkillService
             }
         }
         
+        // Trigger global cooldown
+        TriggerGlobalCooldown();
+        
+        // Start skill-specific cooldown
         StartCooldown(skill);
         
         // Get player's total attack power for scaling (base + equipment + talents)
@@ -800,6 +834,7 @@ public class SkillManager : MonoBehaviour, ISkillService
         playerDebuffs.Clear();
         monsterEffects.Clear();
         skillCooldowns.Clear();
+        globalCooldownTimer = 0f;
     }
     
     // ==================== Event Handlers ====================

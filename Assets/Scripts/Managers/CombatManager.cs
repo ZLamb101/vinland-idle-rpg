@@ -649,6 +649,7 @@ public class CombatManager : MonoBehaviour, ICombatService
             if (skillService.CastSkill(skill, targetIndex))
             {
                 LogCombatMessage($"You cast {skill.skillName}!", LogType.Info);
+                break; // GCD triggered, stop checking other slots - left-most has priority
             }
         }
     }

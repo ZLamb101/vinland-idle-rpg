@@ -74,22 +74,51 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerEnterHandler, IP
             float remaining = skillService.GetRemainingCooldown(currentSkill);
             float progress = skillService.GetCooldownProgress(currentSkill);
             
-            if (cooldownOverlay != null)
+            // Check if skill is on its own cooldown
+            if (remaining > 0f)
             {
-                cooldownOverlay.fillAmount = 1f - progress;
-                cooldownOverlay.gameObject.SetActive(remaining > 0f);
-            }
-            
-            if (cooldownText != null)
-            {
-                if (remaining > 0f)
+                // Show skill-specific cooldown
+                if (cooldownOverlay != null)
+                {
+                    cooldownOverlay.fillAmount = 1f - progress;
+                    cooldownOverlay.gameObject.SetActive(true);
+                }
+                
+                if (cooldownText != null)
                 {
                     cooldownText.text = remaining.ToString("F1");
                     cooldownText.gameObject.SetActive(true);
                 }
+            }
+            else
+            {
+                // Skill is ready - check if GCD is blocking it
+                float gcdRemaining = skillService.GetGlobalCooldownRemaining();
+                
+                if (gcdRemaining > 0f)
+                {
+                    // Show GCD overlay
+                    float gcdTotal = GameBalance.Combat.skillGlobalCooldown;
+                    float gcdProgress = gcdRemaining / gcdTotal;
+                    
+                    if (cooldownOverlay != null)
+                    {
+                        cooldownOverlay.fillAmount = gcdProgress;
+                        cooldownOverlay.gameObject.SetActive(true);
+                    }
+                    
+                    if (cooldownText != null)
+                    {
+                        cooldownText.gameObject.SetActive(false); // No text for GCD
+                    }
+                }
                 else
                 {
-                    cooldownText.gameObject.SetActive(false);
+                    // Skill is fully ready
+                    if (cooldownOverlay != null)
+                        cooldownOverlay.gameObject.SetActive(false);
+                    if (cooldownText != null)
+                        cooldownText.gameObject.SetActive(false);
                 }
             }
         }

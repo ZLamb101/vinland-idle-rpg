@@ -36,6 +36,16 @@ public interface ISkillService
     // ==================== Cooldowns ====================
     
     /// <summary>
+    /// Check if the global cooldown is active
+    /// </summary>
+    bool IsOnGlobalCooldown();
+    
+    /// <summary>
+    /// Get remaining global cooldown time
+    /// </summary>
+    float GetGlobalCooldownRemaining();
+    
+    /// <summary>
     /// Check if a skill is on cooldown
     /// </summary>
     bool IsOnCooldown(SkillData skill);
