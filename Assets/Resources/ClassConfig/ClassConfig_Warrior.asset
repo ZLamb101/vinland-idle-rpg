@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 575189b45cefc044d9fb20dc590c417c, type: 3}
+  m_Name: ClassConfig_Warrior
+  m_EditorClassIdentifier: Assembly-CSharp::AutoAttackConfig
+  characterClass: 1
+  heroSprite: {fileID: -2555146482297406399, guid: fa47f8fc948e6c947b7296f57dfecacc, type: 3}
+  attackType: 1
+  projectilePrefab: {fileID: 0}
+  instantEffectPrefab: {fileID: 1501858276936507058, guid: 4ae23391b94449541baf7e0395162196, type: 3}
+  instantEffectDuration: 0.5

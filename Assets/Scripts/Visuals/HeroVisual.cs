@@ -93,7 +93,7 @@ public class HeroVisual : MonoBehaviour
         }
     }
     
-    IEnumerator PlayAttackAnimation()
+    public IEnumerator PlayAttackAnimation()
     {
         float elapsed = 0f;
         float halfDuration = attackAnimationDuration * 0.5f;
@@ -144,7 +144,6 @@ public class HeroVisual : MonoBehaviour
     /// </summary>
     void Reset()
     {
-        // Initialize components if needed
         if (rectTransform == null)
             rectTransform = GetComponent<RectTransform>();
         if (heroImage == null)
@@ -153,13 +152,22 @@ public class HeroVisual : MonoBehaviour
     
     public Vector2 GetPosition()
     {
-        // If parented, return world anchored position, otherwise return local anchored position
+        // Get base anchored position
+        Vector2 basePos;
         if (rectTransform.parent != null && rectTransform.parent is RectTransform parentRect)
         {
             // Calculate world anchored position: parent's position + local position
-            return parentRect.anchoredPosition + rectTransform.anchoredPosition;
+            basePos = parentRect.anchoredPosition + rectTransform.anchoredPosition;
         }
-        return rectTransform.anchoredPosition;
+        else
+        {
+            basePos = rectTransform.anchoredPosition;
+        }
+        
+        // Adjust for pivot to get center of the sprite
+        float pivotOffsetY = (0.5f - rectTransform.pivot.y) * rectTransform.rect.height;
+        
+        return new Vector2(basePos.x, basePos.y + pivotOffsetY);
     }
 }
 

@@ -27,6 +27,10 @@ public class EnemyVisual : MonoBehaviour, IPointerClickHandler
     [Header("Health Bar")]
     public RectTransform monsterDetailsContainer; // Container that follows enemy (contains health bar, name, swing timer, etc.)
     
+    [Header("Effects Display")]
+    public EnemyEffectDisplay effectDisplay; // Optional component for showing buffs/debuffs above enemy
+
+    
     private Vector2 spawnPosition; // Where enemy starts
     private Vector2 targetPosition; // Hero position
     private float attackRange = 100f; // Distance at which enemy can attack
@@ -134,6 +138,12 @@ public class EnemyVisual : MonoBehaviour, IPointerClickHandler
     public void SetMonsterIndex(int index)
     {
         monsterIndex = index;
+        
+        // Initialize effect display if present
+        if (effectDisplay != null)
+        {
+            effectDisplay.SetMonsterIndex(index);
+        }
     }
     
     /// <summary>
@@ -217,6 +227,14 @@ public class EnemyVisual : MonoBehaviour, IPointerClickHandler
     {
         if (isMoving && !isInAttackRange)
         {
+            // Check if stunned - don't move while stunned
+            ISkillService skillService = Services.Get<ISkillService>();
+            if (skillService != null && monsterIndex >= 0 && skillService.IsMonsterStunned(monsterIndex))
+            {
+                // Stunned - don't move
+                return;
+            }
+            
             // Get current position (local space)
             Vector2 currentPos = rectTransform.anchoredPosition;
             

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
 
 /// <summary>
 /// UI component that displays target information in the top right corner.
@@ -16,12 +17,24 @@ public class TargetFrame : MonoBehaviour
     public TextMeshProUGUI swingTimerText;
     public GameObject targetFramePanel; // The panel container (for showing/hiding)
     
+    [Header("Effects Display")]
+    public Transform debuffContainer;  // Container for debuff icons (HorizontalLayoutGroup)
+    public Transform buffContainer;    // Container for buff icons (HorizontalLayoutGroup)
+    public EffectIconUI effectIconPrefab;
+    public int maxDebuffsShown = 3;
+    public int maxBuffsShown = 3;
+    
     private int currentTargetIndex = -1;
     private ICombatService combatService; // Cached combat service reference
+    private ISkillService skillService;   // For getting monster effects
+    
+    // Active effect icons
+    private List<EffectIconUI> activeDebuffIcons = new List<EffectIconUI>();
+    private List<EffectIconUI> activeBuffIcons = new List<EffectIconUI>();
     
     void Start()
     {
-        // Get combat service (doesn't log errors during scene transitions)
+        // Get services (doesn't log errors during scene transitions)
         if (Services.TryGet<ICombatService>(out combatService))
         {
             SubscribeToEvents();
@@ -33,6 +46,8 @@ public class TargetFrame : MonoBehaviour
             // Try again after a short delay
             StartCoroutine(RetryGetCombatService());
         }
+        
+        skillService = Services.Get<ISkillService>();
         
         // Hide initially (will be shown by CheckCurrentCombatState if combat is active)
         if (targetFramePanel != null && (combatService == null || combatService.GetCombatState() != CombatManager.CombatState.Fighting))
@@ -48,6 +63,12 @@ public class TargetFrame : MonoBehaviour
         EventBus.Subscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
         EventBus.Subscribe<MonstersChangedEvent>(OnMonstersChanged);
         EventBus.Subscribe<CombatStateChangedEvent>(OnCombatStateChanged);
+        
+        // Effect events
+        EventBus.Subscribe<DebuffAppliedEvent>(OnDebuffApplied);
+        EventBus.Subscribe<DebuffExpiredEvent>(OnDebuffExpired);
+        EventBus.Subscribe<BuffAppliedEvent>(OnBuffApplied);
+        EventBus.Subscribe<BuffExpiredEvent>(OnBuffExpired);
     }
     
     /// <summary>
@@ -87,6 +108,12 @@ public class TargetFrame : MonoBehaviour
         EventBus.Unsubscribe<MonsterAttackProgressEvent>(OnMonsterAttackProgress);
         EventBus.Unsubscribe<MonstersChangedEvent>(OnMonstersChanged);
         EventBus.Unsubscribe<CombatStateChangedEvent>(OnCombatStateChanged);
+        
+        // Effect events
+        EventBus.Unsubscribe<DebuffAppliedEvent>(OnDebuffApplied);
+        EventBus.Unsubscribe<DebuffExpiredEvent>(OnDebuffExpired);
+        EventBus.Unsubscribe<BuffAppliedEvent>(OnBuffApplied);
+        EventBus.Unsubscribe<BuffExpiredEvent>(OnBuffExpired);
     }
     
     void OnCombatStateChanged(CombatStateChangedEvent e)
@@ -100,6 +127,7 @@ public class TargetFrame : MonoBehaviour
         if (e.newState != CombatManager.CombatState.Fighting)
         {
             currentTargetIndex = -1;
+            ClearAllEffectIcons();
         }
     }
     
@@ -148,6 +176,7 @@ public class TargetFrame : MonoBehaviour
             {
                 targetFramePanel.SetActive(false);
             }
+            ClearAllEffectIcons();
             return;
         }
         
@@ -168,6 +197,9 @@ public class TargetFrame : MonoBehaviour
         
         // Reset swing timer (will be updated by OnMonsterAttackProgress)
         UpdateSwingTimer(0f);
+        
+        // Update effect icons for new target
+        RefreshEffects();
     }
     
     void UpdateHealthDisplay(float current, float max)
@@ -199,6 +231,157 @@ public class TargetFrame : MonoBehaviour
             float percentage = progress * 100f;
             swingTimerText.text = $"{percentage:F0}%";
         }
+    }
+    
+    // ==================== Effect Display ====================
+    
+    void OnDebuffApplied(DebuffAppliedEvent e)
+    {
+        if (e.targetIndex == currentTargetIndex)
+        {
+            RefreshEffects();
+        }
+    }
+    
+    void OnDebuffExpired(DebuffExpiredEvent e)
+    {
+        if (e.targetIndex == currentTargetIndex)
+        {
+            RefreshEffects();
+        }
+    }
+    
+    void OnBuffApplied(BuffAppliedEvent e)
+    {
+        if (e.targetIndex == currentTargetIndex)
+        {
+            RefreshEffects();
+        }
+    }
+    
+    void OnBuffExpired(BuffExpiredEvent e)
+    {
+        if (e.targetIndex == currentTargetIndex)
+        {
+            RefreshEffects();
+        }
+    }
+    
+    void RefreshEffects()
+    {
+        if (currentTargetIndex < 0 || effectIconPrefab == null)
+            return;
+        
+        if (skillService == null)
+            skillService = Services.Get<ISkillService>();
+        
+        if (skillService == null)
+            return;
+        
+        // Get all effects on current target
+        List<ActiveEffect> effects = skillService.GetMonsterEffects(currentTargetIndex);
+        
+        // Separate into buffs and debuffs
+        List<ActiveEffect> buffs = new List<ActiveEffect>();
+        List<ActiveEffect> debuffs = new List<ActiveEffect>();
+        
+        foreach (var effect in effects)
+        {
+            if (effect == null || effect.IsExpired())
+                continue;
+            
+            if (effect.isBuff)
+                buffs.Add(effect);
+            else
+                debuffs.Add(effect);
+        }
+        
+        // Update debuff icons
+        if (debuffContainer != null)
+        {
+            UpdateEffectIcons(debuffs, activeDebuffIcons, debuffContainer, maxDebuffsShown, false);
+        }
+        
+        // Update buff icons
+        if (buffContainer != null)
+        {
+            UpdateEffectIcons(buffs, activeBuffIcons, buffContainer, maxBuffsShown, true);
+        }
+    }
+    
+    void UpdateEffectIcons(List<ActiveEffect> effects, List<EffectIconUI> icons, Transform container, int maxShown, bool isBuff)
+    {
+        // Remove icons for effects that no longer exist
+        for (int i = icons.Count - 1; i >= 0; i--)
+        {
+            EffectIconUI icon = icons[i];
+            if (icon == null)
+            {
+                icons.RemoveAt(i);
+                continue;
+            }
+            
+            // Check if effect still exists
+            bool found = false;
+            foreach (var effect in effects)
+            {
+                if (icon.MatchesEffect(effect))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            
+            if (!found || icon.IsExpired())
+            {
+                Destroy(icon.gameObject);
+                icons.RemoveAt(i);
+            }
+        }
+        
+        // Add icons for new effects (up to max)
+        int shown = icons.Count;
+        foreach (var effect in effects)
+        {
+            if (shown >= maxShown)
+                break;
+            
+            // Check if already displayed
+            bool exists = false;
+            foreach (var icon in icons)
+            {
+                if (icon != null && icon.MatchesEffect(effect))
+                {
+                    exists = true;
+                    break;
+                }
+            }
+            
+            if (!exists)
+            {
+                EffectIconUI newIcon = Instantiate(effectIconPrefab, container);
+                newIcon.Setup(effect, isBuff);
+                icons.Add(newIcon);
+                shown++;
+            }
+        }
+    }
+    
+    void ClearAllEffectIcons()
+    {
+        foreach (var icon in activeDebuffIcons)
+        {
+            if (icon != null)
+                Destroy(icon.gameObject);
+        }
+        activeDebuffIcons.Clear();
+        
+        foreach (var icon in activeBuffIcons)
+        {
+            if (icon != null)
+                Destroy(icon.gameObject);
+        }
+        activeBuffIcons.Clear();
     }
 }
 

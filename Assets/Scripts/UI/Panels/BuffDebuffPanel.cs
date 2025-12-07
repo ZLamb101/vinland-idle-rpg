@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 /// <summary>
 /// Panel showing active buffs and debuffs on the player.
-/// Displays effect name and remaining duration.
+/// Displays effect icons with radial countdown timers.
 /// </summary>
 public class BuffDebuffPanel : MonoBehaviour
 {
@@ -14,12 +14,12 @@ public class BuffDebuffPanel : MonoBehaviour
     
     [Header("Buff Section")]
     public Transform buffContainer;
-    public ActiveEffectUI buffEntryPrefab;
+    public EffectIconUI buffEntryPrefab;
     public TextMeshProUGUI buffHeaderText;
     
     [Header("Debuff Section")]
     public Transform debuffContainer;
-    public ActiveEffectUI debuffEntryPrefab;
+    public EffectIconUI debuffEntryPrefab;
     public TextMeshProUGUI debuffHeaderText;
     
     [Header("Settings")]
@@ -32,8 +32,8 @@ public class BuffDebuffPanel : MonoBehaviour
     private ISkillService skillService;
     
     // Active UI entries
-    private List<ActiveEffectUI> buffEntries = new List<ActiveEffectUI>();
-    private List<ActiveEffectUI> debuffEntries = new List<ActiveEffectUI>();
+    private List<EffectIconUI> buffEntries = new List<EffectIconUI>();
+    private List<EffectIconUI> debuffEntries = new List<EffectIconUI>();
     
     void Start()
     {
@@ -66,8 +66,25 @@ public class BuffDebuffPanel : MonoBehaviour
     
     void Update()
     {
-        // Refresh to remove expired effects
-        RefreshDisplay();
+        // Clean up expired icons
+        CleanupExpiredIcons(buffEntries);
+        CleanupExpiredIcons(debuffEntries);
+        UpdateHeaders();
+    }
+    
+    void CleanupExpiredIcons(List<EffectIconUI> icons)
+    {
+        for (int i = icons.Count - 1; i >= 0; i--)
+        {
+            if (icons[i] == null || icons[i].IsExpired())
+            {
+                if (icons[i] != null)
+                {
+                    Destroy(icons[i].gameObject);
+                }
+                icons.RemoveAt(i);
+            }
+        }
     }
     
     void OnBuffApplied(BuffAppliedEvent e)
@@ -140,21 +157,35 @@ public class BuffDebuffPanel : MonoBehaviour
             skillService = Services.Get<ISkillService>();
         }
         
-        if (skillService == null || buffContainer == null)
+        if (skillService == null || buffContainer == null || buffEntryPrefab == null)
             return;
         
         List<ActiveEffect> buffs = skillService.GetPlayerBuffs();
         
-        // Remove expired entries
+        // Remove entries for effects that no longer exist
         for (int i = buffEntries.Count - 1; i >= 0; i--)
         {
-            ActiveEffectUI entry = buffEntries[i];
-            if (entry == null || entry.GetEffect() == null || entry.GetEffect().IsExpired())
+            EffectIconUI entry = buffEntries[i];
+            if (entry == null)
             {
-                if (entry != null && entry.gameObject != null)
+                buffEntries.RemoveAt(i);
+                continue;
+            }
+            
+            // Check if effect still exists
+            bool found = false;
+            foreach (var buff in buffs)
+            {
+                if (entry.MatchesEffect(buff))
                 {
-                    Destroy(entry.gameObject);
+                    found = true;
+                    break;
                 }
+            }
+            
+            if (!found || entry.IsExpired())
+            {
+                Destroy(entry.gameObject);
                 buffEntries.RemoveAt(i);
             }
         }
@@ -176,9 +207,9 @@ public class BuffDebuffPanel : MonoBehaviour
                 }
             }
             
-            if (!exists && buffEntryPrefab != null)
+            if (!exists)
             {
-                ActiveEffectUI newEntry = Instantiate(buffEntryPrefab, buffContainer);
+                EffectIconUI newEntry = Instantiate(buffEntryPrefab, buffContainer);
                 newEntry.Setup(buff, true);
                 buffEntries.Add(newEntry);
             }
@@ -192,21 +223,35 @@ public class BuffDebuffPanel : MonoBehaviour
             skillService = Services.Get<ISkillService>();
         }
         
-        if (skillService == null || debuffContainer == null)
+        if (skillService == null || debuffContainer == null || debuffEntryPrefab == null)
             return;
         
         List<ActiveEffect> debuffs = skillService.GetPlayerDebuffs();
         
-        // Remove expired entries
+        // Remove entries for effects that no longer exist
         for (int i = debuffEntries.Count - 1; i >= 0; i--)
         {
-            ActiveEffectUI entry = debuffEntries[i];
-            if (entry == null || entry.GetEffect() == null || entry.GetEffect().IsExpired())
+            EffectIconUI entry = debuffEntries[i];
+            if (entry == null)
             {
-                if (entry != null && entry.gameObject != null)
+                debuffEntries.RemoveAt(i);
+                continue;
+            }
+            
+            // Check if effect still exists
+            bool found = false;
+            foreach (var debuff in debuffs)
+            {
+                if (entry.MatchesEffect(debuff))
                 {
-                    Destroy(entry.gameObject);
+                    found = true;
+                    break;
                 }
+            }
+            
+            if (!found || entry.IsExpired())
+            {
+                Destroy(entry.gameObject);
                 debuffEntries.RemoveAt(i);
             }
         }
@@ -228,9 +273,9 @@ public class BuffDebuffPanel : MonoBehaviour
                 }
             }
             
-            if (!exists && debuffEntryPrefab != null)
+            if (!exists)
             {
-                ActiveEffectUI newEntry = Instantiate(debuffEntryPrefab, debuffContainer);
+                EffectIconUI newEntry = Instantiate(debuffEntryPrefab, debuffContainer);
                 newEntry.Setup(debuff, false);
                 debuffEntries.Add(newEntry);
             }

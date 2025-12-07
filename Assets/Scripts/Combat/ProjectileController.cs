@@ -18,6 +18,10 @@ public class ProjectileController : MonoBehaviour
     private System.Func<int, EnemyVisual> getEnemyVisual;
     private HeroVisual heroVisual;
     
+    // Class-based auto-attack configuration
+    private List<AutoAttackConfig> autoAttackConfigs = new List<AutoAttackConfig>();
+    private AutoAttackConfig currentAutoAttackConfig;
+    
     /// <summary>
     /// Initialize the controller with required dependencies
     /// </summary>
@@ -48,7 +52,46 @@ public class ProjectileController : MonoBehaviour
     }
     
     /// <summary>
-    /// Hero attacks - spawn projectile toward specific enemy
+    /// Set the available auto-attack configurations
+    /// </summary>
+    public void SetAutoAttackConfigs(AutoAttackConfig[] configs)
+    {
+        autoAttackConfigs.Clear();
+        if (configs != null)
+        {
+            autoAttackConfigs.AddRange(configs);
+        }
+    }
+    
+    /// <summary>
+    /// Select the auto-attack config for the current character class
+    /// </summary>
+    public void SetCharacterClass(CharacterClass characterClass)
+    {
+        currentAutoAttackConfig = null;
+        
+        foreach (var config in autoAttackConfigs)
+        {
+            if (config != null && config.characterClass == characterClass)
+            {
+                currentAutoAttackConfig = config;
+                
+                if (heroVisual != null && config.attackType == AutoAttackType.Projectile && config.projectilePrefab != null)
+                {
+                    heroVisual.projectilePrefab = config.projectilePrefab;
+                }
+                break;
+            }
+        }
+        
+        if (currentAutoAttackConfig == null && heroVisual != null && projectilePrefab != null)
+        {
+            heroVisual.projectilePrefab = projectilePrefab;
+        }
+    }
+    
+    /// <summary>
+    /// Hero attacks - spawn attack visual based on class configuration
     /// </summary>
     public void HeroAttack(float damage, int targetIndex, System.Action<float, int> onHit)
     {
@@ -65,10 +108,61 @@ public class ProjectileController : MonoBehaviour
             return;
         }
         
-        // Ensure projectile prefab is set
-        if (heroVisual.projectilePrefab == null && projectilePrefab != null)
+        AutoAttackType attackType = currentAutoAttackConfig?.attackType ?? AutoAttackType.Projectile;
+        
+        if (attackType == AutoAttackType.Instant)
         {
-            heroVisual.projectilePrefab = projectilePrefab;
+            HeroInstantAttack(damage, targetIndex, targetEnemy, onHit);
+        }
+        else
+        {
+            HeroProjectileAttack(damage, targetIndex, targetEnemy, onHit);
+        }
+    }
+    
+    /// <summary>
+    /// Perform an instant attack (e.g. Warrior slash)
+    /// </summary>
+    void HeroInstantAttack(float damage, int targetIndex, EnemyVisual targetEnemy, System.Action<float, int> onHit)
+    {
+        if (heroVisual.gameObject.activeInHierarchy)
+        {
+            StartCoroutine(heroVisual.PlayAttackAnimation());
+        }
+        
+        if (currentAutoAttackConfig?.instantEffectPrefab != null && targetEnemy.rectTransform != null)
+        {
+            Vector2 effectPosition = GetLocalPosition(targetEnemy.rectTransform);
+            SpawnEffectAtPosition(
+                currentAutoAttackConfig.instantEffectPrefab, 
+                effectPosition, 
+                currentAutoAttackConfig.instantEffectDuration
+            );
+        }
+        
+        onHit?.Invoke(damage, targetIndex);
+    }
+    
+    /// <summary>
+    /// Perform a projectile attack (e.g. Hunter arrow, Mage orb)
+    /// </summary>
+    void HeroProjectileAttack(float damage, int targetIndex, EnemyVisual targetEnemy, System.Action<float, int> onHit)
+    {
+        if (heroVisual.projectilePrefab == null)
+        {
+            if (currentAutoAttackConfig?.projectilePrefab != null)
+            {
+                heroVisual.projectilePrefab = currentAutoAttackConfig.projectilePrefab;
+            }
+            else if (projectilePrefab != null)
+            {
+                heroVisual.projectilePrefab = projectilePrefab;
+            }
+            else
+            {
+                onHit?.Invoke(damage, targetIndex);
+                return;
+            }
         }
         
         Vector2 targetPos = targetEnemy.GetPosition();
@@ -77,7 +171,6 @@ public class ProjectileController : MonoBehaviour
             targetPos,
             damage,
             (projectile) => {
-                // Projectile hit
                 if (projectilePool != null && projectile.transform.parent != projectilePool)
                 {
                     projectile.transform.SetParent(projectilePool);
@@ -88,7 +181,6 @@ public class ProjectileController : MonoBehaviour
                 Destroy(projectile.gameObject);
             },
             (projectile) => {
-                // Projectile miss
                 Destroy(projectile.gameObject);
             }
         );
@@ -112,7 +204,6 @@ public class ProjectileController : MonoBehaviour
             return;
         }
         
-        // Determine which projectile prefab to use
         GameObject prefabToUse = skill.projectilePrefab != null ? skill.projectilePrefab : (projectilePrefab != null ? projectilePrefab.gameObject : null);
         
         if (prefabToUse == null)
@@ -121,13 +212,10 @@ public class ProjectileController : MonoBehaviour
             return;
         }
         
-        // Get hero position in combat container's local space
         Vector2 startPos = GetLocalPosition(heroVisual.rectTransform);
         
-        // Get target position in combat container's local space
         Vector2 targetPos = GetLocalPosition(targetEnemy.rectTransform);
         
-        // Instantiate projectile
         GameObject projectileObj = Instantiate(prefabToUse, combatSceneContainer);
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         
@@ -138,7 +226,6 @@ public class ProjectileController : MonoBehaviour
             return;
         }
         
-        // Apply skill visuals to projectile
         projectile.ApplySkillVisuals(skill);
         
         // Launch projectile
@@ -248,7 +335,6 @@ public class ProjectileController : MonoBehaviour
         
         enemy.PerformAttack(onComplete);
     }
-    
     /// <summary>
     /// Spawn a hit effect at the target's position (for instant skills)
     /// </summary>
@@ -263,19 +349,19 @@ public class ProjectileController : MonoBehaviour
         {
             // Effect on monster
             EnemyVisual enemy = getEnemyVisual(targetIndex);
-            if (enemy != null)
+            if (enemy != null && enemy.rectTransform != null)
             {
-                effectPosition = enemy.GetPosition();
+                effectPosition = GetLocalPosition(enemy.rectTransform);
             }
             else
             {
                 return;
             }
         }
-        else if (targetIndex == -1 && heroVisual != null)
+        else if (targetIndex == -1 && heroVisual != null && heroVisual.rectTransform != null)
         {
             // Effect on player (self-buff)
-            effectPosition = heroVisual.GetPosition();
+            effectPosition = GetLocalPosition(heroVisual.rectTransform);
         }
         else
         {
@@ -290,11 +376,8 @@ public class ProjectileController : MonoBehaviour
     /// </summary>
     public void SpawnHitEffectOnHero(SkillData skill)
     {
-        if (skill.hitEffectPrefab == null || heroVisual == null || combatSceneContainer == null)
-            return;
-        
-        Vector2 effectPosition = heroVisual.GetPosition();
-        SpawnEffectAtPosition(skill.hitEffectPrefab, effectPosition, skill.hitEffectDuration);
+        // Delegate to SpawnHitEffect with targetIndex -1 (player)
+        SpawnHitEffect(skill, -1);
     }
     
     /// <summary>
@@ -321,15 +404,18 @@ public class ProjectileController : MonoBehaviour
     
     /// <summary>
     /// Get local position of a RectTransform relative to combatSceneContainer
+    /// Returns the CENTER of the rect, adjusting for pivot
     /// </summary>
     Vector2 GetLocalPosition(RectTransform rectTransform)
     {
         if (rectTransform == null || combatSceneContainer == null)
             return Vector2.zero;
         
+        Vector2 basePos;
+        
         if (rectTransform.parent == combatSceneContainer)
         {
-            return rectTransform.anchoredPosition;
+            basePos = rectTransform.anchoredPosition;
         }
         else
         {
@@ -338,10 +424,18 @@ public class ProjectileController : MonoBehaviour
                 combatSceneContainer,
                 RectTransformUtility.WorldToScreenPoint(null, worldPos),
                 null,
-                out Vector2 localPos
+                out basePos
             );
-            return localPos;
         }
+        
+        // Adjust for pivot to get center of the sprite
+        // If pivot.y is 0 (bottom), offset up by half the height
+        // If pivot.y is 0.5 (center), no offset needed
+        // If pivot.y is 1 (top), offset down by half the height
+        float pivotOffsetY = (0.5f - rectTransform.pivot.y) * rectTransform.rect.height;
+        float pivotOffsetX = (0.5f - rectTransform.pivot.x) * rectTransform.rect.width;
+        
+        return new Vector2(basePos.x + pivotOffsetX, basePos.y + pivotOffsetY);
     }
     
     /// <summary>

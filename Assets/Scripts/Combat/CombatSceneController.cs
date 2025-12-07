@@ -33,6 +33,10 @@ public class CombatSceneController : MonoBehaviour
     [Tooltip("X-axis offset for alternating monsters to avoid overlap (in pixels)")]
     public float monsterXSpacing = 100f;
     
+    [Header("Class-Based Auto Attacks")]
+    [Tooltip("Auto-attack configurations for each character class")]
+    public AutoAttackConfig[] autoAttackConfigs;
+    
     private List<EnemyVisual> activeEnemies = new List<EnemyVisual>();
     private int currentTargetIndex = 0;
     
@@ -113,10 +117,44 @@ public class CombatSceneController : MonoBehaviour
             GetEnemyVisual
         );
         
+        // Set up class-based auto-attack configurations
+        if (autoAttackConfigs != null && autoAttackConfigs.Length > 0)
+        {
+            projectileController.SetAutoAttackConfigs(autoAttackConfigs);
+        }
+        
         // Create and initialize ItemDropController
         itemDropController = gameObject.AddComponent<ItemDropController>();
         itemDropController.itemDropSpacing = itemDropSpacing;
         itemDropController.Initialize(combatSceneContainer, GetEnemyVisual);
+    }
+    
+    /// <summary>
+    /// Set the character class for combat visual selection
+    /// Called by CombatManager when combat starts
+    /// </summary>
+    public void SetCharacterClass(CharacterClass characterClass)
+    {
+        if (projectileController != null)
+        {
+            projectileController.SetCharacterClass(characterClass);
+        }
+        
+        // Find the config for this class and apply hero sprite
+        if (autoAttackConfigs != null)
+        {
+            foreach (var config in autoAttackConfigs)
+            {
+                if (config != null && config.characterClass == characterClass)
+                {
+                    if (config.heroSprite != null && heroVisual != null)
+                    {
+                        heroVisual.Setup(config.heroSprite);
+                    }
+                    break;
+                }
+            }
+        }
     }
     
     void Start()
@@ -416,7 +454,9 @@ public class CombatSceneController : MonoBehaviour
                 }
             });
             
-            activeEnemies.Add(enemyVisual);
+            // Insert at index 0 instead of Add() because we're spawning in reverse order
+            // This ensures activeEnemies[i] corresponds to monster index i
+            activeEnemies.Insert(0, enemyVisual);
         }
         
         // Set first enemy as target

@@ -17,20 +17,20 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: fbbfdd8295dcc8343b340ad18589bd68, type: 3}
   allowedClasses: 2
   levelRequired: 8
-  skillType: 0
+  skillType: 1
   skillRange: 1
   manaCost: 10
   cooldown: 8
   castTime: 0
-  baseDamage: 45
+  baseDamage: 0
   attackPowerScaling: 0
-  canCrit: 1
-  appliedAura: {fileID: 0}
+  canCrit: 0
+  appliedAura: {fileID: 11400000, guid: 9583837ae7453314a91fa9364f6d6b19, type: 2}
   isAoE: 0
   aoeTargetCount: 0
-  visualType: 1
-  projectilePrefab: {fileID: 7906434088891702605, guid: 03dfe92badb3f294095c38fb1187a63b, type: 3}
-  projectileSprite: {fileID: 1800556822716040559, guid: 810be62e2eb433f45900437ce4aaa483, type: 3}
+  visualType: 2
+  projectilePrefab: {fileID: 0}
+  projectileSprite: {fileID: 0}
   projectileColor: {r: 0.8113208, g: 0.42907384, b: 0.13394445, a: 1}
   projectileSpeedMultiplier: 1
   hitEffectPrefab: {fileID: 0}

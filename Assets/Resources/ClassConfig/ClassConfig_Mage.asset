@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 575189b45cefc044d9fb20dc590c417c, type: 3}
+  m_Name: ClassConfig_Mage
+  m_EditorClassIdentifier: Assembly-CSharp::AutoAttackConfig
+  characterClass: 4
+  heroSprite: {fileID: -6748887452922467620, guid: a2aed92bf40e9f8459b360fa36187b0c, type: 3}
+  attackType: 0
+  projectilePrefab: {fileID: 5530635299532377894, guid: cd1991ad4cbe75d42a8d3ad2492798a2, type: 3}
+  instantEffectPrefab: {fileID: 0}
+  instantEffectDuration: 0.5

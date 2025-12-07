@@ -412,6 +412,14 @@ public class CombatManager : MonoBehaviour, ICombatService
             // TODO: Get hero sprite from CharacterManager or CharacterData if available
             
             combatSceneController.InitializeCombat(heroSprite, monstersToSpawn);
+            
+            // Set character class for auto-attack visual selection
+            if (characterService != null)
+            {
+                string classStr = characterService.GetCharacterClass();
+                CharacterClass playerClass = CharacterClassHelper.ParseFromString(classStr);
+                combatSceneController.SetCharacterClass(playerClass);
+            }
         }
         
         // Log combat start
@@ -542,10 +550,27 @@ public class CombatManager : MonoBehaviour, ICombatService
         // Update player attack timer - player can attack immediately when enemy spawns
         if (!playerStunned)
         {
-            playerAttackTimer += Time.deltaTime;
-            EventBus.Publish(new PlayerAttackProgressEvent { progress = Mathf.Clamp01(playerAttackTimer / playerAttackSpeed) });
+            // Get effect modifiers for attack speed calculation
+            float effectiveAttackSpeed = playerAttackSpeed;
+            if (skillService != null)
+            {
+                StatModifiers effectMods = skillService.GetPlayerEffectModifiers();
+                // Apply flat attack speed modifier
+                effectiveAttackSpeed += effectMods.attackSpeed;
+                // Apply percentage attack speed modifier (positive = faster = lower time)
+                // e.g., 0.1 = 10% faster, so multiply by (1 - 0.1) = 0.9
+                if (effectMods.attackSpeedMultiplier != 0f)
+                {
+                    effectiveAttackSpeed *= (1f - effectMods.attackSpeedMultiplier);
+                }
+                // Ensure minimum attack speed
+                effectiveAttackSpeed = Mathf.Max(0.1f, effectiveAttackSpeed);
+            }
             
-            if (playerAttackTimer >= playerAttackSpeed)
+            playerAttackTimer += Time.deltaTime;
+            EventBus.Publish(new PlayerAttackProgressEvent { progress = Mathf.Clamp01(playerAttackTimer / effectiveAttackSpeed) });
+            
+            if (playerAttackTimer >= effectiveAttackSpeed)
             {
                 PlayerAttack();
                 playerAttackTimer = 0f;
@@ -750,12 +775,16 @@ public class CombatManager : MonoBehaviour, ICombatService
                 ExecuteMonsterDirectSkill(monster, skill, monsterIndex);
                 break;
             case SkillType.Buff:
-                // Monster buffs self - apply effect to self
+                // Monster buffs self - apply effect to this monster
                 if (skillService != null)
                 {
-                    // For monster buffs, we'd need to track them separately
-                    // For now, just log it
-                    Debug.Log($"[CombatManager] Monster buff skill (not yet implemented): {skill.skillName}");
+                    // Apply buff effect to the monster (positive index = monster target)
+                    skillService.ApplyEffect(skill, monsterIndex, monster.attackDamage);
+                }
+                // Spawn buff effect on the monster if skill has instant visual
+                if (skill.visualType == SkillVisualType.Instant && skill.hitEffectPrefab != null)
+                {
+                    SpawnMonsterBuffEffect(skill, monsterIndex);
                 }
                 break;
             case SkillType.Curse:
@@ -902,6 +931,23 @@ public class CombatManager : MonoBehaviour, ICombatService
         if (skill.baseDamage > 0 || skill.attackPowerScaling > 0)
         {
             ExecuteMonsterDirectSkill(monster, skill, monsterIndex);
+        }
+    }
+    
+    /// <summary>
+    /// Spawn a buff effect visual on a monster
+    /// </summary>
+    void SpawnMonsterBuffEffect(SkillData skill, int monsterIndex)
+    {
+        if (combatSceneController == null)
+        {
+            combatSceneController = ComponentInjector.FindComponent<CombatSceneController>();
+        }
+        
+        if (combatSceneController != null && skill.hitEffectPrefab != null)
+        {
+            // Use SpawnHitEffect with the monster index to spawn the buff visual on the monster
+            combatSceneController.SpawnHitEffect(skill, monsterIndex);
         }
     }
     

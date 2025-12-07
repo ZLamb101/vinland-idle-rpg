@@ -10,29 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ad03cad4fe2bf443a1c8e210fd13020, type: 3}
-  m_Name: Aura_RapidFire
+  m_Name: Aura_Tripwire
   m_EditorClassIdentifier: Assembly-CSharp::AuraData
-  auraName: Rapid Fire
-  description: 'Gain Attackspeed
+  auraName: Trip Wire
+  description: 'Stuns the enemy for 3 seconds
 
 '
-  icon: {fileID: 21300000, guid: fbbfdd8295dcc8343b340ad18589bd68, type: 3}
-  auraType: 0
-  duration: 20
+  icon: {fileID: 21300000, guid: 9f0e4c80b5525b946be6ef373d3cc0e2, type: 3}
+  auraType: 1
+  duration: 3
   canStack: 0
   maxStacks: 3
   statModifiers:
-    attackDamage: 10
+    attackDamage: 0
     attackSpeed: 0
     maxHealth: 0
     armor: 0
     damageMultiplier: 0
-    attackSpeedMultiplier: 0.7
+    attackSpeedMultiplier: 0
     damageTakenMultiplier: 0
     slowPercent: 0
     invulnerable: 0
-    stunned: 0
+    stunned: 1
   damagePerSecond: 0
-  dotAttackPowerScaling: 0
+  dotAttackPowerScaling: 0.2
   activeEffectPrefab: {fileID: 0}
   iconTint: {r: 1, g: 1, b: 1, a: 1}

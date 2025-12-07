@@ -23,6 +23,10 @@ public class SkillManager : MonoBehaviour, ISkillService
     private List<ActiveEffect> playerDebuffs = new List<ActiveEffect>();
     private Dictionary<int, List<ActiveEffect>> monsterEffects = new Dictionary<int, List<ActiveEffect>>();
     
+    // Combat start delay - prevents casting for a short time when combat begins
+    private float combatStartDelay = 0f;
+    private const float COMBAT_START_DELAY_DURATION = 1f;
+    
     // Cached services
     private ICharacterService characterService;
     private ICombatService combatService;
@@ -52,17 +56,25 @@ public class SkillManager : MonoBehaviour, ISkillService
         // Subscribe to combat events
         EventBus.Subscribe<CombatEndedEvent>(OnCombatEnded);
         EventBus.Subscribe<MonsterDiedEvent>(OnMonsterDied);
+        EventBus.Subscribe<CombatStateChangedEvent>(OnCombatStateChanged);
     }
     
     void OnDestroy()
     {
         EventBus.Unsubscribe<CombatEndedEvent>(OnCombatEnded);
         EventBus.Unsubscribe<MonsterDiedEvent>(OnMonsterDied);
+        EventBus.Unsubscribe<CombatStateChangedEvent>(OnCombatStateChanged);
         Services.Unregister<ISkillService>();
     }
     
     void Update()
     {
+        // Update combat start delay
+        if (combatStartDelay > 0f)
+        {
+            combatStartDelay -= Time.deltaTime;
+        }
+        
         UpdateCooldowns();
         UpdateActiveEffects();
     }
@@ -251,6 +263,10 @@ public class SkillManager : MonoBehaviour, ISkillService
     {
         if (skill == null) return false;
         
+        // Check combat start delay (prevents casting for 1 second when combat starts)
+        if (combatStartDelay > 0f)
+            return false;
+        
         // Check global cooldown
         if (IsOnGlobalCooldown())
             return false;
@@ -309,13 +325,23 @@ public class SkillManager : MonoBehaviour, ISkillService
                 break;
             case SkillType.Buff:
                 ApplyEffect(skill, -1, playerAttackPower); // -1 = player (self)
+                // Spawn buff effect on hero if skill has visual type Instant
+                if (skill.visualType == SkillVisualType.Instant)
+                {
+                    SpawnHitEffect(skill, -1); // -1 = player (self)
+                }
                 break;
             case SkillType.Curse:
                 ApplyEffect(skill, targetIndex, playerAttackPower);
                 if (skill.baseDamage > 0 || skill.attackPowerScaling > 0)
                 {
-                    // Curse with initial damage
+                    // Curse with initial damage - ExecuteDirectSkill handles the effect
                     ExecuteDirectSkill(skill, targetIndex);
+                }
+                else if (skill.visualType == SkillVisualType.Instant)
+                {
+                    // Curse without damage - still spawn the visual effect on enemy
+                    SpawnHitEffect(skill, targetIndex);
                 }
                 break;
         }
@@ -403,7 +429,6 @@ public class SkillManager : MonoBehaviour, ISkillService
     {
         if (combatSceneController == null) 
         {
-            // No visual controller, apply damage immediately
             ApplyDamageToMonster(targetIndex, damage, wasCrit, skill);
             return;
         }
@@ -415,6 +440,12 @@ public class SkillManager : MonoBehaviour, ISkillService
     
     void SpawnHitEffect(SkillData skill, int targetIndex)
     {
+        // Find combat scene controller if not set (scene might have reloaded)
+        if (combatSceneController == null)
+        {
+            combatSceneController = Object.FindFirstObjectByType<CombatSceneController>();
+        }
+        
         if (combatSceneController == null || skill.hitEffectPrefab == null)
             return;
         
@@ -608,29 +639,60 @@ public class SkillManager : MonoBehaviour, ISkillService
         
         if (skill.skillType == SkillType.Buff)
         {
-            // Buff on player
-            // Check for refresh or stacking
-            ActiveEffect existing = playerBuffs.Find(e => e.IsFromSameSkill(skill));
-            if (existing != null)
+            if (targetIndex == -1)
             {
-                // Try to add stack, otherwise refresh
-                if (!existing.AddStack())
+                // Buff on player
+                ActiveEffect existing = playerBuffs.Find(e => e.IsFromSameSkill(skill));
+                if (existing != null)
                 {
-                    existing.Refresh();
+                    // Try to add stack, otherwise refresh
+                    if (!existing.AddStack())
+                    {
+                        existing.Refresh();
+                    }
                 }
+                else
+                {
+                    playerBuffs.Add(newEffect);
+                }
+                
+                EventBus.Publish(new BuffAppliedEvent 
+                { 
+                    sourceSkill = skill, 
+                    duration = effectDuration, 
+                    isOnPlayer = true, 
+                    targetIndex = -1 
+                });
             }
             else
             {
-                playerBuffs.Add(newEffect);
+                // Buff on monster (monster self-buff)
+                if (!monsterEffects.ContainsKey(targetIndex))
+                {
+                    monsterEffects[targetIndex] = new List<ActiveEffect>();
+                }
+                
+                ActiveEffect existing = monsterEffects[targetIndex].Find(e => e.IsFromSameSkill(skill));
+                if (existing != null)
+                {
+                    if (!existing.AddStack())
+                    {
+                        existing.Refresh();
+                    }
+                }
+                else
+                {
+                    monsterEffects[targetIndex].Add(newEffect);
+                }
+                
+                EventBus.Publish(new BuffAppliedEvent 
+                { 
+                    sourceSkill = skill, 
+                    duration = effectDuration, 
+                    isOnPlayer = false, 
+                    targetIndex = targetIndex 
+                });
             }
-            
-            EventBus.Publish(new BuffAppliedEvent 
-            { 
-                sourceSkill = skill, 
-                duration = effectDuration, 
-                isOnPlayer = true, 
-                targetIndex = -1 
-            });
         }
         else if (skill.skillType == SkillType.Curse)
         {
@@ -715,6 +777,7 @@ public class SkillManager : MonoBehaviour, ISkillService
             {
                 total.attackDamage += mods.attackDamage;
                 total.attackSpeed += mods.attackSpeed;
+                total.attackSpeedMultiplier += mods.attackSpeedMultiplier;
                 total.maxHealth += mods.maxHealth;
                 total.armor += mods.armor;
                 total.damageMultiplier += mods.damageMultiplier;
@@ -732,6 +795,7 @@ public class SkillManager : MonoBehaviour, ISkillService
             {
                 total.attackDamage += mods.attackDamage;
                 total.attackSpeed += mods.attackSpeed;
+                total.attackSpeedMultiplier += mods.attackSpeedMultiplier;
                 total.maxHealth += mods.maxHealth;
                 total.armor += mods.armor;
                 total.damageMultiplier += mods.damageMultiplier;
@@ -854,6 +918,19 @@ public class SkillManager : MonoBehaviour, ISkillService
         }
     }
     
+    void OnCombatStateChanged(CombatStateChangedEvent e)
+    {
+        // When combat starts, set a delay before skills can be cast
+        if (e.newState == CombatManager.CombatState.Fighting)
+        {
+            combatStartDelay = COMBAT_START_DELAY_DURATION;
+        }
+        else
+        {
+            combatStartDelay = 0f;
+        }
+    }
+    
     // ==================== Save/Load ====================
     
     /// <summary>
@@ -880,7 +957,22 @@ public class SkillManager : MonoBehaviour, ISkillService
         {
             if (!string.IsNullOrEmpty(saveData[i]))
             {
+                // Try direct path first (e.g., "Skills/Skill_Fireball")
                 SkillData skill = Resources.Load<SkillData>("Skills/" + saveData[i]);
+                
+                // If not found, search in available skills by asset name
+                if (skill == null)
+                {
+                    foreach (var availableSkill in availableSkills)
+                    {
+                        if (availableSkill != null && availableSkill.name == saveData[i])
+                        {
+                            skill = availableSkill;
+                            break;
+                        }
+                    }
+                }
+                
                 if (skill != null)
                 {
                     actionBarSkills[i] = skill;
@@ -888,7 +980,7 @@ public class SkillManager : MonoBehaviour, ISkillService
                 }
                 else
                 {
-                    Debug.LogWarning($"[SkillManager] Could not find skill asset: Skills/{saveData[i]}");
+                    Debug.LogWarning($"[SkillManager] Could not find skill asset: {saveData[i]}");
                 }
             }
             else

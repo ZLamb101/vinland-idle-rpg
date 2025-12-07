@@ -4,12 +4,18 @@ using UnityEngine.UI;
 /// <summary>
 /// Projectile fired by the hero toward an enemy.
 /// Moves in a straight line and damages the target on hit.
+/// Supports both static images and animated visuals (UIAnimatedSprite).
 /// </summary>
 public class Projectile : MonoBehaviour
 {
     [Header("Visual")]
+    [Tooltip("Static image for projectile (optional if using animated visual)")]
     public Image projectileImage;
     public RectTransform rectTransform;
+    
+    [Header("Animation")]
+    [Tooltip("Optional animated visual prefab (UIAnimatedSprite). If set, will be instantiated and used instead of static image.")]
+    public GameObject animatedVisualPrefab;
     
     [Header("Movement")]
     public float speed = 1000f; // pixels per second
@@ -21,6 +27,8 @@ public class Projectile : MonoBehaviour
     
     private System.Action<Projectile> onHitCallback;
     private System.Action<Projectile> onMissCallback;
+
+    private GameObject animatedVisualInstance;
     
     void Awake()
     {
@@ -43,6 +51,8 @@ public class Projectile : MonoBehaviour
         onMissCallback = onMiss;
         isMoving = true;
         gameObject.SetActive(true);
+
+        SetupVisual();
     }
     
     void Update()
@@ -89,6 +99,7 @@ public class Projectile : MonoBehaviour
     void OnHit()
     {
         isMoving = false;
+        CleanupAnimatedVisual();
         onHitCallback?.Invoke(this);
     }
     
@@ -98,6 +109,7 @@ public class Projectile : MonoBehaviour
     public void OnMiss()
     {
         isMoving = false;
+        CleanupAnimatedVisual();
         onMissCallback?.Invoke(this);
     }
     
@@ -106,15 +118,88 @@ public class Projectile : MonoBehaviour
     public void ResetProjectile()
     {
         isMoving = false;
+        CleanupAnimatedVisual();
         gameObject.SetActive(false);
     }
     
     /// <summary>
-    /// Apply visual settings from a skill (sprite, color, speed)
+    /// Setup the visual for this projectile (called when launched)
+    /// </summary>
+    void SetupVisual()
+    {
+        CleanupAnimatedVisual();
+        
+        if (animatedVisualPrefab != null)
+        {
+            animatedVisualInstance = Instantiate(animatedVisualPrefab, transform);
+            
+            // Position at center of projectile
+            RectTransform animRect = animatedVisualInstance.GetComponent<RectTransform>();
+            if (animRect != null)
+            {
+                animRect.anchoredPosition = Vector2.zero;
+            }
+            else
+            {
+                animatedVisualInstance.transform.localPosition = Vector3.zero;
+            }
+            
+            UIAnimatedSprite animSprite = animatedVisualInstance.GetComponent<UIAnimatedSprite>();
+            if (animSprite != null)
+            {
+                animSprite.loop = true; // Loop while flying
+                animSprite.destroyOnComplete = false; // Don't destroy, we'll handle cleanup
+                animSprite.Play();
+            }
+            
+            if (projectileImage != null)
+            {
+                projectileImage.enabled = false;
+            }
+        }
+        else
+        {
+            if (projectileImage != null)
+            {
+                projectileImage.enabled = true;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Clean up instantiated animated visual
+    /// </summary>
+    void CleanupAnimatedVisual()
+    {
+        if (animatedVisualInstance != null)
+        {
+            Destroy(animatedVisualInstance);
+            animatedVisualInstance = null;
+        }
+        
+        if (projectileImage != null)
+        {
+            projectileImage.enabled = true;
+        }
+    }
+    
+    /// <summary>
+    /// Set an animated visual prefab at runtime
+    /// </summary>
+    public void SetAnimatedVisual(GameObject prefab)
+    {
+        animatedVisualPrefab = prefab;
+    }
+    
+    /// <summary>
+    /// Apply visual settings from a skill (sprite, color, speed, or animated prefab)
     /// </summary>
     public void ApplySkillVisuals(SkillData skill)
     {
         if (skill == null) return;
+        
+        // Check if skill has an animated projectile prefab
+        // For now, still support static sprite
         
         // Override sprite if skill has one
         if (skill.projectileSprite != null && projectileImage != null)

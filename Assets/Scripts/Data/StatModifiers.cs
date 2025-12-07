@@ -24,6 +24,9 @@ public class StatModifiers
     [Tooltip("Damage dealt multiplier (0.1 = +10% damage)")]
     public float damageMultiplier = 0f;
     
+    [Tooltip("Attack speed multiplier (0.1 = +10% faster, -0.1 = 10% slower)")]
+    public float attackSpeedMultiplier = 0f;
+    
     [Tooltip("Damage taken multiplier (-0.1 = -10% damage taken)")]
     public float damageTakenMultiplier = 0f;
     
@@ -42,9 +45,9 @@ public class StatModifiers
     /// </summary>
     public bool HasAnyEffect()
     {
-        return attackDamage != 0f || attackSpeed != 0f || maxHealth != 0f || 
-               armor != 0f || damageMultiplier != 0f || damageTakenMultiplier != 0f ||
-               slowPercent != 0f || invulnerable || stunned;
+        return attackDamage != 0f || attackSpeed != 0f || attackSpeedMultiplier != 0f ||
+               maxHealth != 0f || armor != 0f || damageMultiplier != 0f || 
+               damageTakenMultiplier != 0f || slowPercent != 0f || invulnerable || stunned;
     }
     
     /// <summary>
@@ -61,6 +64,8 @@ public class StatModifiers
             desc += $"{indent}{(attackDamage > 0 ? "+" : "")}{attackDamage:F0} Attack Damage\n";
         if (attackSpeed != 0)
             desc += $"{indent}{(attackSpeed > 0 ? "+" : "")}{attackSpeed:F2}s Attack Speed\n";
+        if (attackSpeedMultiplier != 0)
+            desc += $"{indent}{(attackSpeedMultiplier > 0 ? "+" : "")}{attackSpeedMultiplier * 100:F0}% Attack Speed\n";
         if (maxHealth != 0)
             desc += $"{indent}{(maxHealth > 0 ? "+" : "")}{maxHealth:F0} Max Health\n";
         if (armor != 0)
