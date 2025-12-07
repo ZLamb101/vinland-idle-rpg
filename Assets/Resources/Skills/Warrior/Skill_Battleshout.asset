@@ -33,5 +33,5 @@ MonoBehaviour:
   projectileSprite: {fileID: 0}
   projectileColor: {r: 0.8113208, g: 0.42907384, b: 0.13394445, a: 1}
   projectileSpeedMultiplier: 0
-  hitEffectPrefab: {fileID: 0}
-  hitEffectDuration: 0
+  hitEffectPrefab: {fileID: 3423097303011689803, guid: 08dd3d2b4bb3d874e9ae62b7a5ce507f, type: 3}
+  hitEffectDuration: 1

@@ -231,6 +231,23 @@ public static class CombatLogic
     }
     
     /// <summary>
+    /// Calculate weapon damage using WoW-style formula
+    /// Damage = Random(WeaponMin, WeaponMax) + (AttackPower / 14 * WeaponSpeed)
+    /// </summary>
+    public static float CalculateWeaponDamage(float attackPower, float weaponDamageMin, float weaponDamageMax, float weaponSpeed)
+    {
+        // 1. Base Weapon Damage: Random value between min and max
+        float baseWeaponDamage = Random.Range(weaponDamageMin, weaponDamageMax);
+        
+        // 2. Attack Power Bonus: (AttackPower / 14) * WeaponSpeed
+        // 14 is the standard constant to normalize AP to DPS
+        float attackPowerBonus = (attackPower / 14f) * weaponSpeed;
+        
+        // 3. Total Damage
+        return baseWeaponDamage + attackPowerBonus;
+    }
+    
+    /// <summary>
     /// Calculate monster damage with dodge and armor applied.
     /// Now uses WoW-style armor formula with raw armor values.
     /// </summary>

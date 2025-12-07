@@ -21,6 +21,9 @@ MonoBehaviour:
   attackDamage: 15
   attackDamagePercent: 0
   attackSpeed: 0
+  weaponDamageMin: 5
+  weaponDamageMax: 9
+  weaponSpeed: 1.5
   hitRating: 5
   spellDamage: 0
   spellDamagePercent: 0

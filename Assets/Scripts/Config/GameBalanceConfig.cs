@@ -20,7 +20,7 @@ public class GameBalanceConfig
 public class CombatConfig
 {
     public float playerBaseAttackDamage = 10f;
-    public float playerBaseAttackSpeed = 1.5f;
+    public float playerBaseAttackSpeed = 2.0f;
     public float playerStartingHealth = 100f;
     public float playerBaseCritDamage = 2f; // Base critical hit multiplier (2x = 200%)
     public float baseMissChance = 0.01f; // Base miss chance for all attacks (1% = 0.01)

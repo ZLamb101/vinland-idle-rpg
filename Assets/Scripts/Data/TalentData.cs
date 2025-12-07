@@ -96,7 +96,7 @@ public class TalentData : ScriptableObject
         
         // Show bonuses
         if (attackDamageBonus > 0)
-            desc += $"+{attackDamageBonus * currentRank:F0} Attack Damage\n";
+            desc += $"+{attackDamageBonus * currentRank:F0} Attack Power\n";
         
         if (maxHealthBonus > 0)
             desc += $"+{maxHealthBonus * currentRank:F0} Max Health\n";

@@ -16,7 +16,7 @@ public interface IEquipmentService
     Dictionary<EquipmentSlot, EquipmentData> GetAllEquippedItems();
     
     // Stats
-    float GetTotalAttackDamage();
+    float GetTotalAttackPower();
     float GetTotalAttackSpeed();
     float GetTotalMaxHealth();
     float GetTotalHealthRegen();

@@ -48,6 +48,16 @@ public class EquipmentData : ScriptableObject
     [Tooltip("Attack speed bonus (negative = faster, e.g., -0.1 = 0.1s faster)")]
     public float attackSpeed = 0f;
     
+    [Header("Weapon Damage (MainHand/OffHand only)")]
+    [Tooltip("Minimum weapon damage per swing")]
+    public float weaponDamageMin = 0f;
+    
+    [Tooltip("Maximum weapon damage per swing")]
+    public float weaponDamageMax = 0f;
+    
+    [Tooltip("Base weapon speed in seconds (e.g., 2.5 = 2.5s per swing)")]
+    public float weaponSpeed = 0f;
+    
     [Tooltip("Hit rating - increases accuracy, reduces miss chance")]
     public float hitRating = 0f;
     
@@ -162,7 +172,7 @@ public class EquipmentData : ScriptableObject
         InventoryItem item = new InventoryItem
         {
             itemName = equipmentName,
-            description = GetFullDescription(),
+            description = "",
             icon = icon,
             quantity = quantity,
             maxStackSize = 1, // Equipment doesn't stack
@@ -176,58 +186,82 @@ public class EquipmentData : ScriptableObject
     /// </summary>
     public string GetFullDescription()
     {
-        string desc = description + "\n\n";
+        return description + "\n\n" + GetStatsDescription();
+    }
+    
+
+    /// <summary>
+    /// Get just the stats text formatted for tooltips
+    /// </summary>
+    public string GetStatsDescription()
+    {
+        string desc = "";
         
+        // --- BASE STATS (White) ---
+        // Weapon Damage & Speed
+        if (weaponDamageMin > 0 || weaponDamageMax > 0)
+        {
+            float dps = (weaponDamageMin + weaponDamageMax) / 2f / (weaponSpeed > 0 ? weaponSpeed : 1f);
+            desc += $"{weaponDamageMin:F0} - {weaponDamageMax:F0} Damage ({dps:F1} DPS)\n";
+        }
+        if (weaponSpeed > 0) desc += $"{weaponSpeed:F2} Speed\n";
+        
+        // Armor
+        if (armor > 0) desc += $"{armor:F0} Armor\n";
+        
+        // --- BONUS STATS (Green #1EFF00) ---
+        string greenHex = "<color=#1EFF00>";
+        string endColor = "</color>";
+
         // Physical combat stats
-        if (attackDamage > 0) desc += $"+{attackDamage:F0} Attack Damage\n";
-        if (attackDamagePercent > 0) desc += $"+{attackDamagePercent * 100:F0}% Attack Damage\n";
-        if (attackSpeed != 0) desc += $"{(attackSpeed < 0 ? "" : "+")}{attackSpeed:F2}s Attack Speed\n";
-        if (hitRating > 0) desc += $"+{hitRating:F0} Hit Rating\n";
+        if (attackDamage > 0) desc += $"{greenHex}+{attackDamage:F0} Attack Power{endColor}\n";
+        if (attackDamagePercent > 0) desc += $"{greenHex}+{attackDamagePercent * 100:F0}% Attack Power{endColor}\n";
+        if (attackSpeed != 0) desc += $"{greenHex}{(attackSpeed < 0 ? "" : "+")}{attackSpeed:F2}s Attack Speed Bonus{endColor}\n";
+        if (hitRating > 0) desc += $"{greenHex}+{hitRating:F0} Hit Rating{endColor}\n";
         
         // Spell stats
-        if (spellDamage > 0) desc += $"+{spellDamage:F0} Spell Damage\n";
-        if (spellDamagePercent > 0) desc += $"+{spellDamagePercent * 100:F0}% Spell Damage\n";
-        if (spellHealing > 0) desc += $"+{spellHealing:F0} Spell Healing\n";
-        if (spellHealingPercent > 0) desc += $"+{spellHealingPercent * 100:F0}% Spell Healing\n";
+        if (spellDamage > 0) desc += $"{greenHex}+{spellDamage:F0} Spell Damage{endColor}\n";
+        if (spellDamagePercent > 0) desc += $"{greenHex}+{spellDamagePercent * 100:F0}% Spell Damage{endColor}\n";
+        if (spellHealing > 0) desc += $"{greenHex}+{spellHealing:F0} Healing Power{endColor}\n";
+        if (spellHealingPercent > 0) desc += $"{greenHex}+{spellHealingPercent * 100:F0}% Healing Power{endColor}\n";
         
         // Elemental damage
-        if (fireDamage > 0) desc += $"+{fireDamage:F0} Fire Damage\n";
-        if (fireDamagePercent > 0) desc += $"+{fireDamagePercent * 100:F0}% Fire Damage\n";
-        if (frostDamage > 0) desc += $"+{frostDamage:F0} Frost Damage\n";
-        if (frostDamagePercent > 0) desc += $"+{frostDamagePercent * 100:F0}% Frost Damage\n";
-        if (natureDamage > 0) desc += $"+{natureDamage:F0} Nature Damage\n";
-        if (natureDamagePercent > 0) desc += $"+{natureDamagePercent * 100:F0}% Nature Damage\n";
-        if (shadowDamage > 0) desc += $"+{shadowDamage:F0} Shadow Damage\n";
-        if (shadowDamagePercent > 0) desc += $"+{shadowDamagePercent * 100:F0}% Shadow Damage\n";
-        if (holyDamage > 0) desc += $"+{holyDamage:F0} Holy Damage\n";
-        if (holyDamagePercent > 0) desc += $"+{holyDamagePercent * 100:F0}% Holy Damage\n";
+        if (fireDamage > 0) desc += $"{greenHex}+{fireDamage:F0} Fire Damage{endColor}\n";
+        if (fireDamagePercent > 0) desc += $"{greenHex}+{fireDamagePercent * 100:F0}% Fire Damage{endColor}\n";
+        if (frostDamage > 0) desc += $"{greenHex}+{frostDamage:F0} Frost Damage{endColor}\n";
+        if (frostDamagePercent > 0) desc += $"{greenHex}+{frostDamagePercent * 100:F0}% Frost Damage{endColor}\n";
+        if (natureDamage > 0) desc += $"{greenHex}+{natureDamage:F0} Nature Damage{endColor}\n";
+        if (natureDamagePercent > 0) desc += $"{greenHex}+{natureDamagePercent * 100:F0}% Nature Damage{endColor}\n";
+        if (shadowDamage > 0) desc += $"{greenHex}+{shadowDamage:F0} Shadow Damage{endColor}\n";
+        if (shadowDamagePercent > 0) desc += $"{greenHex}+{shadowDamagePercent * 100:F0}% Shadow Damage{endColor}\n";
+        if (holyDamage > 0) desc += $"{greenHex}+{holyDamage:F0} Holy Damage{endColor}\n";
+        if (holyDamagePercent > 0) desc += $"{greenHex}+{holyDamagePercent * 100:F0}% Holy Damage{endColor}\n";
         
         // DoT damage
-        if (bleedDamage > 0) desc += $"+{bleedDamage:F0} Bleed Damage\n";
-        if (bleedDamagePercent > 0) desc += $"+{bleedDamagePercent * 100:F0}% Bleed Damage\n";
-        if (poisonDamage > 0) desc += $"+{poisonDamage:F0} Poison Damage\n";
-        if (poisonDamagePercent > 0) desc += $"+{poisonDamagePercent * 100:F0}% Poison Damage\n";
+        if (bleedDamage > 0) desc += $"{greenHex}+{bleedDamage:F0} Bleed Damage{endColor}\n";
+        if (bleedDamagePercent > 0) desc += $"{greenHex}+{bleedDamagePercent * 100:F0}% Bleed Damage{endColor}\n";
+        if (poisonDamage > 0) desc += $"{greenHex}+{poisonDamage:F0} Poison Damage{endColor}\n";
+        if (poisonDamagePercent > 0) desc += $"{greenHex}+{poisonDamagePercent * 100:F0}% Poison Damage{endColor}\n";
         
         // Health stats
-        if (maxHealth > 0) desc += $"+{maxHealth:F0} Max Health\n";
-        if (healthRegen > 0) desc += $"+{healthRegen:F1} Health/sec\n";
+        if (maxHealth > 0) desc += $"{greenHex}+{maxHealth:F0} Max Health{endColor}\n";
+        if (healthRegen > 0) desc += $"{greenHex}+{healthRegen:F1} Health Regen{endColor}\n";
         
-        // Defensive stats
-        if (armor > 0) desc += $"+{armor:F0} Armor\n";
-        if (dodge > 0) desc += $"+{dodge * 100:F0}% Dodge Chance\n";
+        // Defensive stats (Dodge is bonus, Armor was base)
+        if (dodge > 0) desc += $"{greenHex}+{dodge * 100:F0}% Dodge{endColor}\n";
         
         // Special combat stats
-        if (criticalChance > 0) desc += $"+{criticalChance * 100:F0}% Critical Chance\n";
-        if (lifesteal > 0) desc += $"+{lifesteal * 100:F0}% Lifesteal\n";
+        if (criticalChance > 0) desc += $"{greenHex}+{criticalChance * 100:F0}% Critical Chance{endColor}\n";
+        if (lifesteal > 0) desc += $"{greenHex}+{lifesteal * 100:F0}% Lifesteal{endColor}\n";
         
         // Utility stats
-        if (xpBonus > 0) desc += $"+{xpBonus * 100:F0}% XP Gain\n";
-        if (goldBonus > 0) desc += $"+{goldBonus * 100:F0}% Gold Gain\n";
-        if (afkGainsPercent > 0) desc += $"+{afkGainsPercent * 100:F0}% AFK Gains\n";
+        if (xpBonus > 0) desc += $"{greenHex}+{xpBonus * 100:F0}% XP Gain{endColor}\n";
+        if (goldBonus > 0) desc += $"{greenHex}+{goldBonus * 100:F0}% Gold Gain{endColor}\n";
+        if (afkGainsPercent > 0) desc += $"{greenHex}+{afkGainsPercent * 100:F0}% AFK Gains{endColor}\n";
         
         // Profession stats
-        if (professionXPPercent > 0) desc += $"+{professionXPPercent * 100:F0}% Profession XP\n";
-        if (professionPowerPercent > 0) desc += $"+{professionPowerPercent * 100:F0}% Profession Power\n";
+        if (professionXPPercent > 0) desc += $"{greenHex}+{professionXPPercent * 100:F0}% Profession XP{endColor}\n";
+        if (professionPowerPercent > 0) desc += $"{greenHex}+{professionPowerPercent * 100:F0}% Profession Power{endColor}\n";
         
         return desc;
     }

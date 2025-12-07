@@ -61,7 +61,7 @@ public class StatModifiers
         string desc = "";
         
         if (attackDamage != 0)
-            desc += $"{indent}{(attackDamage > 0 ? "+" : "")}{attackDamage:F0} Attack Damage\n";
+            desc += $"{indent}{(attackDamage > 0 ? "+" : "")}{attackDamage:F0} Attack Power\n";
         if (attackSpeed != 0)
             desc += $"{indent}{(attackSpeed > 0 ? "+" : "")}{attackSpeed:F2}s Attack Speed\n";
         if (attackSpeedMultiplier != 0)

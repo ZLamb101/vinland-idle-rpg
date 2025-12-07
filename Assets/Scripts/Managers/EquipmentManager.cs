@@ -163,6 +163,14 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
             totalStats.attackSpeed += equipment.attackSpeed;
             totalStats.hitRating += equipment.hitRating;
             
+            // Weapon stats (only from MainHand)
+            if (kvp.Key == EquipmentSlot.MainHand)
+            {
+                totalStats.weaponDamageMin = equipment.weaponDamageMin;
+                totalStats.weaponDamageMax = equipment.weaponDamageMax;
+                totalStats.weaponSpeed = equipment.weaponSpeed;
+            }
+            
             // Spell stats
             totalStats.spellDamage += equipment.spellDamage;
             totalStats.spellDamagePercent += equipment.spellDamagePercent;
@@ -247,7 +255,7 @@ public class EquipmentManager : MonoBehaviour, IEquipmentService
     }
     
     // Stat getters
-    public float GetTotalAttackDamage() => totalStats.attackDamage;
+    public float GetTotalAttackPower() => totalStats.attackDamage;
     public float GetTotalAttackSpeed() => totalStats.attackSpeed;
     public float GetTotalMaxHealth() => totalStats.maxHealth;
     public float GetTotalHealthRegen() => totalStats.healthRegen;
@@ -389,6 +397,11 @@ public class EquipmentStats
     public float attackDamagePercent = 0f;
     public float attackSpeed = 0f;
     public float hitRating = 0f;
+    
+    // Weapon stats (from MainHand only)
+    public float weaponDamageMin = 0f;
+    public float weaponDamageMax = 0f;
+    public float weaponSpeed = 0f;
     
     // Spell stats
     public float spellDamage = 0f;

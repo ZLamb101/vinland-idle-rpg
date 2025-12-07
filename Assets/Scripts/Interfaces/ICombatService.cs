@@ -26,7 +26,7 @@ public interface ICombatService
     CombatMonsterInstance GetCurrentTargetInstance();
     float GetPlayerCurrentHealth();
     float GetPlayerMaxHealth();
-    float GetPlayerAttackDamage();
+    float GetPlayerAttackPower();
     float GetPlayerAttackSpeed();
     float GetMonsterCurrentHealth(int index);
     float GetMonsterMaxHealth(int index);

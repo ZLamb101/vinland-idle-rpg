@@ -36,7 +36,17 @@ public class ItemData : ScriptableObject
         int qty = quantity > 0 ? quantity : questRewardQuantity;
         
         InventoryItem item = new InventoryItem(itemName, qty, icon);
-        item.description = description;
+        
+        // If this is equipment, remove flavor text as requested
+        if (IsEquipment() && equipmentData != null)
+        {
+            item.description = "";
+        }
+        else
+        {
+            item.description = description;
+        }
+        
         item.maxStackSize = maxStackSize;
         item.itemType = itemType;
         item.baseValue = baseValue; // Store base value for selling

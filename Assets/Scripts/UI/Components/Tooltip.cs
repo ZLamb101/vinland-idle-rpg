@@ -20,7 +20,8 @@ public class Tooltip : MonoBehaviour
     public TextMeshProUGUI tooltipDescriptionText;
     
     [Header("Settings")]
-    public Vector2 tooltipOffset = new Vector2(30f, -30f);
+    public Vector2 tooltipOffset = new Vector2(15f, -10f); // Reduced offset to be closer to mouse
+    public float maxTooltipWidth = 350f; // Max width before wrapping
     
     private RectTransform tooltipRect;
     private Canvas tooltipCanvas;
@@ -110,22 +111,15 @@ public class Tooltip : MonoBehaviour
     /// <summary>
     /// Initialize tooltip setup
     /// </summary>
+    /// <summary>
+    /// Initialize tooltip setup
+    /// </summary>
     void SetupTooltip()
     {
         if (tooltipPanel == null) return;
         
         tooltipPanel.SetActive(false);
         tooltipRect = tooltipPanel.GetComponent<RectTransform>();
-        
-        if (tooltipRect != null)
-        {
-            // Top-left pivot so offset behaves intuitively
-            tooltipRect.pivot = new Vector2(0f, 1f);
-            
-            // Set anchors to center so positioning works correctly with canvas
-            tooltipRect.anchorMin = new Vector2(0.5f, 0.5f);
-            tooltipRect.anchorMax = new Vector2(0.5f, 0.5f);
-        }
         
         // Find the root canvas for positioning
         tooltipCanvas = tooltipPanel.GetComponentInParent<Canvas>();
@@ -161,8 +155,12 @@ public class Tooltip : MonoBehaviour
         {
             graphic.raycastTarget = false;
         }
+
+        // Fix: Ensure Rich Text is enabled so color tags work
+        if (tooltipNameText != null) tooltipNameText.richText = true;
+        if (tooltipDescriptionText != null) tooltipDescriptionText.richText = true;
     }
-    
+
     /// <summary>
     /// Update tooltip position to follow mouse cursor
     /// </summary>
@@ -170,42 +168,35 @@ public class Tooltip : MonoBehaviour
     {
         Vector2 mousePos = GetMousePosition();
         
-        if (canvasRect == null) return;
-        
+        // Fix: Use World Position to be independent of Anchors/Pivots
         Camera uiCamera = null;
         if (tooltipCanvas != null && tooltipCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
         {
             uiCamera = tooltipCanvas.worldCamera;
         }
         
-        // Convert screen position to canvas local position
-        Vector2 localPoint;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvasRect,
+        Vector3 worldPoint;
+        // Convert screen point to world point on the plane of the parent
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(
+            tooltipPanel.transform.parent as RectTransform,
             mousePos,
             uiCamera,
-            out localPoint
+            out worldPoint
         );
         
-        // Apply offset
-        Vector2 targetPosition = localPoint + tooltipOffset;
+        // Add offset (we need to adjust offset based on lossyScale if we want it pixel-perfect, 
+        // but adding it to the screen pos before conversion is safer?)
+        // Let's add it to the screen pos first!
         
-        // Clamp to screen bounds to prevent tooltip going off-screen
-        Vector2 tooltipSize = tooltipRect.sizeDelta;
-        Vector2 canvasSize = canvasRect.sizeDelta;
-        
-        // Account for canvas pivot (usually 0.5, 0.5)
-        Vector2 canvasPivotOffset = canvasSize * (canvasRect.pivot - new Vector2(0.5f, 0.5f));
-        
-        float minX = -canvasSize.x * 0.5f - canvasPivotOffset.x;
-        float maxX = canvasSize.x * 0.5f - canvasPivotOffset.x - tooltipSize.x;
-        float minY = -canvasSize.y * 0.5f - canvasPivotOffset.y + tooltipSize.y;
-        float maxY = canvasSize.y * 0.5f - canvasPivotOffset.y;
-        
-        targetPosition.x = Mathf.Clamp(targetPosition.x, minX, maxX);
-        targetPosition.y = Mathf.Clamp(targetPosition.y, minY, maxY);
-        
-        tooltipRect.anchoredPosition = targetPosition;
+        Vector2 offsetMousePos = mousePos + tooltipOffset;
+         RectTransformUtility.ScreenPointToWorldPointInRectangle(
+            tooltipPanel.transform.parent as RectTransform,
+            offsetMousePos,
+            uiCamera,
+            out worldPoint
+        );
+
+        tooltipPanel.transform.position = worldPoint;
     }
     
     /// <summary>
@@ -217,23 +208,40 @@ public class Tooltip : MonoBehaviour
     {
         if (tooltipPanel == null) return;
         
-        // Ensure setup is complete (in case Awake didn't run)
+        // 1. Activate FIRST so layout calculations actually work
+        tooltipPanel.SetActive(true);
+        isVisible = true;
+
+        // Ensure setup is complete
         if (tooltipRect == null)
         {
             SetupTooltip();
         }
         
+        // 2. Reset Width to max to give ContentSizeFitter/LayoutGroup a constraint
+        // This is crucial: If width is weird/zero, Text wraps to infinite height.
+        Vector2 size = tooltipRect.sizeDelta;
+        size.x = maxTooltipWidth;
+        tooltipRect.sizeDelta = size;
+        
+        // 3. Set Text
         if (tooltipNameText != null)
+        {
+            tooltipNameText.richText = true; // FORCE RICH TEXT
             tooltipNameText.text = title;
+        }
         
         if (tooltipDescriptionText != null)
+        {
+            tooltipDescriptionText.richText = true; // FORCE RICH TEXT
             tooltipDescriptionText.text = description;
-        
-        tooltipPanel.SetActive(true);
-        isVisible = true;
-        
-        // Update position immediately
+        }
+            
+        // 4. Update Position immediately so it doesn't flicker at (0,0)
         UpdateTooltipPosition();
+        
+        // 5. Force Rebuild to recalculate Height based on new Width + Text Content
+        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(tooltipRect);
     }
     
     /// <summary>
@@ -252,13 +260,19 @@ public class Tooltip : MonoBehaviour
         // Add equipment stats if it's equipment
         if (item.IsEquipment() && item.equipmentData != null)
         {
-            description += "\n\n" + GetEquipmentStatsText(item.equipmentData);
+            string stats = GetEquipmentStatsText(item.equipmentData);
+            if (!string.IsNullOrEmpty(stats))
+            {
+                if (!string.IsNullOrEmpty(description)) description += "\n\n";
+                description += stats;
+            }
         }
         
-        // Add quantity info
+        // Add quantity info (only if > 1)
         if (item.quantity > 1)
         {
-            description += $"\n\n<color=yellow>Quantity: {item.quantity}</color>";
+             if (!string.IsNullOrEmpty(description)) description += "\n\n";
+             description += $"<color=#FFFF00>Quantity: {item.quantity}</color>";
         }
         
         Show(item.itemName, description);
@@ -282,7 +296,6 @@ public class Tooltip : MonoBehaviour
         {
             description += "\n\n" + GetEquipmentStatsText(item.equipmentData);
         }
-        
         Show(item.itemName, description);
     }
     
@@ -321,22 +334,12 @@ public class Tooltip : MonoBehaviour
     {
         if (equipment == null) return "";
         
-        string stats = $"<color=cyan>Slot: {equipment.slot}</color>\n";
+        string stats = $"<color=#00FFFF>Slot: {equipment.slot}</color>\n";
         
         if (equipment.levelRequired > 1)
-            stats += $"<color=red>Requires Level {equipment.levelRequired}</color>\n";
+            stats += $"<color=#FF0000>Requires Level {equipment.levelRequired}</color>\n";
         
-        stats += "\n";
-        
-        if (equipment.attackDamage > 0) stats += $"+{equipment.attackDamage:F0} Attack Damage\n";
-        if (equipment.maxHealth > 0) stats += $"+{equipment.maxHealth:F0} Max Health\n";
-        if (equipment.attackSpeed != 0) stats += $"{(equipment.attackSpeed < 0 ? "" : "+")}{equipment.attackSpeed:F2}s Attack Speed\n";
-        if (equipment.armor > 0) stats += $"+{equipment.armor * 100:F0}% Armor\n";
-        if (equipment.criticalChance > 0) stats += $"+{equipment.criticalChance * 100:F0}% Critical Chance\n";
-        if (equipment.dodge > 0) stats += $"+{equipment.dodge * 100:F0}% Dodge\n";
-        if (equipment.lifesteal > 0) stats += $"+{equipment.lifesteal * 100:F0}% Lifesteal\n";
-        if (equipment.xpBonus > 0) stats += $"+{equipment.xpBonus * 100:F0}% XP Gain\n";
-        if (equipment.goldBonus > 0) stats += $"+{equipment.goldBonus * 100:F0}% Gold Gain\n";
+        stats += "\n" + equipment.GetStatsDescription();
         
         return stats;
     }

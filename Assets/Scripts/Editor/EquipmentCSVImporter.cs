@@ -87,9 +87,9 @@ public class EquipmentCSVImporter : EditorWindow
             
             string[] values = ParseCSVLine(line);
             
-            if (values.Length < 37)
+            if (values.Length < 40)
             {
-                Debug.LogWarning($"Line {i + 1}: Not enough columns ({values.Length}/37), skipping");
+                Debug.LogWarning($"Line {i + 1}: Not enough columns ({values.Length}/40), skipping");
                 skipped++;
                 continue;
             }
@@ -216,7 +216,7 @@ public class EquipmentCSVImporter : EditorWindow
         ItemData item = ScriptableObject.CreateInstance<ItemData>();
         
         item.itemName = equipment.equipmentName;
-        item.description = equipment.GetFullDescription();
+        item.description = equipment.description; // Use raw description, UI adds stats dynamically
         item.icon = equipment.icon; // Will be null initially, can assign later
         item.itemType = ItemType.Equipment;
         item.maxStackSize = 1; // Equipment doesn't stack
@@ -333,12 +333,14 @@ public class EquipmentCSVImporter : EditorWindow
         EquipmentData eq = ScriptableObject.CreateInstance<EquipmentData>();
         
         // Column indices based on CSV header:
-        // name,slot,tier,levelRequired,attackDamage,attackDamagePercent,attackSpeed,maxHealth,healthRegen,
-        // armor,dodge,criticalChance,lifesteal,hitRating,spellDamage,spellDamagePercent,spellHealing,
-        // spellHealingPercent,fireDamage,fireDamagePercent,frostDamage,frostDamagePercent,natureDamage,
-        // natureDamagePercent,shadowDamage,shadowDamagePercent,holyDamage,holyDamagePercent,bleedDamage,
-        // bleedDamagePercent,poisonDamage,poisonDamagePercent,xpBonus,goldBonus,afkGainsPercent,
-        // professionXPPercent,professionPowerPercent,description
+        // name,slot,tier,levelRequired,attackDamage,attackDamagePercent,attackSpeed,
+        // weaponDamageMin,weaponDamageMax,weaponSpeed,
+        // maxHealth,healthRegen,armor,dodge,criticalChance,lifesteal,hitRating,
+        // spellDamage,spellDamagePercent,spellHealing,spellHealingPercent,
+        // fireDamage,fireDamagePercent,frostDamage,frostDamagePercent,natureDamage,natureDamagePercent,
+        // shadowDamage,shadowDamagePercent,holyDamage,holyDamagePercent,
+        // bleedDamage,bleedDamagePercent,poisonDamage,poisonDamagePercent,
+        // xpBonus,goldBonus,afkGainsPercent,professionXPPercent,professionPowerPercent,description
         
         eq.equipmentName = v[0];
         eq.slot = ParseSlot(v[1]);
@@ -350,54 +352,59 @@ public class EquipmentCSVImporter : EditorWindow
         eq.attackDamagePercent = ParseFloat(v[5]);
         eq.attackSpeed = ParseFloat(v[6]);
         
+        // Weapon stats
+        eq.weaponDamageMin = ParseFloat(v[7]);
+        eq.weaponDamageMax = ParseFloat(v[8]);
+        eq.weaponSpeed = ParseFloat(v[9]);
+        
         // Health stats
-        eq.maxHealth = ParseFloat(v[7]);
-        eq.healthRegen = ParseFloat(v[8]);
+        eq.maxHealth = ParseFloat(v[10]);
+        eq.healthRegen = ParseFloat(v[11]);
         
         // Defensive stats
-        eq.armor = ParseFloat(v[9]);
-        eq.dodge = ParseFloat(v[10]);
+        eq.armor = ParseFloat(v[12]);
+        eq.dodge = ParseFloat(v[13]);
         
         // Special combat stats
-        eq.criticalChance = ParseFloat(v[11]);
-        eq.lifesteal = ParseFloat(v[12]);
-        eq.hitRating = ParseFloat(v[13]);
+        eq.criticalChance = ParseFloat(v[14]);
+        eq.lifesteal = ParseFloat(v[15]);
+        eq.hitRating = ParseFloat(v[16]);
         
         // Spell stats
-        eq.spellDamage = ParseFloat(v[14]);
-        eq.spellDamagePercent = ParseFloat(v[15]);
-        eq.spellHealing = ParseFloat(v[16]);
-        eq.spellHealingPercent = ParseFloat(v[17]);
+        eq.spellDamage = ParseFloat(v[17]);
+        eq.spellDamagePercent = ParseFloat(v[18]);
+        eq.spellHealing = ParseFloat(v[19]);
+        eq.spellHealingPercent = ParseFloat(v[20]);
         
         // Elemental damage
-        eq.fireDamage = ParseFloat(v[18]);
-        eq.fireDamagePercent = ParseFloat(v[19]);
-        eq.frostDamage = ParseFloat(v[20]);
-        eq.frostDamagePercent = ParseFloat(v[21]);
-        eq.natureDamage = ParseFloat(v[22]);
-        eq.natureDamagePercent = ParseFloat(v[23]);
-        eq.shadowDamage = ParseFloat(v[24]);
-        eq.shadowDamagePercent = ParseFloat(v[25]);
-        eq.holyDamage = ParseFloat(v[26]);
-        eq.holyDamagePercent = ParseFloat(v[27]);
+        eq.fireDamage = ParseFloat(v[21]);
+        eq.fireDamagePercent = ParseFloat(v[22]);
+        eq.frostDamage = ParseFloat(v[23]);
+        eq.frostDamagePercent = ParseFloat(v[24]);
+        eq.natureDamage = ParseFloat(v[25]);
+        eq.natureDamagePercent = ParseFloat(v[26]);
+        eq.shadowDamage = ParseFloat(v[27]);
+        eq.shadowDamagePercent = ParseFloat(v[28]);
+        eq.holyDamage = ParseFloat(v[29]);
+        eq.holyDamagePercent = ParseFloat(v[30]);
         
         // DoT damage
-        eq.bleedDamage = ParseFloat(v[28]);
-        eq.bleedDamagePercent = ParseFloat(v[29]);
-        eq.poisonDamage = ParseFloat(v[30]);
-        eq.poisonDamagePercent = ParseFloat(v[31]);
+        eq.bleedDamage = ParseFloat(v[31]);
+        eq.bleedDamagePercent = ParseFloat(v[32]);
+        eq.poisonDamage = ParseFloat(v[33]);
+        eq.poisonDamagePercent = ParseFloat(v[34]);
         
         // Utility stats
-        eq.xpBonus = ParseFloat(v[32]);
-        eq.goldBonus = ParseFloat(v[33]);
-        eq.afkGainsPercent = ParseFloat(v[34]);
+        eq.xpBonus = ParseFloat(v[35]);
+        eq.goldBonus = ParseFloat(v[36]);
+        eq.afkGainsPercent = ParseFloat(v[37]);
         
         // Profession stats
-        eq.professionXPPercent = ParseFloat(v[35]);
-        eq.professionPowerPercent = ParseFloat(v[36]);
+        eq.professionXPPercent = ParseFloat(v[38]);
+        eq.professionPowerPercent = ParseFloat(v[39]);
         
         // Description (last column)
-        eq.description = v.Length > 37 ? v[37] : "";
+        eq.description = v.Length > 40 ? v[40] : "";
         
         // Set rarity color based on tier
         eq.rarityColor = eq.tier switch

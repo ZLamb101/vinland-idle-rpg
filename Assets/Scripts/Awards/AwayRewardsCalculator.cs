@@ -166,15 +166,15 @@ public static class AwayRewardsCalculator
     /// </summary>
     private static int CalculateMonstersKilled(MonsterData[] monsters, int mobCount, TimeSpan timeAway)
     {
-        float playerAttackDamage = GameBalance.Combat.playerBaseAttackDamage;
+        float playerAttackPower = GameBalance.Combat.playerBaseAttackDamage;
         float playerAttackSpeed = GameBalance.Combat.playerBaseAttackSpeed;
         
         if (Services.TryGet<ICombatService>(out var combatService))
         {
             combatService.CalculatePlayerStats();
-            playerAttackDamage = combatService.GetPlayerAttackDamage();
+            playerAttackPower = combatService.GetPlayerAttackPower();
             playerAttackSpeed = combatService.GetPlayerAttackSpeed();
-            Debug.Log($"[AwayRewards] Player stats from CombatService - Damage: {playerAttackDamage}, Speed: {playerAttackSpeed}");
+            Debug.Log($"[AwayRewards] Player stats from CombatService - Damage: {playerAttackPower}, Speed: {playerAttackSpeed}");
         }
         else
         {
@@ -192,7 +192,7 @@ public static class AwayRewardsCalculator
         
         CombatStats stats = CombatLogic.GetCombatStats();
         float critMultiplier = 1f + stats.critChance * (stats.critDamage - 1f);
-        float averageDamage = playerAttackDamage * critMultiplier;
+        float averageDamage = playerAttackPower * critMultiplier;
         
         float hitsNeeded = Mathf.Max(1f, Mathf.Ceil(averageMonsterHealth / averageDamage));
         float timePerKill = hitsNeeded * playerAttackSpeed;
@@ -200,7 +200,7 @@ public static class AwayRewardsCalculator
         float killsPerSecond = mobCount / Mathf.Max(0.1f, timePerKill);
         int monstersKilled = Mathf.Max(1, Mathf.FloorToInt(totalSeconds * killsPerSecond));
         
-        Debug.Log($"[AwayRewards] Fighting calculation - Time away: {totalSeconds}s ({timeAway.TotalMinutes:F2} min), Average monster health: {averageMonsterHealth}, Player damage: {playerAttackDamage}, Crit chance: {stats.critChance:P0}, Crit damage: {stats.critDamage}x, Crit multiplier: {critMultiplier:F2}x, Average damage: {averageDamage:F1}, Hits needed: {hitsNeeded}, Time per kill: {timePerKill:F2}s, Kills per second: {killsPerSecond:F3}, Monsters killed: {monstersKilled}, Mob count: {mobCount}");
+        Debug.Log($"[AwayRewards] Fighting calculation - Time away: {totalSeconds}s ({timeAway.TotalMinutes:F2} min), Average monster health: {averageMonsterHealth}, Player damage: {playerAttackPower}, Crit chance: {stats.critChance:P0}, Crit damage: {stats.critDamage}x, Crit multiplier: {critMultiplier:F2}x, Average damage: {averageDamage:F1}, Hits needed: {hitsNeeded}, Time per kill: {timePerKill:F2}s, Kills per second: {killsPerSecond:F3}, Monsters killed: {monstersKilled}, Mob count: {mobCount}");
         
         return monstersKilled;
     }
