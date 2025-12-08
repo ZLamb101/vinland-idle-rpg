@@ -224,6 +224,22 @@ public class TalentManager : MonoBehaviour, ITalentService
         this.unspentTalentPoints = unspentPoints;
         this.totalTalentPoints = totalPoints;
         
+        // Get player class for filtering
+        if (characterService == null)
+            characterService = Services.Get<ICharacterService>();
+            
+        CharacterClass playerClass = CharacterClass.All;
+        if (characterService != null)
+        {
+            string classStr = characterService.GetCharacterClass();
+            playerClass = CharacterClassHelper.ParseFromString(classStr);
+            Debug.Log($"[TalentManager] Filtering talents for class: '{classStr}' -> {playerClass}");
+        }
+        else
+        {
+             Debug.LogWarning("[TalentManager] CharacterService not found during LoadTalentData!");
+        }
+        
         // Load unlocked talents
         if (talentsByName != null)
         {
@@ -234,8 +250,21 @@ public class TalentManager : MonoBehaviour, ITalentService
                 
                 if (talent != null)
                 {
-                    Debug.Log($"[TalentManager] Loaded talent: {talent.talentName} at rank {kvp.Value}");
-                    unlockedTalents[talent] = kvp.Value;
+                    bool isAllowed = CharacterClassHelper.IsClassAllowed(talent.requiredClass, playerClass);
+                    Debug.Log($"[TalentManager] Checking talent '{talent.talentName}' (Req: {talent.requiredClass}) for player {playerClass}. Allowed: {isAllowed}");
+                    
+                    // Check if talent is allowed for this class
+                    if (isAllowed)
+                    {
+                        Debug.Log($"[TalentManager] Loaded talent: {talent.talentName} at rank {kvp.Value}");
+                        unlockedTalents[talent] = kvp.Value;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[TalentManager] Talent {talent.talentName} not allowed for class {playerClass}. Refunding points.");
+                        // Refund points for this invalid talent
+                        this.unspentTalentPoints += kvp.Value;
+                    }
                 }
                 else
                 {

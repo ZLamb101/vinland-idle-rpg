@@ -15,6 +15,7 @@ public class TalentData : ScriptableObject
     
     [Header("Talent Tree Position")]
     public TalentTree talentTree = TalentTree.Combat;
+    public CharacterClass requiredClass = CharacterClass.All; // Which class can use this
     public int tier = 1; // Row in the tree (1-7, like WoW)
     public int position = 0; // Column position (0-3)
     
@@ -87,57 +88,74 @@ public class TalentData : ScriptableObject
     /// </summary>
     public string GetFullDescription(int currentRank)
     {
-        string desc = description + "\n\n";
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.AppendLine(description);
+        sb.AppendLine("");
         
         if (maxRanks > 1)
         {
-            desc += $"<color=yellow>Rank {currentRank}/{maxRanks}</color>\n\n";
+            sb.AppendLine($"<color=yellow>Rank {currentRank}/{maxRanks}</color>");
+            sb.AppendLine("");
         }
         
-        // Show bonuses
-        if (attackDamageBonus > 0)
-            desc += $"+{attackDamageBonus * currentRank:F0} Attack Power\n";
-        
-        if (maxHealthBonus > 0)
-            desc += $"+{maxHealthBonus * currentRank:F0} Max Health\n";
-        
-        if (attackSpeedBonus != 0)
-            desc += $"{(attackSpeedBonus < 0 ? "" : "+")}{attackSpeedBonus * currentRank:F2}s Attack Speed\n";
-        
-        if (damageMultiplier > 0)
-            desc += $"+{damageMultiplier * currentRank * 100:F0}% Damage\n";
-        
-        if (healthMultiplier > 0)
-            desc += $"+{healthMultiplier * currentRank * 100:F0}% Health\n";
-        
-        if (criticalChanceBonus > 0)
-            desc += $"+{criticalChanceBonus * currentRank * 100:F1}% Critical Chance\n";
-        
-        if (criticalDamageBonus > 0)
-            desc += $"+{criticalDamageBonus * currentRank * 100:F0}% Critical Damage\n";
-        
-        if (lifestealBonus > 0)
-            desc += $"+{lifestealBonus * currentRank * 100:F1}% Lifesteal\n";
-        
-        if (dodgeBonus > 0)
-            desc += $"+{dodgeBonus * currentRank * 100:F1}% Dodge\n";
-        
-        if (armorBonus > 0)
-            desc += $"+{armorBonus * currentRank * 100:F1}% Armor\n";
-        
-        if (xpBonus > 0)
-            desc += $"+{xpBonus * currentRank * 100:F0}% XP Gain\n";
-        
-        if (goldBonus > 0)
-            desc += $"+{goldBonus * currentRank * 100:F0}% Gold Gain\n";
+        // Show current bonuses (only if we have points in it)
+        if (currentRank > 0)
+        {
+            sb.Append(GetBonusesDescription(currentRank));
+        }
         
         // Show next rank if not maxed
         if (currentRank < maxRanks)
         {
-            desc += $"\n<color=green>Next Rank:</color> (Shows increase for next point)";
+            if (currentRank > 0) sb.AppendLine("");
+            sb.AppendLine("<color=green>Next Rank:</color>");
+            sb.Append(GetBonusesDescription(currentRank + 1));
         }
         
-        return desc;
+        return sb.ToString();
+    }
+
+    private string GetBonusesDescription(int rank)
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        
+        if (attackDamageBonus > 0)
+            sb.AppendLine($"+{attackDamageBonus * rank:F0} Attack Power");
+        
+        if (maxHealthBonus > 0)
+            sb.AppendLine($"+{maxHealthBonus * rank:F0} Max Health");
+        
+        if (attackSpeedBonus != 0)
+            sb.AppendLine($"{(attackSpeedBonus < 0 ? "" : "+")}{attackSpeedBonus * rank:F2}s Attack Speed");
+        
+        if (damageMultiplier > 0)
+            sb.AppendLine($"+{damageMultiplier * rank * 100:F0}% Damage");
+        
+        if (healthMultiplier > 0)
+            sb.AppendLine($"+{healthMultiplier * rank * 100:F0}% Health");
+        
+        if (criticalChanceBonus > 0)
+            sb.AppendLine($"+{criticalChanceBonus * rank * 100:F1}% Critical Chance");
+        
+        if (criticalDamageBonus > 0)
+            sb.AppendLine($"+{criticalDamageBonus * rank * 100:F0}% Critical Damage");
+        
+        if (lifestealBonus > 0)
+            sb.AppendLine($"+{lifestealBonus * rank * 100:F1}% Lifesteal");
+        
+        if (dodgeBonus > 0)
+            sb.AppendLine($"+{dodgeBonus * rank * 100:F1}% Dodge");
+        
+        if (armorBonus > 0)
+            sb.AppendLine($"+{armorBonus * rank * 100:F1}% Armor");
+        
+        if (xpBonus > 0)
+            sb.AppendLine($"+{xpBonus * rank * 100:F0}% XP Gain");
+        
+        if (goldBonus > 0)
+            sb.AppendLine($"+{goldBonus * rank * 100:F0}% Gold Gain");
+            
+        return sb.ToString();
     }
 }
 

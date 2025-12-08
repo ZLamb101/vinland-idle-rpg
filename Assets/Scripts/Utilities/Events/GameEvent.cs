@@ -68,6 +68,11 @@ public class CharacterNameChangedEvent : GameEvent
     public string newName;
 }
 
+public class CharacterClassChangedEvent : GameEvent
+{
+    public string newClass;
+}
+
 public class CharacterHealthChangedEvent : GameEvent
 {
     public float currentHealth;

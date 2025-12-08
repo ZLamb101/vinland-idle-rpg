@@ -50,6 +50,7 @@ public class TalentPanel : MonoBehaviour
         {
             EventBus.Subscribe<TalentPointsChangedEvent>(UpdatePointsDisplay);
             EventBus.Subscribe<TalentUnlockedEvent>(OnTalentUnlocked);
+            EventBus.Subscribe<CharacterClassChangedEvent>(OnClassChanged);
         }
         
         // Setup tab buttons
@@ -85,6 +86,7 @@ public class TalentPanel : MonoBehaviour
     {
         EventBus.Unsubscribe<TalentPointsChangedEvent>(UpdatePointsDisplay);
         EventBus.Unsubscribe<TalentUnlockedEvent>(OnTalentUnlocked);
+        EventBus.Unsubscribe<CharacterClassChangedEvent>(OnClassChanged);
     }
     
     void CreateTalentButtons()
@@ -98,10 +100,26 @@ public class TalentPanel : MonoBehaviour
         }
         talentButtons.Clear();
         
+        // Get player class
+        var characterService = Services.Get<ICharacterService>();
+        CharacterClass playerClass = CharacterClass.All; // Default if not found
+        
+        if (characterService != null)
+        {
+            string classStr = characterService.GetCharacterClass();
+            playerClass = CharacterClassHelper.ParseFromString(classStr);
+        }
+        
         // Create button for each talent
         foreach (TalentData talent in allTalents)
         {
             if (talent == null) continue;
+            
+            // Filter by class
+            if (!CharacterClassHelper.IsClassAllowed(talent.requiredClass, playerClass))
+            {
+                continue;
+            }
             
             GameObject buttonObj = Instantiate(talentButtonPrefab, talentContainer);
             TalentButton talentButton = buttonObj.GetComponent<TalentButton>();
@@ -195,6 +213,13 @@ public class TalentPanel : MonoBehaviour
     public void HideTooltip()
     {
         EventBus.Publish(new TooltipHideEvent());
+    }
+    
+
+    
+    void OnClassChanged(CharacterClassChangedEvent e)
+    {
+        CreateTalentButtons();
     }
     
     void OnTalentUnlocked(TalentUnlockedEvent e)

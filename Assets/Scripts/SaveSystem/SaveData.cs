@@ -51,7 +51,11 @@ public class SaveData
     public List<EquipmentSlotData> equippedItemsList = new List<EquipmentSlotData>();
     
     // Talents
+    // Dictionary is not serializable by JsonUtility, so we use a list for saving
+    public List<TalentSaveData> savedTalents = new List<TalentSaveData>();
+    [NonSerialized]
     public Dictionary<string, int> unlockedTalents = new Dictionary<string, int>();
+    
     public int unspentTalentPoints = 0;
     public int totalTalentPoints = 0;
     
@@ -166,12 +170,13 @@ public class SaveData
             data.unspentTalentPoints = talentService.GetUnspentPoints();
             data.totalTalentPoints = talentService.GetTotalPoints();
             
+            data.savedTalents.Clear();
             var talents = talentService.GetAllUnlockedTalents();
             foreach (var kvp in talents)
             {
                 if (kvp.Key != null)
                 {
-                    data.unlockedTalents[kvp.Key.name] = kvp.Value;
+                    data.savedTalents.Add(new TalentSaveData(kvp.Key.name, kvp.Value));
                 }
             }
         }
@@ -409,8 +414,18 @@ public class SaveData
         // Talents
         if (Services.TryGet<ITalentService>(out var talentService))
         {
-            talentService.LoadTalentData(unlockedTalents, unspentTalentPoints, totalTalentPoints);
-            Debug.Log($"[SaveData] Loaded talents: {unlockedTalents.Count} unlocked, {unspentTalentPoints} unspent points");
+            // Convert list back to dictionary
+            Dictionary<string, int> talentDict = new Dictionary<string, int>();
+            if (savedTalents != null)
+            {
+                foreach (var st in savedTalents)
+                {
+                    talentDict[st.talentName] = st.rank;
+                }
+            }
+            
+            talentService.LoadTalentData(talentDict, unspentTalentPoints, totalTalentPoints);
+            Debug.Log($"[SaveData] Loaded talents: {talentDict.Count} unlocked, {unspentTalentPoints} unspent points");
         }
         
         // Note: Crafting data is loaded from AccountSaveData in CraftingManager.Awake() (account-wide)
@@ -437,6 +452,22 @@ public class SaveData
                 Debug.Log("[SaveData] No saved action bar skills - starting with empty action bar");
             }
         }
+    }
+}
+
+/// <summary>
+/// Serializable talent data
+/// </summary>
+[System.Serializable]
+public class TalentSaveData
+{
+    public string talentName;
+    public int rank;
+    
+    public TalentSaveData(string name, int rank)
+    {
+        this.talentName = name;
+        this.rank = rank;
     }
 }
 

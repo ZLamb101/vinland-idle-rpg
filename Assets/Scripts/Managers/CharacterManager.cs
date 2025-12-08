@@ -253,6 +253,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
     public void SetCharacterClass(string newClass)
     {
         characterData.characterClass = newClass;
+        EventBus.Publish(new CharacterClassChangedEvent { newClass = newClass });
     }
     
     // --- Talent-Modified Stats ---
@@ -556,6 +557,7 @@ public class CharacterManager : MonoBehaviour, ICharacterService
         EventBus.Publish(new CharacterLevelChangedEvent { newLevel = characterData.level });
         EventBus.Publish(new CharacterGoldChangedEvent { newGold = characterData.gold, goldChanged = 0 });
         EventBus.Publish(new CharacterNameChangedEvent { newName = characterData.characterName });
+        EventBus.Publish(new CharacterClassChangedEvent { newClass = characterData.characterClass });
         EventBus.Publish(new CharacterHealthChangedEvent { currentHealth = characterData.currentHealth, maxHealth = characterData.GetMaxHealth(), healthChanged = 0 });
     }
     
