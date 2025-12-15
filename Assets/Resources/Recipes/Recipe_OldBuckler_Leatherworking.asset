@@ -17,8 +17,11 @@ MonoBehaviour:
   description: Craft Old Buckler
   profession: 6
   levelRequired: 1
-  materials: []
+  materials:
+  - item: {fileID: 11400000, guid: b18c36f277537fb4b934db794ee9d44a, type: 2}
+    quantity: 3
   outputItem: {fileID: 11400000, guid: 773b213fadd62ab43850eccb5936f7e9, type: 2}
   outputQuantity: 1
   experienceGained: 10
   craftTime: 3
+  isDefaultUnlocked: 1

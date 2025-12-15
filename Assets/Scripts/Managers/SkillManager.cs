@@ -645,7 +645,6 @@ public class SkillManager : MonoBehaviour, ISkillService
                 ActiveEffect existing = playerBuffs.Find(e => e.IsFromSameSkill(skill));
                 if (existing != null)
                 {
-                    // Try to add stack, otherwise refresh
                     if (!existing.AddStack())
                     {
                         existing.Refresh();
@@ -702,7 +701,6 @@ public class SkillManager : MonoBehaviour, ISkillService
                 ActiveEffect existing = playerDebuffs.Find(e => e.IsFromSameSkill(skill));
                 if (existing != null)
                 {
-                    // Try to add stack, otherwise refresh
                     if (!existing.AddStack())
                     {
                         existing.Refresh();
@@ -724,7 +722,6 @@ public class SkillManager : MonoBehaviour, ISkillService
                 ActiveEffect existing = monsterEffects[targetIndex].Find(e => e.IsFromSameSkill(skill));
                 if (existing != null)
                 {
-                    // Try to add stack, otherwise refresh
                     if (!existing.AddStack())
                     {
                         existing.Refresh();
