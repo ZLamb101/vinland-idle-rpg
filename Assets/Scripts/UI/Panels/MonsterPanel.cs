@@ -61,10 +61,9 @@ public class MonsterPanel : MonoBehaviour
             return;
         }
         
-        // Set position (use absolute pixel coordinates directly)
+        // Set position
         if (rectTransform != null)
         {
-            // Use position directly as anchored position (absolute pixel coordinates)
             rectTransform.anchoredPosition = position;
         }
         
@@ -92,6 +91,17 @@ public class MonsterPanel : MonoBehaviour
         }
         
         gameObject.SetActive(true);
+    }
+    
+    /// <summary>
+    /// Update the position of this monster panel (called during screen resize)
+    /// </summary>
+    public void UpdatePosition(Vector2 position)
+    {
+        if (rectTransform != null)
+        {
+            rectTransform.anchoredPosition = position;
+        }
     }
     
     void OnFightClicked()

@@ -41,6 +41,8 @@ public class GameLog : MonoBehaviour, IGameLogService
     private List<GameObject> combatLogEntries = new List<GameObject>();
     private bool isShowingCombatLog = false;
     private ICharacterService characterService; // Cached character service reference
+    private ISettingsService settingsService; // For saving UI position
+    private Canvas parentCanvas;
     
     void Awake()
     {
@@ -79,11 +81,101 @@ public class GameLog : MonoBehaviour, IGameLogService
         SetupDragging();
         SetupClickThrough();
         
+        // Get parent canvas for position calculations
+        parentCanvas = GetComponentInParent<Canvas>();
+        
+        // Get settings service for loading/saving position
+        if (Services.TryGet<ISettingsService>(out settingsService))
+        {
+            LoadSavedPosition();
+        }
+        
+        // Subscribe to drag end events to save position
+        EventBus.Subscribe<ScreenResizedEvent>(OnScreenResized);
+        
         // Start with game log tab
         SwitchToTab(false);
         
         // Subscribe to character events
         RefreshCharacterSubscription();
+    }
+    
+    void OnScreenResized(ScreenResizedEvent e)
+    {
+        // Ensure GameLog stays on screen after resize
+        if (logPanelRect != null && parentCanvas != null)
+        {
+            RectTransform canvasRect = parentCanvas.GetComponent<RectTransform>();
+            if (canvasRect != null)
+            {
+                Vector2 panelSize = logPanelRect.rect.size;
+                Vector2 clampedPosition = WorldPositionCalculator.ClampToScreen(
+                    logPanelRect.anchoredPosition,
+                    panelSize,
+                    canvasRect
+                );
+                logPanelRect.anchoredPosition = clampedPosition;
+                
+                // Save new position
+                SavePosition();
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Load saved GameLog position from settings
+    /// </summary>
+    void LoadSavedPosition()
+    {
+        if (settingsService == null || logPanelRect == null || parentCanvas == null)
+            return;
+        
+        SettingsData settings = settingsService.GetSettings();
+        if (settings == null)
+            return;
+        
+        // Check if we have a saved position (x >= 0 means we have saved data)
+        if (settings.gameLogPosition.x >= 0f)
+        {
+            RectTransform canvasRect = parentCanvas.GetComponent<RectTransform>();
+            if (canvasRect != null)
+            {
+                Vector2 pixelPosition = WorldPositionCalculator.ScreenPercentageToPixel(
+                    settings.gameLogPosition,
+                    canvasRect
+                );
+                
+                logPanelRect.anchoredPosition = pixelPosition;
+                Debug.Log($"[GameLog] Loaded saved position: {settings.gameLogPosition} -> {pixelPosition}");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Save current GameLog position to settings (as screen percentage)
+    /// </summary>
+    void SavePosition()
+    {
+        if (settingsService == null || logPanelRect == null || parentCanvas == null)
+            return;
+        
+        RectTransform canvasRect = parentCanvas.GetComponent<RectTransform>();
+        if (canvasRect != null)
+        {
+            Vector2 currentPosition = logPanelRect.anchoredPosition;
+            Vector2 percentagePosition = WorldPositionCalculator.PixelToScreenPercentage(
+                currentPosition,
+                canvasRect
+            );
+            
+            SettingsData settings = settingsService.GetSettings();
+            if (settings != null)
+            {
+                settings.gameLogPosition = percentagePosition;
+                settingsService.SaveSettings();
+                Debug.Log($"[GameLog] Saved position: {currentPosition} -> {percentagePosition}");
+            }
+        }
     }
     
     /// <summary>
@@ -106,9 +198,13 @@ public class GameLog : MonoBehaviour, IGameLogService
     
     void OnDestroy()
     {
+        // Save position before destroying
+        SavePosition();
+        
         // Unsubscribe from CharacterManager events
         EventBus.Unsubscribe<CharacterLevelUpEvent>(OnLevelUp);
         EventBus.Unsubscribe<ProfessionLevelUpEvent>(OnProfessionLevelUp);
+        EventBus.Unsubscribe<ScreenResizedEvent>(OnScreenResized);
         
         // Only unregister if we're the actual instance
         if (instance == this)
@@ -238,12 +334,15 @@ public class GameLog : MonoBehaviour, IGameLogService
         
         EnsureContentSetup();
         
+        DraggablePanel dragHandler = null;
+        
         if (dragHandle != null)
         {
-            DraggablePanel dragHandler = dragHandle.GetComponent<DraggablePanel>();
+            dragHandler = dragHandle.GetComponent<DraggablePanel>();
             if (dragHandler == null)
                 dragHandler = dragHandle.AddComponent<DraggablePanel>();
             dragHandler.targetPanel = logPanelRect;
+            dragHandler.constrainToScreen = true;
             
             if (dragHandle.GetComponent<Graphic>() == null)
             {
@@ -257,10 +356,44 @@ public class GameLog : MonoBehaviour, IGameLogService
         }
         else
         {
-            DraggablePanel dragHandler = logPanelRect.GetComponent<DraggablePanel>();
+            dragHandler = logPanelRect.GetComponent<DraggablePanel>();
             if (dragHandler == null)
                 dragHandler = logPanelRect.gameObject.AddComponent<DraggablePanel>();
             dragHandler.targetPanel = logPanelRect;
+            dragHandler.constrainToScreen = true;
+        }
+        
+        // Subscribe to drag end events to save position (we'll hook into the OnEndDrag via a custom event)
+        // Note: DraggablePanel already handles screen clamping, we just need to save after drag ends
+        StartCoroutine(WatchForDragEnd(dragHandler));
+    }
+    
+    /// <summary>
+    /// Watch for when dragging ends to save position
+    /// </summary>
+    System.Collections.IEnumerator WatchForDragEnd(DraggablePanel dragHandler)
+    {
+        if (dragHandler == null)
+            yield break;
+        
+        bool wasDragging = false;
+        
+        while (true)
+        {
+            // Check if dragging state changed
+            bool isDraggingNow = dragHandler.GetType()
+                .GetField("isDragging", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.GetValue(dragHandler) as bool? ?? false;
+            
+            // If we were dragging and now we're not, save position
+            if (wasDragging && !isDraggingNow)
+            {
+                SavePosition();
+            }
+            
+            wasDragging = isDraggingNow;
+            
+            yield return new WaitForSeconds(0.1f);
         }
     }
     

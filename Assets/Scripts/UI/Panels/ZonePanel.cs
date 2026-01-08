@@ -45,6 +45,7 @@ public class ZonePanel : MonoBehaviour
     private List<GameObject> currentConnectionButtons = new List<GameObject>(); // Track spawned connection buttons
 
     private IZoneService zoneService;
+    private RectTransform backgroundRectTransform;
 
     void Start()
     {
@@ -55,8 +56,17 @@ public class ZonePanel : MonoBehaviour
             return;
         }
 
+        // Get background RectTransform for position calculations
+        if (backgroundImage != null)
+        {
+            backgroundRectTransform = backgroundImage.GetComponent<RectTransform>();
+        }
+
         // Subscribe to zone changes via EventBus
         EventBus.Subscribe<ZoneChangedEvent>(OnZoneChanged);
+        
+        // Subscribe to resize events
+        EventBus.Subscribe<ScreenResizedEvent>(OnScreenResized);
         
         // Setup navigation buttons
         if (previousZoneButton != null)
@@ -102,6 +112,7 @@ public class ZonePanel : MonoBehaviour
     {
         // Unsubscribe from EventBus
         EventBus.Unsubscribe<ZoneChangedEvent>(OnZoneChanged);
+        EventBus.Unsubscribe<ScreenResizedEvent>(OnScreenResized);
     }
 
     void OnZoneChanged(ZoneChangedEvent e)
@@ -122,6 +133,79 @@ public class ZonePanel : MonoBehaviour
 
         UpdateZoneDisplay();
         UpdateNavigationButtons();
+    }
+    
+    void OnScreenResized(ScreenResizedEvent e)
+    {
+        // Reposition all world objects when screen is resized
+        RepositionWorldObjects();
+    }
+    
+    /// <summary>
+    /// Reposition all world objects based on current screen size
+    /// </summary>
+    void RepositionWorldObjects()
+    {
+        if (backgroundRectTransform == null)
+            return;
+        
+        ZoneData currentZone = zoneService?.GetCurrentZone();
+        if (currentZone == null)
+            return;
+        
+        // Reposition NPCs
+        List<ZoneNPCEntry> npcEntries = currentZone.GetNPCs();
+        if (npcEntries != null && currentNPCPanels.Count == npcEntries.Count)
+        {
+            for (int i = 0; i < npcEntries.Count; i++)
+            {
+                if (currentNPCPanels[i] != null)
+                {
+                    NPCPanel npcPanel = currentNPCPanels[i].GetComponent<NPCPanel>();
+                    if (npcPanel != null)
+                    {
+                        Vector2 screenPos = npcEntries[i].GetScreenPosition(backgroundRectTransform);
+                        npcPanel.UpdatePosition(screenPos);
+                    }
+                }
+            }
+        }
+        
+        // Reposition Monsters
+        List<ZoneMonsterEntry> monsterEntries = currentZone.GetMonsterEntries();
+        if (monsterEntries != null && currentMonsterPanels.Count == monsterEntries.Count)
+        {
+            for (int i = 0; i < monsterEntries.Count; i++)
+            {
+                if (currentMonsterPanels[i] != null)
+                {
+                    MonsterPanel monsterPanel = currentMonsterPanels[i].GetComponent<MonsterPanel>();
+                    if (monsterPanel != null)
+                    {
+                        Vector2 screenPos = monsterEntries[i].GetScreenPosition(backgroundRectTransform);
+                        monsterPanel.UpdatePosition(screenPos);
+                    }
+                }
+            }
+        }
+        
+        // Reposition Resources
+        List<ZoneResourceEntry> resourceEntries = currentZone.GetResourceEntries();
+        if (resourceEntries != null && currentResourcePanels.Count == resourceEntries.Count)
+        {
+            for (int i = 0; i < resourceEntries.Count; i++)
+            {
+                if (currentResourcePanels[i] != null)
+                {
+                    ResourcePanel resourcePanel = currentResourcePanels[i].GetComponent<ResourcePanel>();
+                    if (resourcePanel != null)
+                    {
+                        Vector2 screenPos = resourceEntries[i].GetScreenPosition(backgroundRectTransform);
+                        resourcePanel.UpdatePosition(screenPos);
+                    }
+                }
+            }
+        }
     }
 
     void UpdateZoneDisplay()
@@ -148,6 +232,9 @@ public class ZonePanel : MonoBehaviour
             {
                 backgroundImage.sprite = currentZone.backgroundImage;
                 backgroundImage.gameObject.SetActive(true);
+                
+                // Update background RectTransform reference
+                backgroundRectTransform = backgroundImage.GetComponent<RectTransform>();
             }
             else
             {
@@ -267,7 +354,9 @@ public class ZonePanel : MonoBehaviour
             
             if (monsterPanel != null)
             {
-                monsterPanel.Initialize(monsterEntry.monster, monsterEntry.position);
+                // Calculate screen position based on background size
+                Vector2 screenPos = monsterEntry.GetScreenPosition(backgroundRectTransform);
+                monsterPanel.Initialize(monsterEntry.monster, screenPos);
                 currentMonsterPanels.Add(monsterPanelObj);
             }
             else
@@ -329,7 +418,9 @@ public class ZonePanel : MonoBehaviour
             
             if (npcPanel != null)
             {
-                npcPanel.Initialize(npcEntry.npc, npcEntry.position);
+                // Calculate screen position based on background size
+                Vector2 screenPos = npcEntry.GetScreenPosition(backgroundRectTransform);
+                npcPanel.Initialize(npcEntry.npc, screenPos);
                 currentNPCPanels.Add(npcPanelObj);
             }
             else
@@ -391,7 +482,9 @@ public class ZonePanel : MonoBehaviour
             
             if (resourcePanel != null)
             {
-                resourcePanel.Initialize(resourceEntry.resource, resourceEntry.position);
+                // Calculate screen position based on background size
+                Vector2 screenPos = resourceEntry.GetScreenPosition(backgroundRectTransform);
+                resourcePanel.Initialize(resourceEntry.resource, screenPos);
                 currentResourcePanels.Add(resourcePanelObj);
             }
             else

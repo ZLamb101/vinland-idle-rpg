@@ -76,10 +76,9 @@ public class ResourcePanel : MonoBehaviour
             return;
         }
         
-        // Set position (use absolute pixel coordinates directly)
+        // Set position
         if (rectTransform != null)
         {
-            // Use position directly as anchored position (absolute pixel coordinates)
             rectTransform.anchoredPosition = position;
         }
         
@@ -342,6 +341,17 @@ public class ResourcePanel : MonoBehaviour
         
         // Setup and start animation
         dropVisual.Setup(itemIcon, quantity, spawnPosition);
+    }
+    
+    /// <summary>
+    /// Update the position of this resource panel (called during screen resize)
+    /// </summary>
+    public void UpdatePosition(Vector2 position)
+    {
+        if (rectTransform != null)
+        {
+            rectTransform.anchoredPosition = position;
+        }
     }
     
     /// <summary>

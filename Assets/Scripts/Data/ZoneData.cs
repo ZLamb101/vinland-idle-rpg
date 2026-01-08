@@ -10,8 +10,25 @@ public class ZoneNPCEntry
     [Tooltip("The NPC data")]
     public NPCData npc;
     
-    [Tooltip("Position of the NPC in the zone (absolute pixel coordinates - anchored position)")]
+    [Tooltip("Position of the NPC in the zone (normalized 0-1 coordinates, or legacy absolute pixels if >2)")]
     public Vector2 position = new Vector2(0f, 0f);
+    
+    /// <summary>
+    /// Get the screen position for this NPC based on the background size.
+    /// Automatically converts legacy absolute pixel positions to normalized coordinates.
+    /// </summary>
+    public Vector2 GetScreenPosition(RectTransform backgroundRect)
+    {
+        Vector2 normalizedPos = position;
+        
+        // Auto-convert legacy absolute pixel positions (values > 2.0 indicate absolute pixels)
+        if (Mathf.Abs(position.x) > 2f || Mathf.Abs(position.y) > 2f)
+        {
+            normalizedPos = WorldPositionCalculator.PixelToNormalized(position);
+        }
+        
+        return WorldPositionCalculator.NormalizedToPixel(normalizedPos, backgroundRect);
+    }
 }
 
 /// <summary>
@@ -23,8 +40,25 @@ public class ZoneMonsterEntry
     [Tooltip("The monster data")]
     public MonsterData monster;
     
-    [Tooltip("Position of the monster in the zone (absolute pixel coordinates - anchored position)")]
+    [Tooltip("Position of the monster in the zone (normalized 0-1 coordinates, or legacy absolute pixels if >2)")]
     public Vector2 position = new Vector2(0f, 0f);
+    
+    /// <summary>
+    /// Get the screen position for this monster based on the background size.
+    /// Automatically converts legacy absolute pixel positions to normalized coordinates.
+    /// </summary>
+    public Vector2 GetScreenPosition(RectTransform backgroundRect)
+    {
+        Vector2 normalizedPos = position;
+        
+        // Auto-convert legacy absolute pixel positions (values > 2.0 indicate absolute pixels)
+        if (Mathf.Abs(position.x) > 2f || Mathf.Abs(position.y) > 2f)
+        {
+            normalizedPos = WorldPositionCalculator.PixelToNormalized(position);
+        }
+        
+        return WorldPositionCalculator.NormalizedToPixel(normalizedPos, backgroundRect);
+    }
 }
 
 /// <summary>
@@ -36,8 +70,25 @@ public class ZoneResourceEntry
     [Tooltip("The resource data")]
     public ResourceData resource;
     
-    [Tooltip("Position of the resource in the zone (absolute pixel coordinates - anchored position)")]
+    [Tooltip("Position of the resource in the zone (normalized 0-1 coordinates, or legacy absolute pixels if >2)")]
     public Vector2 position = new Vector2(0f, 0f);
+    
+    /// <summary>
+    /// Get the screen position for this resource based on the background size.
+    /// Automatically converts legacy absolute pixel positions to normalized coordinates.
+    /// </summary>
+    public Vector2 GetScreenPosition(RectTransform backgroundRect)
+    {
+        Vector2 normalizedPos = position;
+        
+        // Auto-convert legacy absolute pixel positions (values > 2.0 indicate absolute pixels)
+        if (Mathf.Abs(position.x) > 2f || Mathf.Abs(position.y) > 2f)
+        {
+            normalizedPos = WorldPositionCalculator.PixelToNormalized(position);
+        }
+        
+        return WorldPositionCalculator.NormalizedToPixel(normalizedPos, backgroundRect);
+    }
 }
 
 /// <summary>

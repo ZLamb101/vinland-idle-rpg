@@ -11,8 +11,13 @@ public class DraggablePanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
     [Header("Drag Settings")]
     public RectTransform targetPanel; // Panel to drag (if null, uses this GameObject's RectTransform)
     
+    [Header("Bounds Settings")]
+    [Tooltip("If true, keeps the panel within screen bounds during drag")]
+    public bool constrainToScreen = true;
+    
     private RectTransform rectTransform;
     private Canvas canvas;
+    private RectTransform canvasRect;
     private Vector2 lastMousePosition;
     private bool isDragging = false;
     
@@ -41,8 +46,26 @@ public class DraggablePanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         
         // Find canvas in parent hierarchy
         canvas = GetComponentInParent<Canvas>();
-        if (canvas == null)
+        if (canvas != null)
         {
+            canvasRect = canvas.GetComponent<RectTransform>();
+        }
+        
+        // Subscribe to resize events
+        EventBus.Subscribe<ScreenResizedEvent>(OnScreenResized);
+    }
+    
+    void OnDestroy()
+    {
+        EventBus.Unsubscribe<ScreenResizedEvent>(OnScreenResized);
+    }
+    
+    void OnScreenResized(ScreenResizedEvent e)
+    {
+        // Clamp position to screen bounds when screen is resized
+        if (constrainToScreen && rectTransform != null && canvasRect != null)
+        {
+            ClampToScreenBounds();
         }
     }
     
@@ -114,6 +137,12 @@ public class DraggablePanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
                 // Move the panel by updating its anchoredPosition
                 rectTransform.anchoredPosition += offset;
                 
+                // Clamp to screen bounds if enabled
+                if (constrainToScreen && canvasRect != null)
+                {
+                    ClampToScreenBounds();
+                }
+                
                 // Update last mouse position
                 lastMousePosition = localPointerPosition;
             }
@@ -123,7 +152,30 @@ public class DraggablePanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
     public void OnEndDrag(PointerEventData eventData)
     {
         isDragging = false;
-        // Optional: Add any cleanup or snap-to-grid logic here
+        
+        // Final clamp to ensure we're within bounds
+        if (constrainToScreen && canvasRect != null)
+        {
+            ClampToScreenBounds();
+        }
+    }
+    
+    /// <summary>
+    /// Clamp the panel position to stay within screen bounds
+    /// </summary>
+    void ClampToScreenBounds()
+    {
+        if (rectTransform == null || canvasRect == null)
+            return;
+        
+        Vector2 panelSize = rectTransform.rect.size;
+        Vector2 clampedPosition = WorldPositionCalculator.ClampToScreen(
+            rectTransform.anchoredPosition,
+            panelSize,
+            canvasRect
+        );
+        
+        rectTransform.anchoredPosition = clampedPosition;
     }
 }
 

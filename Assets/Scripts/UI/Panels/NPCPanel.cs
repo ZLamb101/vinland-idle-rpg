@@ -135,6 +135,17 @@ public class NPCPanel : MonoBehaviour
         gameObject.SetActive(true);
     }
     
+    /// <summary>
+    /// Update the position of this NPC panel (called during screen resize)
+    /// </summary>
+    public void UpdatePosition(Vector2 position)
+    {
+        if (rectTransform != null)
+        {
+            rectTransform.anchoredPosition = position;
+        }
+    }
+    
     void OnInteractButtonClicked()
     {
         if (npcData == null) return;

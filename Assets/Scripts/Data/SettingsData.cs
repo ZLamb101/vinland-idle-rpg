@@ -55,6 +55,16 @@ public class SettingsData
     public int professionsPanelKey = (int)KeyCode.K;
     public int settingsMenuKey = (int)KeyCode.Escape;
     
+    // ═══════════════════════════════════════
+    // UI Layout Settings
+    // ═══════════════════════════════════════
+    
+    /// <summary>
+    /// GameLog position as percentage of screen (0-1 range)
+    /// X = -1 means use default position
+    /// </summary>
+    public Vector2 gameLogPosition = new Vector2(-1f, -1f);
+    
     /// <summary>
     /// Create default settings
     /// </summary>
